@@ -124,7 +124,7 @@ function TabelaComparativo({ pessoas, periodoParcial }: { pessoas: PessoaComerci
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[560px] text-sm">
+      <table className="w-full text-sm sm:min-w-[560px]">
         <thead>
           <tr className="text-left text-xs text-fg/60">
             <th className="py-1.5 pr-3 font-normal">Pessoa</th>
@@ -139,12 +139,26 @@ function TabelaComparativo({ pessoas, periodoParcial }: { pessoas: PessoaComerci
           {linhas.map((linha) => (
             <tr
               key={linha.email}
-              className="cursor-pointer border-t border-border-2 hover:bg-bg/50"
+              className="cursor-pointer border-t border-border-2 outline-offset-[-2px] hover:bg-bg/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-fg"
+              role="button"
+              tabIndex={0}
               onClick={() => isolar(linha.email)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  isolar(linha.email);
+                }
+              }}
               title={`Ver visão individual de ${linha.nome ?? linha.email}`}
             >
-              <td className="py-1.5 pr-3 font-medium">{linha.nome ?? linha.email}</td>
-              <td className="hidden truncate py-1.5 pr-3 text-fg/60 sm:table-cell">{linha.planilhasOrigem.join(", ") || "—"}</td>
+              <td className="max-w-[110px] py-1.5 pr-3 font-medium sm:max-w-[180px]">
+                <span className="block truncate">{linha.nome ?? linha.email}</span>
+              </td>
+              <td className="hidden max-w-[220px] py-1.5 pr-3 text-fg/60 sm:table-cell">
+                <span className="block truncate" title={linha.planilhasOrigem.join(", ")}>
+                  {linha.planilhasOrigem.join(", ") || "—"}
+                </span>
+              </td>
               <td className="py-1.5 pr-3 text-right tabular-nums">
                 {linha.lancadas}/{linha.total}
               </td>

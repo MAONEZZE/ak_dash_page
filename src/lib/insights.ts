@@ -9,21 +9,6 @@ export interface ContagemStatus {
   sem_preenchimento: number;
 }
 
-/**
- * Conta métrica×pessoa por status — não pessoas, métricas individuais.
- * @deprecated usada só pelo `GraficoStatusPizza` antigo; o redesenho consome
- * `Consolidado.contagemStatus` (já exclui `naoDisponivel`) em vez desta.
- */
-export function contarStatus(pessoas: PessoaComercial[]): ContagemStatus {
-  const contagem: ContagemStatus = { atingido: 0, abaixo_da_meta: 0, sem_preenchimento: 0 };
-  for (const pessoa of pessoas) {
-    for (const metrica of pessoa.metricas) {
-      contagem[metrica.status] += 1;
-    }
-  }
-  return contagem;
-}
-
 function semLancamento(m: Metrica): boolean {
   return m.status === "sem_preenchimento";
 }
@@ -190,42 +175,6 @@ export function agregarPorPessoa(pessoas: PessoaComercial[], periodoParcial: boo
       cobertura: total > 0 ? lancadas / total : null,
     };
   });
-}
-
-export interface DeltaMetrica {
-  metrica: string;
-  nomeExibicao: string;
-  meta: number;
-  realizado: number;
-  deltaPercentual: number | null; // null quando meta é 0 (sem base pra comparar)
-}
-
-/**
- * Meta e realizado somados do time inteiro, por métrica — base do antigo gráfico de barra divergente.
- * @deprecated substituída por `agregarPorMetrica` (`GraficoRealizadoMeta`); mantida corrigida
- * (sem_preenchimento não soma) só até o `GraficoMetaBarra.tsx` ser removido no checkpoint 3.
- */
-export function deltaPorMetrica(pessoas: PessoaComercial[]): DeltaMetrica[] {
-  const acumulado = new Map<string, { nomeExibicao: string; meta: number; realizado: number }>();
-  for (const pessoa of pessoas) {
-    for (const metrica of pessoa.metricas) {
-      const atual = acumulado.get(metrica.metrica) ?? {
-        nomeExibicao: metrica.nome_exibicao,
-        meta: 0,
-        realizado: 0,
-      };
-      atual.meta += metrica.meta_periodo;
-      if (lancada(metrica)) atual.realizado += metrica.realizado;
-      acumulado.set(metrica.metrica, atual);
-    }
-  }
-  return Array.from(acumulado.entries()).map(([metrica, { nomeExibicao, meta, realizado }]) => ({
-    metrica,
-    nomeExibicao,
-    meta,
-    realizado,
-    deltaPercentual: meta > 0 ? Math.round(((realizado - meta) / meta) * 100) : null,
-  }));
 }
 
 /** Total do time por dia, para uma métrica escolhida — base do gráfico de linha. */

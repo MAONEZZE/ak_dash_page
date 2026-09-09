@@ -62,7 +62,13 @@ export function GraficoRealizadoMeta({ metricas }: Props) {
         </label>
       </div>
 
-      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full" role="img" aria-label="Realizado comparado à meta, por métrica">
+      <div className="overflow-x-auto">
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        style={{ width: Math.max(320, dados.length * 70), minWidth: "100%" }}
+        role="img"
+        aria-label="Realizado comparado à meta, por métrica"
+      >
         {Array.from({ length: DIVISOES + 1 }, (_, i) => {
           const valor = (domainMax / DIVISOES) * i;
           const yy = y(valor);
@@ -114,6 +120,7 @@ export function GraficoRealizadoMeta({ metricas }: Props) {
           );
         })}
       </svg>
+      </div>
     </div>
   );
 }

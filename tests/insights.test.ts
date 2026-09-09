@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  agregarConsolidado,
-  agregarPorMetrica,
-  agregarPorPessoa,
-  contarStatus,
-  deltaPorMetrica,
-  serieDoTimePorMetrica,
-} from "../src/lib/insights";
+import { agregarConsolidado, agregarPorMetrica, agregarPorPessoa, serieDoTimePorMetrica } from "../src/lib/insights";
 import type { Metrica, PessoaComercial } from "../src/lib/tipos-api";
 
 function metrica(parcial: Partial<Metrica> & Pick<Metrica, "metrica" | "status">): Metrica {
@@ -31,21 +24,6 @@ function pessoa(parcial: Partial<PessoaComercial>): PessoaComercial {
     ...parcial,
   };
 }
-
-describe("contarStatus", () => {
-  it("conta métrica×pessoa, não pessoas", () => {
-    const pessoas = [
-      pessoa({
-        metricas: [
-          metrica({ metrica: "a", status: "atingido" }),
-          metrica({ metrica: "b", status: "abaixo_da_meta" }),
-        ],
-      }),
-      pessoa({ metricas: [metrica({ metrica: "a", status: "atingido" })] }),
-    ];
-    expect(contarStatus(pessoas)).toEqual({ atingido: 2, abaixo_da_meta: 1, sem_preenchimento: 0 });
-  });
-});
 
 describe("agregarConsolidado", () => {
   it("sem_preenchimento não soma no realizado nem entra na média", () => {
@@ -214,24 +192,6 @@ describe("agregarPorPessoa", () => {
     const [linha] = agregarPorPessoa(pessoas, false);
     expect(linha.total).toBe(0);
     expect(linha.cobertura).toBeNull();
-  });
-});
-
-describe("deltaPorMetrica", () => {
-  it("soma meta e realizado do time por métrica e calcula % de delta, ignorando sem_preenchimento", () => {
-    const pessoas = [
-      pessoa({ metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "atingido", meta_periodo: 100, realizado: 120 })] }),
-      pessoa({ metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "sem_preenchimento", meta_periodo: 100, realizado: 0 })] }),
-    ];
-    const [delta] = deltaPorMetrica(pessoas);
-    expect(delta.meta).toBe(200);
-    expect(delta.realizado).toBe(120);
-    expect(delta.deltaPercentual).toBe(-40); // (120-200)/200
-  });
-
-  it("delta nulo quando meta é zero (sem base de comparação)", () => {
-    const pessoas = [pessoa({ metricas: [metrica({ metrica: "x", status: "atingido", meta_periodo: 0, realizado: 5 })] })];
-    expect(deltaPorMetrica(pessoas)[0].deltaPercentual).toBeNull();
   });
 });
 
