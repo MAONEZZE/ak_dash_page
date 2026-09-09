@@ -1,0 +1,249 @@
+import { describe, expect, it } from "vitest";
+import {
+  agregarConsolidado,
+  agregarPorMetrica,
+  agregarPorPessoa,
+  contarStatus,
+  deltaPorMetrica,
+  serieDoTimePorMetrica,
+} from "../src/lib/insights";
+import type { Metrica, PessoaComercial } from "../src/lib/tipos-api";
+
+function metrica(parcial: Partial<Metrica> & Pick<Metrica, "metrica" | "status">): Metrica {
+  return {
+    nome_exibicao: parcial.metrica,
+    meta_periodo: 0,
+    realizado: 0,
+    dias_com_lacuna: 0,
+    ...parcial,
+  };
+}
+
+function pessoa(parcial: Partial<PessoaComercial>): PessoaComercial {
+  return {
+    email: "a@teste.com",
+    nome: null,
+    metas_atingidas: { atingidas: 0, total: 0 },
+    metricas: [],
+    pontuacao_total: 0,
+    posicao: 1,
+    planilhas_origem: [],
+    ...parcial,
+  };
+}
+
+describe("contarStatus", () => {
+  it("conta métrica×pessoa, não pessoas", () => {
+    const pessoas = [
+      pessoa({
+        metricas: [
+          metrica({ metrica: "a", status: "atingido" }),
+          metrica({ metrica: "b", status: "abaixo_da_meta" }),
+        ],
+      }),
+      pessoa({ metricas: [metrica({ metrica: "a", status: "atingido" })] }),
+    ];
+    expect(contarStatus(pessoas)).toEqual({ atingido: 2, abaixo_da_meta: 1, sem_preenchimento: 0 });
+  });
+});
+
+describe("agregarConsolidado", () => {
+  it("sem_preenchimento não soma no realizado nem entra na média", () => {
+    const pessoas = [
+      pessoa({
+        metricas: [
+          metrica({ metrica: "a", status: "atingido", meta_periodo: 100, realizado: 100 }),
+          metrica({ metrica: "b", status: "sem_preenchimento", meta_periodo: 100, realizado: 0 }),
+        ],
+      }),
+    ];
+    const consolidado = agregarConsolidado(pessoas, false);
+    expect(consolidado.realizadoTotal).toBe(100);
+    expect(consolidado.metaTotal).toBe(200);
+    expect(consolidado.pctGeral).toBe(0.5);
+  });
+
+  it("atingido no limite exato conta como atingida", () => {
+    const pessoas = [pessoa({ metricas: [metrica({ metrica: "a", status: "atingido", meta_periodo: 50, realizado: 50 })] })];
+    const consolidado = agregarConsolidado(pessoas, false);
+    expect(consolidado.contagemStatus.atingido).toBe(1);
+    expect(consolidado.pctGeral).toBe(1);
+  });
+
+  it("metaTotal zero devolve pctGeral null, nunca NaN/Infinity", () => {
+    const pessoas = [pessoa({ metricas: [metrica({ metrica: "a", status: "sem_preenchimento", meta_periodo: 0, realizado: 0 })] })];
+    const consolidado = agregarConsolidado(pessoas, false);
+    expect(consolidado.pctGeral).toBeNull();
+    expect(Number.isNaN(consolidado.pctGeral)).toBe(false);
+  });
+
+  it("coberturaLancto null quando não há nenhuma métrica considerada", () => {
+    const consolidado = agregarConsolidado([], false);
+    expect(consolidado.coberturaLancto).toBeNull();
+    expect(consolidado.metaTotal).toBe(0);
+  });
+
+  it("mistura SDR+Closer produz união sem duplicar contagem", () => {
+    const pessoas = [
+      pessoa({
+        email: "dupla@teste.com",
+        metricas: [
+          metrica({ metrica: "conexoes_enviadas", status: "atingido", meta_periodo: 10, realizado: 10 }),
+          metrica({ metrica: "reunioes_realizadas", status: "abaixo_da_meta", meta_periodo: 5, realizado: 2 }),
+        ],
+      }),
+    ];
+    const consolidado = agregarConsolidado(pessoas, false);
+    expect(consolidado.contagemStatus.atingido).toBe(1);
+    expect(consolidado.contagemStatus.abaixo_da_meta).toBe(1);
+    expect(consolidado.realizadoTotal).toBe(12);
+  });
+
+  it("métrica naoDisponivel fica fora das contagens de status e do metaTotal", () => {
+    const pessoas = [
+      pessoa({
+        metricas: [
+          metrica({ metrica: "indicacoes_captadas", status: "sem_preenchimento", meta_periodo: 20, realizado: 0 }),
+          metrica({ metrica: "conexoes_enviadas", status: "atingido", meta_periodo: 10, realizado: 10 }),
+        ],
+      }),
+    ];
+    const consolidado = agregarConsolidado(pessoas, false);
+    expect(consolidado.naoDisponivelCount).toBe(1);
+    expect(consolidado.metaTotal).toBe(10);
+    expect(consolidado.contagemStatus.sem_preenchimento).toBe(0);
+    expect(consolidado.contagemStatus.atingido).toBe(1);
+  });
+
+  it("métrica naoDisponivel só se aplica em período fechado (periodo_parcial=false)", () => {
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "indicacoes_captadas", status: "sem_preenchimento", meta_periodo: 20, realizado: 0 })] }),
+    ];
+    const consolidado = agregarConsolidado(pessoas, true);
+    expect(consolidado.naoDisponivelCount).toBe(0);
+    expect(consolidado.contagemStatus.sem_preenchimento).toBe(1);
+  });
+});
+
+describe("agregarPorMetrica", () => {
+  it("soma meta e realizado do time por métrica, preservando dias_com_lacuna", () => {
+    const pessoas = [
+      pessoa({
+        metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "atingido", meta_periodo: 100, realizado: 120, dias_com_lacuna: 2 })],
+      }),
+      pessoa({
+        metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "abaixo_da_meta", meta_periodo: 100, realizado: 60, dias_com_lacuna: 5 })],
+      }),
+    ];
+    const [x] = agregarPorMetrica(pessoas, false);
+    expect(x.meta).toBe(200);
+    expect(x.realizado).toBe(180);
+    expect(x.diasComLacuna).toBe(7);
+    expect(x.lancadas).toBe(2);
+    expect(x.total).toBe(2);
+  });
+
+  it("sem_preenchimento não soma no realizado nem em lancadas", () => {
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "x", status: "sem_preenchimento", meta_periodo: 100, realizado: 0 })] }),
+    ];
+    const [x] = agregarPorMetrica(pessoas, false);
+    expect(x.realizado).toBe(0);
+    expect(x.lancadas).toBe(0);
+    expect(x.total).toBe(1);
+    expect(x.pct).toBeNull();
+  });
+
+  it("pct null quando meta é zero, nunca NaN/Infinity", () => {
+    const pessoas = [pessoa({ metricas: [metrica({ metrica: "x", status: "atingido", meta_periodo: 0, realizado: 5 })] })];
+    const [x] = agregarPorMetrica(pessoas, false);
+    expect(x.pct).toBeNull();
+  });
+
+  it("marca naoDisponivel e não soma meta/realizado da métrica em período fechado", () => {
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "indicacoes_captadas", status: "sem_preenchimento", meta_periodo: 20, realizado: 0 })] }),
+    ];
+    const [x] = agregarPorMetrica(pessoas, false);
+    expect(x.naoDisponivel).toBe(true);
+    expect(x.meta).toBe(0);
+    expect(x.pct).toBeNull();
+  });
+
+  it("mistura SDR+Closer produz união sem duplicar entradas por métrica", () => {
+    const pessoas = [
+      pessoa({
+        metricas: [
+          metrica({ metrica: "conexoes_enviadas", status: "atingido", meta_periodo: 10, realizado: 10 }),
+          metrica({ metrica: "reunioes_realizadas", status: "abaixo_da_meta", meta_periodo: 5, realizado: 2 }),
+        ],
+      }),
+    ];
+    const resultado = agregarPorMetrica(pessoas, false);
+    expect(resultado).toHaveLength(2);
+    expect(resultado.map((m) => m.metrica).sort()).toEqual(["conexoes_enviadas", "reunioes_realizadas"]);
+  });
+});
+
+describe("agregarPorPessoa", () => {
+  it("uma linha por pessoa com lançadas/atingidas/cobertura", () => {
+    const pessoas = [
+      pessoa({
+        email: "a@teste.com",
+        metricas: [
+          metrica({ metrica: "x", status: "atingido", meta_periodo: 10, realizado: 10 }),
+          metrica({ metrica: "y", status: "sem_preenchimento", meta_periodo: 10, realizado: 0 }),
+        ],
+      }),
+    ];
+    const [linha] = agregarPorPessoa(pessoas, false);
+    expect(linha.total).toBe(2);
+    expect(linha.lancadas).toBe(1);
+    expect(linha.atingidas).toBe(1);
+    expect(linha.realizado).toBe(10);
+    expect(linha.cobertura).toBe(0.5);
+  });
+
+  it("dias_com_lacuna e naoDisponivel preservados/excluídos corretamente", () => {
+    const pessoas = [
+      pessoa({
+        email: "b@teste.com",
+        metricas: [metrica({ metrica: "indicacoes_captadas", status: "sem_preenchimento", meta_periodo: 20, realizado: 0 })],
+      }),
+    ];
+    const [linha] = agregarPorPessoa(pessoas, false);
+    expect(linha.total).toBe(0);
+    expect(linha.cobertura).toBeNull();
+  });
+});
+
+describe("deltaPorMetrica", () => {
+  it("soma meta e realizado do time por métrica e calcula % de delta, ignorando sem_preenchimento", () => {
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "atingido", meta_periodo: 100, realizado: 120 })] }),
+      pessoa({ metricas: [metrica({ metrica: "x", nome_exibicao: "X", status: "sem_preenchimento", meta_periodo: 100, realizado: 0 })] }),
+    ];
+    const [delta] = deltaPorMetrica(pessoas);
+    expect(delta.meta).toBe(200);
+    expect(delta.realizado).toBe(120);
+    expect(delta.deltaPercentual).toBe(-40); // (120-200)/200
+  });
+
+  it("delta nulo quando meta é zero (sem base de comparação)", () => {
+    const pessoas = [pessoa({ metricas: [metrica({ metrica: "x", status: "atingido", meta_periodo: 0, realizado: 5 })] })];
+    expect(deltaPorMetrica(pessoas)[0].deltaPercentual).toBeNull();
+  });
+});
+
+describe("serieDoTimePorMetrica", () => {
+  it("extrai a série de uma métrica, zero quando ausente no dia", () => {
+    const serie = [
+      { dia: 1, metricas: { x: 10 } },
+      { dia: 2, metricas: { y: 5 } },
+    ];
+    expect(serieDoTimePorMetrica(serie, "x")).toEqual([
+      { dia: 1, valor: 10 },
+      { dia: 2, valor: 0 },
+    ]);
+  });
+});

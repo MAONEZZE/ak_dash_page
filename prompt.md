@@ -1,0 +1,1 @@
+- os dados na pasta dados_template já estão atualizados com os emails dos sdrs e closers

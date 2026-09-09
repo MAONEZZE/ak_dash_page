@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de marca — únicos hexes crus permitidos no projeto inteiro.
+ * Ver docs/plans/dashboard-akeel.md § Identidade visual.
+ * tests/brand.test.ts falha se aparecer hex fora daqui, os hexes banidos do
+ * blog, ou os pares proibidos de contraste.
+ *
+ * status-bad (azul) é hex novo, validado com a skill de dataviz
+ * (scripts/validate_palette.js): verde-da-marca vs vermelho falha CVD
+ * (ΔE ~4-5, bem abaixo do piso de 6-8) pra daltonismo vermelho-verde —
+ * nenhum tom de vermelho resolve isso contra este verde. Azul passa limpo
+ * (light #2f6b0f×#1d4ed8 ΔE 29.4 protan; dark #8edd65×#3987e5 ΔE 34.0 protan).
+ */
+:root {
+  --color-accent: #8edd65;
+  --color-accent-ink: #2f6b0f;
+  --color-bg-dark-2: #0c1b1f;
+  --color-offwhite: #f4f4f4;
+  --color-ink: #0f1a1c;
+  --color-status-bad-light: #1d4ed8;
+  --color-status-bad-dark: #3987e5;
+
+  /* semânticos — tema claro (default): accent-ink é o par de texto/UI */
+  --bg: var(--color-offwhite);
+  --bg-2: var(--color-offwhite);
+  --fg: var(--color-ink);
+  --accent-fg: var(--color-accent-ink);
+  --border-2: color-mix(in srgb, var(--color-ink) 12%, transparent);
+
+  /* status de métrica/gráfico — sempre com ícone+texto, nunca só cor */
+  --status-good: var(--color-accent-ink);
+  --status-bad: var(--color-status-bad-light);
+  --status-neutro: color-mix(in srgb, var(--fg) 40%, transparent);
+
+  /*
+   * Redesenho Comercial — derivados de --fg, que já inverte por tema
+   * (ver bloco [data-theme="dark"] abaixo), então não precisam de
+   * equivalente próprio no dark: a mistura já resolve certo nos dois temas.
+   */
+  --progress-track: color-mix(in srgb, var(--fg) 10%, transparent);
+  --border-forte: color-mix(in srgb, var(--fg) 32%, transparent);
+  --hachura-a: color-mix(in srgb, var(--fg) 22%, transparent);
+  --hachura-b: transparent;
+}
+
+[data-theme="dark"] {
+  /* tema escuro: accent (não accent-ink) é o par de texto/UI */
+  --bg: var(--color-ink);
+  --bg-2: var(--color-bg-dark-2);
+  --fg: var(--color-offwhite);
+  --accent-fg: var(--color-accent);
+  --border-2: color-mix(in srgb, var(--color-offwhite) 20%, transparent);
+
+  --status-good: var(--color-accent);
+  --status-bad: var(--color-status-bad-dark);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-fg: var(--fg);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent: var(--color-accent);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-offwhite: var(--color-offwhite);
+  --color-ink: var(--color-ink);
+  --color-border-2: var(--border-2);
+  --color-status-good: var(--status-good);
+  --color-status-bad: var(--status-bad);
+  --color-status-neutro: var(--status-neutro);
+  --color-progress-track: var(--progress-track);
+  --color-border-forte: var(--border-forte);
+  --color-hachura-a: var(--hachura-a);
+  --color-hachura-b: var(--hachura-b);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+}

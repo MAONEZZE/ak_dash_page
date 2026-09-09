@@ -1,0 +1,160 @@
+{
+  "periodo": {
+    "granularidade": "mes",
+    "inicio": "2026-04-01",
+    "fim": "2026-04-30"
+  },
+  "periodo_parcial": false,
+  "avisos": [
+    "Pessoa 'jenniferpamplona007@gmail.com' aparece em mais de uma planilha (Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv, Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv) — realizado e meta somados; confirme se são duas contas reais ou dado desatualizado",
+    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '1' na coluna 'Conexões Aceitas'",
+    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '39' na coluna 'Abordagens'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '16' na coluna 'Conexões Aceitas'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '38' na coluna 'Conexões Enviadas'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '64' na coluna 'Abordagens'"
+  ],
+  "pessoas": [
+    {
+      "email": "alex.muniz@akeel.com.br",
+      "nome": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 4
+      },
+      "metricas": [
+        {
+          "metrica": "ligacoes_realizadas",
+          "nome_exibicao": "Ligações Realizadas",
+          "meta_periodo": 154,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        },
+        {
+          "metrica": "reunioes_agendadas",
+          "nome_exibicao": "Reuniões Agendadas",
+          "meta_periodo": 88,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        },
+        {
+          "metrica": "reunioes_realizadas",
+          "nome_exibicao": "Reuniões Realizadas",
+          "meta_periodo": 88,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações",
+          "meta_periodo": 330,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        }
+      ],
+      "pontuacao_total": 0,
+      "planilhas_origem": [
+        "Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv"
+      ],
+      "posicao": 2
+    },
+    {
+      "email": "jacob@akeel.com.br",
+      "nome": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 4
+      },
+      "metricas": [
+        {
+          "metrica": "ligacoes_realizadas",
+          "nome_exibicao": "Ligações Realizadas",
+          "meta_periodo": 154,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        },
+        {
+          "metrica": "reunioes_agendadas",
+          "nome_exibicao": "Reuniões Agendadas",
+          "meta_periodo": 88,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        },
+        {
+          "metrica": "reunioes_realizadas",
+          "nome_exibicao": "Reuniões Realizadas",
+          "meta_periodo": 88,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações",
+          "meta_periodo": 220,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        }
+      ],
+      "pontuacao_total": 0,
+      "planilhas_origem": [
+        "Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv"
+      ],
+      "posicao": 2
+    },
+    {
+      "email": "thalyson.teixeira@akeel.com.br",
+      "nome": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 4
+      },
+      "metricas": [
+        {
+          "metrica": "ligacoes_realizadas",
+          "nome_exibicao": "Ligações Realizadas",
+          "meta_periodo": 154,
+          "realizado": 14,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 26
+        },
+        {
+          "metrica": "reunioes_agendadas",
+          "nome_exibicao": "Reuniões Agendadas",
+          "meta_periodo": 88,
+          "realizado": 16,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        },
+        {
+          "metrica": "reunioes_realizadas",
+          "nome_exibicao": "Reuniões Realizadas",
+          "meta_periodo": 88,
+          "realizado": 10,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 26
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações",
+          "meta_periodo": 176,
+          "realizado": 2,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 26
+        }
+      ],
+      "pontuacao_total": 5,
+      "planilhas_origem": [
+        "Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv"
+      ],
+      "posicao": 1
+    }
+  ],
+  "serie_diaria": []
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "nome": "Nathan",
+    "cargo": "SDR",
+    "email": "nathanmayumi5@gmail.com"
+  },
+  {
+    "id": "2",
+    "nome": "Thalyson Teixeira",
+    "cargo": "Closer",
+    "email": "thalyson.teixeira@akeel.com.br"
+  },
+  {
+    "id": "3",
+    "nome": "Jennifer",
+    "cargo": "SDR",
+    "email": "jenniferpamplona007@gmail.com"
+  },
+  {
+    "id": "4",
+    "nome": "Alex Muniz",
+    "cargo": "Closer",
+    "email": "alex.muniz@akeel.com.br"
+  },
+  {
+    "id": "5",
+    "nome": "Jacob",
+    "cargo": "Closer",
+    "email": "jacob@akeel.com.br"
+  }
+]

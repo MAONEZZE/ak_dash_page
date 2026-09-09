@@ -1,0 +1,178 @@
+{
+  "periodo": {
+    "granularidade": "mes",
+    "inicio": "2026-04-01",
+    "fim": "2026-04-30"
+  },
+  "periodo_parcial": false,
+  "avisos": [
+    "Pessoa 'jenniferpamplona007@gmail.com' aparece em mais de uma planilha (Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv, Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv) — realizado e meta somados; confirme se são duas contas reais ou dado desatualizado",
+    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '1' na coluna 'Conexões Aceitas'",
+    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '39' na coluna 'Abordagens'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '16' na coluna 'Conexões Aceitas'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '38' na coluna 'Conexões Enviadas'",
+    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '64' na coluna 'Abordagens'"
+  ],
+  "pessoas": [
+    {
+      "email": "jenniferpamplona007@gmail.com",
+      "nome": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 8
+      },
+      "metricas": [
+        {
+          "metrica": "conexoes_enviadas",
+          "nome_exibicao": "Conexões Enviadas",
+          "meta_periodo": 1760,
+          "realizado": 327,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 48
+        },
+        {
+          "metrica": "conexoes_aceitas",
+          "nome_exibicao": "Conexões Aceitas",
+          "meta_periodo": 880,
+          "realizado": 140,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 48
+        },
+        {
+          "metrica": "abordagens",
+          "nome_exibicao": "Abordagens",
+          "meta_periodo": 880,
+          "realizado": 263,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 48
+        },
+        {
+          "metrica": "inmails_enviados",
+          "nome_exibicao": "InMails Enviados",
+          "meta_periodo": 220,
+          "realizado": 101,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 48
+        },
+        {
+          "metrica": "follow_ups",
+          "nome_exibicao": "Follow-ups",
+          "meta_periodo": 6600,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 55
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "meta_periodo": 176,
+          "realizado": 4,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 55
+        },
+        {
+          "metrica": "ligacoes_agendadas",
+          "nome_exibicao": "Ligações Agendadas",
+          "meta_periodo": 308,
+          "realizado": 23,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 54
+        },
+        {
+          "metrica": "indicacoes_captadas",
+          "nome_exibicao": "Indicações Captadas",
+          "meta_periodo": 176,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 55
+        }
+      ],
+      "pontuacao_total": 19,
+      "planilhas_origem": [
+        "Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv",
+        "Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv"
+      ],
+      "posicao": 1
+    },
+    {
+      "email": "nathanmayumi5@gmail.com",
+      "nome": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 8
+      },
+      "metricas": [
+        {
+          "metrica": "conexoes_enviadas",
+          "nome_exibicao": "Conexões Enviadas",
+          "meta_periodo": 880,
+          "realizado": 226,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "conexoes_aceitas",
+          "nome_exibicao": "Conexões Aceitas",
+          "meta_periodo": 440,
+          "realizado": 113,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "abordagens",
+          "nome_exibicao": "Abordagens",
+          "meta_periodo": 440,
+          "realizado": 353,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "inmails_enviados",
+          "nome_exibicao": "InMails Enviados",
+          "meta_periodo": 110,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "follow_ups",
+          "nome_exibicao": "Follow-ups",
+          "meta_periodo": 3300,
+          "realizado": 0,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 25
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "meta_periodo": 88,
+          "realizado": 11,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "ligacoes_agendadas",
+          "nome_exibicao": "Ligações Agendadas",
+          "meta_periodo": 154,
+          "realizado": 22,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 24
+        },
+        {
+          "metrica": "indicacoes_captadas",
+          "nome_exibicao": "Indicações Captadas",
+          "meta_periodo": 88,
+          "realizado": 42,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 26
+        }
+      ],
+      "pontuacao_total": 16,
+      "planilhas_origem": [
+        "Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv"
+      ],
+      "posicao": 2
+    }
+  ],
+  "serie_diaria": []
+}
