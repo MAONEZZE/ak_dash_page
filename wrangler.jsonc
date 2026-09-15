@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ak-dash-page",
+  "compatibility_date": "2026-09-15",
+
+  // SPA de assets estáticos — não existe Worker script ("main"), o Cloudflare
+  // serve o `dist/` direto da edge.
+  "assets": {
+    "directory": "./dist",
+    // O app usa BrowserRouter: /comercial, /financeiro etc. não são arquivos
+    // no dist. Sem isso, um F5 fora da raiz devolve 404 em vez do index.html.
+    "not_found_handling": "single-page-application"
+  }
+}
