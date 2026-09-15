@@ -30,10 +30,10 @@ describe("CardEventoRotativo", () => {
     expect(screen.getByText("/ 50")).toBeTruthy();
   });
 
-  it("card de aprovados mostra os aprovados, não os inscritos, sobre a mesma capacidade", () => {
+  it("card de aprovados mostra os aprovados, não os inscritos, e sem denominador de capacidade", () => {
     render(<CardEventoRotativo label="Aprovados" campo="aprovados" eventos={EVENTOS} />);
     expect(screen.getByText("12")).toBeTruthy();
-    expect(screen.getByText("/ 50")).toBeTruthy();
+    expect(screen.queryByText("/ 50")).toBeNull();
   });
 
   it("gira pro próximo evento a cada 5s e volta pro primeiro depois do último", () => {

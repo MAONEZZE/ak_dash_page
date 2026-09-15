@@ -3,7 +3,8 @@ interface CardKpiProps {
   /** Tag pequena no canto (ex. "SDR"/"CLOSER") — omitida quando o card não distingue squad. */
   squadTag?: string;
   value: string;
-  meta: string;
+  /** Denominador do card ("/ meta"). Omitido = card sem denominador (ex. Aprovados, que é número absoluto). */
+  meta?: string;
   /** 0-100+ (sem cap na leitura, só a barra visual satura em 100). `null` = sem meta cadastrada, sem barra. Ignorado quando `indisponivel`. */
   pct: number | null;
   /** Métrica sem dado algum pro período/escopo (placeholder de página inteira) — sem barra, só a legenda. */
@@ -39,9 +40,11 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
         >
           {value}
         </span>
-        <span className={`whitespace-nowrap font-semibold leading-none ${compacto ? "text-[22px]" : "text-xs"} ${escuro ? "text-offwhite/60" : "text-fg/45"}`}>
-          / {meta}
-        </span>
+        {meta !== undefined && (
+          <span className={`whitespace-nowrap font-semibold leading-none ${compacto ? "text-[22px]" : "text-xs"} ${escuro ? "text-offwhite/60" : "text-fg/45"}`}>
+            / {meta}
+          </span>
+        )}
       </div>
       {indisponivel || pct === null ? (
         <span className={`font-semibold ${compacto ? "text-[19px] leading-none" : "text-[11px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>

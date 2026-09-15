@@ -10,7 +10,7 @@ interface CardEventoRotativoProps {
   label: string;
   /** Até 3 próximos eventos, em data crescente. Vazio = card em estado vazio. */
   eventos: EventoGeral[];
-  /** Qual contagem do evento o card mostra — o denominador é a capacidade nos dois casos. */
+  /** Qual contagem do evento o card mostra — só "inscritos" ganha o denominador de capacidade. */
   campo: "inscritos" | "aprovados";
 }
 
@@ -36,7 +36,7 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
         tamanho="compacto"
         label={label}
         value="—"
-        meta="—"
+        meta={campo === "inscritos" ? "—" : undefined}
         pct={null}
         indisponivel
         legenda="Sem eventos futuros"
@@ -63,9 +63,12 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
 
       <div className="mt-auto flex flex-wrap items-baseline gap-1.5">
         <span className="font-display text-[36px] font-extrabold leading-none tracking-tight text-offwhite">{formatarNumero(valor)}</span>
-        <span className="whitespace-nowrap text-[22px] font-semibold leading-none text-offwhite/60">
-          / {evento.capacidade === null ? "—" : formatarNumero(evento.capacidade)}
-        </span>
+        {/* Aprovados é número absoluto: a capacidade só faz sentido como denominador dos inscritos. */}
+        {campo === "inscritos" && (
+          <span className="whitespace-nowrap text-[22px] font-semibold leading-none text-offwhite/60">
+            / {evento.capacidade === null ? "—" : formatarNumero(evento.capacidade)}
+          </span>
+        )}
       </div>
 
       <div className="mt-2 flex gap-1.5" aria-hidden="true">
