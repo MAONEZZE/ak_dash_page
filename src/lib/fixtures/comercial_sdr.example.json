@@ -1,178 +1,643 @@
 {
-  "periodo": {
-    "granularidade": "mes",
-    "inicio": "2026-04-01",
-    "fim": "2026-04-30"
-  },
-  "periodo_parcial": false,
-  "avisos": [
-    "Pessoa 'jenniferpamplona007@gmail.com' aparece em mais de uma planilha (Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv, Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv) — realizado e meta somados; confirme se são duas contas reais ou dado desatualizado",
-    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '1' na coluna 'Conexões Aceitas'",
-    "Planilha 'Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '39' na coluna 'Abordagens'",
-    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '16' na coluna 'Conexões Aceitas'",
-    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '38' na coluna 'Conexões Enviadas'",
-    "Planilha 'Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv': dia 31 fora do calendário de 04/2026 (30 dias) com valor '64' na coluna 'Abordagens'"
-  ],
-  "pessoas": [
-    {
-      "email": "jenniferpamplona007@gmail.com",
-      "nome": null,
-      "metas_atingidas": {
-        "atingidas": 0,
-        "total": 8
-      },
-      "metricas": [
-        {
-          "metrica": "conexoes_enviadas",
-          "nome_exibicao": "Conexões Enviadas",
-          "meta_periodo": 1760,
-          "realizado": 327,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 48
-        },
-        {
-          "metrica": "conexoes_aceitas",
-          "nome_exibicao": "Conexões Aceitas",
-          "meta_periodo": 880,
-          "realizado": 140,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 48
-        },
-        {
-          "metrica": "abordagens",
-          "nome_exibicao": "Abordagens",
-          "meta_periodo": 880,
-          "realizado": 263,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 48
-        },
-        {
-          "metrica": "inmails_enviados",
-          "nome_exibicao": "InMails Enviados",
-          "meta_periodo": 220,
-          "realizado": 101,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 48
-        },
-        {
-          "metrica": "follow_ups",
-          "nome_exibicao": "Follow-ups",
-          "meta_periodo": 6600,
-          "realizado": 0,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 55
-        },
-        {
-          "metrica": "numeros_captados",
-          "nome_exibicao": "Números Captados",
-          "meta_periodo": 176,
-          "realizado": 4,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 55
-        },
-        {
-          "metrica": "ligacoes_agendadas",
-          "nome_exibicao": "Ligações Agendadas",
-          "meta_periodo": 308,
-          "realizado": 23,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 54
-        },
-        {
-          "metrica": "indicacoes_captadas",
-          "nome_exibicao": "Indicações Captadas",
-          "meta_periodo": 176,
-          "realizado": 0,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 55
-        }
-      ],
-      "pontuacao_total": 19,
-      "planilhas_origem": [
-        "Linkedin Alex _ SDR_ Jenni _ Closer_ Alex - Métricas Diárias.csv",
-        "Linkedin Jacob _ SDR_ Jennifer _ Closer_ Jacob - Métricas Diárias.csv"
-      ],
-      "posicao": 1
+    "periodo": {
+        "granularidade": "mes",
+        "inicio": "2026-09-01",
+        "fim": "2026-09-30"
     },
-    {
-      "email": "nathanmayumi5@gmail.com",
-      "nome": null,
-      "metas_atingidas": {
-        "atingidas": 0,
-        "total": 8
-      },
-      "metricas": [
+    "periodo_parcial": true,
+    "avisos": [
+        "metas_nao_cadastradas"
+    ],
+    "pessoas": [
         {
-          "metrica": "conexoes_enviadas",
-          "nome_exibicao": "Conexões Enviadas",
-          "meta_periodo": 880,
-          "realizado": 226,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
+            "id_user": "9",
+            "email": "nathanmayumi5@gmail.com",
+            "nome": "Nathan",
+            "metas_atingidas": {
+                "atingidas": 0,
+                "total": 8
+            },
+            "metricas": [
+                {
+                    "metrica": "conexoes_enviadas",
+                    "nome_exibicao": "Conex\u00f5es Enviadas",
+                    "meta_periodo": null,
+                    "realizado": 330,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "conexoes_aceitas",
+                    "nome_exibicao": "Conex\u00f5es Aceitas",
+                    "meta_periodo": null,
+                    "realizado": 160,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "abordagens",
+                    "nome_exibicao": "Abordagens",
+                    "meta_periodo": null,
+                    "realizado": 486,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "in_mails",
+                    "nome_exibicao": "InMails Enviados",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "fups",
+                    "nome_exibicao": "Follow-ups",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 25
+                },
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "meta_periodo": null,
+                    "realizado": 16,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": null,
+                    "realizado": 31,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 23
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "meta_periodo": null,
+                    "realizado": 42,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 26
+                }
+            ],
+            "contas_origem": [
+                "Linkedin Jonathan"
+            ],
+            "pontuacao_total": null,
+            "posicao": null
         },
         {
-          "metrica": "conexoes_aceitas",
-          "nome_exibicao": "Conexões Aceitas",
-          "meta_periodo": 440,
-          "realizado": 113,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
+            "id_user": "2",
+            "email": "jonathan.pamplona@akeel.com.br",
+            "nome": "Jonathan",
+            "metas_atingidas": {
+                "atingidas": 0,
+                "total": 8
+            },
+            "metricas": [
+                {
+                    "metrica": "conexoes_enviadas",
+                    "nome_exibicao": "Conex\u00f5es Enviadas",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "conexoes_aceitas",
+                    "nome_exibicao": "Conex\u00f5es Aceitas",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "abordagens",
+                    "nome_exibicao": "Abordagens",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "in_mails",
+                    "nome_exibicao": "InMails Enviados",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "fups",
+                    "nome_exibicao": "Follow-ups",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_preenchimento",
+                    "dias_com_lacuna": 30
+                }
+            ],
+            "contas_origem": [],
+            "pontuacao_total": null,
+            "posicao": null
         },
         {
-          "metrica": "abordagens",
-          "nome_exibicao": "Abordagens",
-          "meta_periodo": 440,
-          "realizado": 353,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
-        },
-        {
-          "metrica": "inmails_enviados",
-          "nome_exibicao": "InMails Enviados",
-          "meta_periodo": 110,
-          "realizado": 0,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
-        },
-        {
-          "metrica": "follow_ups",
-          "nome_exibicao": "Follow-ups",
-          "meta_periodo": 3300,
-          "realizado": 0,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 25
-        },
-        {
-          "metrica": "numeros_captados",
-          "nome_exibicao": "Números Captados",
-          "meta_periodo": 88,
-          "realizado": 11,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
-        },
-        {
-          "metrica": "ligacoes_agendadas",
-          "nome_exibicao": "Ligações Agendadas",
-          "meta_periodo": 154,
-          "realizado": 22,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 24
-        },
-        {
-          "metrica": "indicacoes_captadas",
-          "nome_exibicao": "Indicações Captadas",
-          "meta_periodo": 88,
-          "realizado": 42,
-          "status": "abaixo_da_meta",
-          "dias_com_lacuna": 26
+            "id_user": "4",
+            "email": "jenniferpamplona007@gmail.com",
+            "nome": "Jennifer",
+            "metas_atingidas": {
+                "atingidas": 0,
+                "total": 8
+            },
+            "metricas": [
+                {
+                    "metrica": "conexoes_enviadas",
+                    "nome_exibicao": "Conex\u00f5es Enviadas",
+                    "meta_periodo": null,
+                    "realizado": 248,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "conexoes_aceitas",
+                    "nome_exibicao": "Conex\u00f5es Aceitas",
+                    "meta_periodo": null,
+                    "realizado": 130,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "abordagens",
+                    "nome_exibicao": "Abordagens",
+                    "meta_periodo": null,
+                    "realizado": 313,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "in_mails",
+                    "nome_exibicao": "InMails Enviados",
+                    "meta_periodo": null,
+                    "realizado": 102,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "fups",
+                    "nome_exibicao": "Follow-ups",
+                    "meta_periodo": null,
+                    "realizado": 71,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 23
+                },
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "meta_periodo": null,
+                    "realizado": 12,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": null,
+                    "realizado": 34,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 22
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "meta_periodo": null,
+                    "realizado": 0,
+                    "status": "sem_meta",
+                    "dias_com_lacuna": 23
+                }
+            ],
+            "contas_origem": [
+                "Linkedin Jacob"
+            ],
+            "pontuacao_total": null,
+            "posicao": null
         }
-      ],
-      "pontuacao_total": 16,
-      "planilhas_origem": [
-        "Linkedin Jonathan _ SDR_ Nathan _ Closer_ Thalyson - Métricas Diárias.csv"
-      ],
-      "posicao": 2
-    }
-  ],
-  "serie_diaria": []
+    ],
+    "serie_diaria": [
+        {
+            "dia": "2026-09-01",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 30,
+                "abordagens": 93,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 8,
+                "conexoes_enviadas": 39,
+                "conexoes_aceitas": 27,
+                "numeros_captados": 1
+            }
+        },
+        {
+            "dia": "2026-09-02",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 28,
+                "abordagens": 63,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 10,
+                "conexoes_enviadas": 42,
+                "conexoes_aceitas": 14,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-03",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 27,
+                "abordagens": 72,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 6,
+                "conexoes_enviadas": 80,
+                "conexoes_aceitas": 32,
+                "numeros_captados": 2
+            }
+        },
+        {
+            "dia": "2026-09-04",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 15,
+                "abordagens": 113,
+                "indicacoes": 42,
+                "ligacoes_agendadas": 6,
+                "conexoes_enviadas": 83,
+                "conexoes_aceitas": 53,
+                "numeros_captados": 8
+            }
+        },
+        {
+            "dia": "2026-09-05",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-06",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-07",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 1,
+                "abordagens": 111,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 9,
+                "conexoes_enviadas": 85,
+                "conexoes_aceitas": 37,
+                "numeros_captados": 2
+            }
+        },
+        {
+            "dia": "2026-09-08",
+            "metricas": {
+                "fups": 56,
+                "in_mails": 0,
+                "abordagens": 135,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 16,
+                "conexoes_enviadas": 84,
+                "conexoes_aceitas": 48,
+                "numeros_captados": 8
+            }
+        },
+        {
+            "dia": "2026-09-09",
+            "metricas": {
+                "fups": 15,
+                "in_mails": 1,
+                "abordagens": 112,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 8,
+                "conexoes_enviadas": 83,
+                "conexoes_aceitas": 44,
+                "numeros_captados": 2
+            }
+        },
+        {
+            "dia": "2026-09-10",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 100,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 2,
+                "conexoes_enviadas": 82,
+                "conexoes_aceitas": 35,
+                "numeros_captados": 5
+            }
+        },
+        {
+            "dia": "2026-09-11",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-12",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-13",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-14",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-15",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-16",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-17",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-18",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-19",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-20",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-21",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-22",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-23",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-24",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-25",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-26",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-27",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-28",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-29",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        },
+        {
+            "dia": "2026-09-30",
+            "metricas": {
+                "fups": 0,
+                "in_mails": 0,
+                "abordagens": 0,
+                "indicacoes": 0,
+                "ligacoes_agendadas": 0,
+                "conexoes_enviadas": 0,
+                "conexoes_aceitas": 0,
+                "numeros_captados": 0
+            }
+        }
+    ]
 }

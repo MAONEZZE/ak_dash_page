@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { ApiError, buscarComercialCloser, buscarComercialSdr, buscarPessoas } from "../lib/api";
-import { Card } from "../componentes/Card";
-import { Filtros, useFiltrosAtuais } from "../componentes/Filtros";
-import { UltimaAtualizacao } from "../componentes/UltimaAtualizacao";
-import { VisaoGeralComercial } from "../componentes/VisaoGeralComercial";
-import type { Pessoa, RespostaComercial } from "../lib/tipos-api";
+import { CardKpi } from "../componentes/CardKpi";
+import { GaugeMeta } from "../componentes/GaugeMeta";
+import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
+import { TimeComercialLista, type PessoaUnificada } from "../componentes/TimeComercialLista";
+import { ApiError, buscarComercialCloser, buscarComercialSdr } from "../lib/api";
+import { useAtualizacao } from "../lib/atualizacao";
+import { formatarNumero } from "../lib/formato";
+import { agregarConsolidado, agregarPorMetrica } from "../lib/insights";
+import { useFiltrosAtuais } from "../lib/periodo";
+import { METRICAS_SDR } from "../lib/tipos-api";
+import type { Granularidade, Metrica, RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
@@ -16,31 +21,48 @@ interface EstadoBloco {
 
 const ESTADO_INICIAL: EstadoBloco = { dado: null, carregando: true, erro: null };
 
-/** cargo da pessoa selecionada, se conhecida — desconhecida não esconde bloco (D12 é otimista na dúvida). */
-function cargoDe(pessoasAtivas: Pessoa[], email: string): "sdr" | "closer" | null {
-  const pessoa = pessoasAtivas.find((p) => p.email === email);
-  if (!pessoa) return null;
-  return pessoa.cargo.toLowerCase().includes("sdr") ? "sdr" : "closer";
+const RANGE_LABEL: Record<Granularidade, string> = { dia: "dia", semana: "semana", mes: "mês", ano: "ano" };
+const RANGE_LABEL_ADJ: Record<Granularidade, string> = { dia: "diária", semana: "semanal", mes: "mensal", ano: "anual" };
+const CHART_TITLE: Record<Granularidade, string> = {
+  dia: "Dias do mês atual",
+  semana: "Dias da semana",
+  mes: "Progressão dos meses",
+  ano: "Progressão dos anos",
+};
+
+type Squad = "todos" | "sdr" | "closer";
+
+const SQUADS: { id: Squad; label: string }[] = [
+  { id: "todos", label: "Todos" },
+  { id: "sdr", label: "SDR" },
+  { id: "closer", label: "Closers" },
+];
+
+const SQUAD_LABEL: Record<Squad, string> = { todos: "do time", sdr: "dos SDRs", closer: "dos closers" };
+
+function squadDaMetrica(metrica: string): "sdr" | "closer" {
+  return (METRICAS_SDR as readonly string[]).includes(metrica) ? "sdr" : "closer";
+}
+
+function primeiraComMetricas(dado: RespostaComercial | null): Metrica[] {
+  return dado?.pessoas.find((p) => p.metricas.length > 0)?.metricas ?? [];
 }
 
 export function Comercial() {
-  const { granularidade, periodo, pessoas } = useFiltrosAtuais();
-  const [pessoasAtivas, setPessoasAtivas] = useState<Pessoa[]>([]);
+  const { granularidade, periodo } = useFiltrosAtuais();
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
+  const [squad, setSquad] = useState<Squad>("todos");
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
-
-  useEffect(() => {
-    buscarPessoas().then(setPessoasAtivas).catch(() => setPessoasAtivas([]));
-  }, []);
+  const { registrar } = useAtualizacao();
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
     setSdr((atual) => ({ ...atual, carregando: true }));
     setCloser((atual) => ({ ...atual, carregando: true }));
 
-    const params = { granularidade, periodo, pessoas: pessoas.length > 0 ? pessoas : undefined };
+    const params = { granularidade, periodo };
 
     await Promise.all([
       buscarComercialSdr(params)
@@ -57,8 +79,7 @@ export function Comercial() {
 
     setAtualizadoEm(new Date());
     setAtualizando(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- pessoas é array novo a cada render; usar o conteúdo serializado evita loop infinito
-  }, [granularidade, periodo, pessoas.join(",")]);
+  }, [granularidade, periodo]);
 
   useEffect(() => {
     carregar();
@@ -66,64 +87,84 @@ export function Comercial() {
     return () => clearInterval(id);
   }, [carregar]);
 
-  // D12: bloco sem nenhuma pessoa selecionada pertencente àquele time some da tela.
-  // "Todas" (pessoas vazio) sempre mostra os dois.
-  const mostrarSdr = pessoas.length === 0 || pessoas.some((email) => cargoDe(pessoasAtivas, email) !== "closer");
-  const mostrarCloser = pessoas.length === 0 || pessoas.some((email) => cargoDe(pessoasAtivas, email) !== "sdr");
+  // Header vive fora da árvore desta página (App.tsx) — repassa o "Atualizar" pra lá.
+  useEffect(() => {
+    registrar({ atualizadoEm, atualizando, aoAtualizar: carregar });
+    return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
+  }, [atualizadoEm, atualizando, carregar, registrar]);
+
+  const carregando = sdr.carregando || closer.carregando;
+  const erro = !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro) : null;
+
+  const todasPessoas: PessoaUnificada[] = [
+    ...(sdr.dado?.pessoas.map((pessoa) => ({ squad: "sdr" as const, pessoa })) ?? []),
+    ...(closer.dado?.pessoas.map((pessoa) => ({ squad: "closer" as const, pessoa })) ?? []),
+  ];
+  const pessoasVisiveis = squad === "todos" ? todasPessoas : todasPessoas.filter((u) => u.squad === squad);
+  const pessoasParaAgregar = pessoasVisiveis.map((u) => u.pessoa);
+
+  const metricasAgregadas = agregarPorMetrica(pessoasParaAgregar);
+  const consolidado = agregarConsolidado(pessoasParaAgregar);
+
+  const gaugePct = consolidado.pctGeral === null ? null : Math.round(consolidado.pctGeral * 100);
+  const falta = consolidado.metaTotal - consolidado.realizadoTotal;
+  const faltamLabel = consolidado.metaTotal === 0 ? "—" : falta > 0 ? formatarNumero(Math.round(falta)) : "Meta batida";
+
+  const fontesGrafico = [
+    { squad: "sdr" as const, serieDiaria: sdr.dado?.serie_diaria ?? [], metricas: primeiraComMetricas(sdr.dado) },
+    { squad: "closer" as const, serieDiaria: closer.dado?.serie_diaria ?? [], metricas: primeiraComMetricas(closer.dado) },
+  ].filter((f) => squad === "todos" || f.squad === squad);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Filtros pessoasDisponiveis={pessoasAtivas} />
-        <UltimaAtualizacao atualizadoEm={atualizadoEm} atualizando={atualizando} aoAtualizar={carregar} />
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg/50">
+          Métricas do time comercial · acumulado {RANGE_LABEL[granularidade]} / meta
+        </span>
+        <div className="glass-pill flex gap-1 p-1">
+          {SQUADS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setSquad(s.id)}
+              aria-pressed={squad === s.id}
+              className={`pill ${squad === s.id ? "pill-ativo" : ""}`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {mostrarSdr && (
-        <Card
-          titulo="SDRs"
-          carregando={sdr.carregando}
-          erro={sdr.erro}
-          vazio={sdr.dado?.pessoas.length === 0 && sdr.dado?.avisos.length === 0}
-          mensagemVazia="Nenhum número lançado neste período — tente outro período ou outra pessoa nos filtros acima."
-        >
-          {sdr.dado && (
-            <>
-              {sdr.dado.periodo_parcial && <p className="mb-3 text-xs text-fg/60">Período em andamento — mês corrente parcial.</p>}
-              <VisaoGeralComercial dado={sdr.dado} pessoasSelecionadas={pessoas} />
-              {sdr.dado.avisos.length > 0 && (
-                <ul className="mt-4 flex flex-col gap-1 border-t border-border-2 pt-3 text-xs text-fg/60">
-                  {sdr.dado.avisos.map((aviso) => (
-                    <li key={aviso}>⚠ {aviso}</li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </Card>
-      )}
+      {carregando ? (
+        <p className="text-sm text-fg/60">Carregando…</p>
+      ) : erro ? (
+        <p className="text-sm text-fg/60" role="alert">
+          {erro}
+        </p>
+      ) : (
+        <>
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {metricasAgregadas.map((m) => (
+              <CardKpi
+                key={m.metrica}
+                label={m.nomeExibicao}
+                squadTag={squadDaMetrica(m.metrica) === "sdr" ? "SDR" : "CLOSER"}
+                value={formatarNumero(m.realizado)}
+                meta={m.meta === null ? "—" : formatarNumero(m.meta)}
+                pct={m.pct === null ? null : Math.round(m.pct * 100)}
+                legenda={m.meta === null ? "Meta não cadastrada" : `${m.pct === null ? 0 : Math.round(m.pct * 100)}% da meta`}
+              />
+            ))}
+          </section>
 
-      {mostrarCloser && (
-        <Card
-          titulo="Closers"
-          carregando={closer.carregando}
-          erro={closer.erro}
-          vazio={closer.dado?.pessoas.length === 0 && closer.dado?.avisos.length === 0}
-          mensagemVazia="Nenhum número lançado neste período — tente outro período ou outra pessoa nos filtros acima."
-        >
-          {closer.dado && (
-            <>
-              {closer.dado.periodo_parcial && <p className="mb-3 text-xs text-fg/60">Período em andamento — mês corrente parcial.</p>}
-              <VisaoGeralComercial dado={closer.dado} pessoasSelecionadas={pessoas} />
-              {closer.dado.avisos.length > 0 && (
-                <ul className="mt-4 flex flex-col gap-1 border-t border-border-2 pt-3 text-xs text-fg/60">
-                  {closer.dado.avisos.map((aviso) => (
-                    <li key={aviso}>⚠ {aviso}</li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </Card>
+          <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.15fr)_minmax(272px,1fr)]">
+            <GraficoAreaMeta titulo={CHART_TITLE[granularidade]} fontes={fontesGrafico} granularidade={granularidade} />
+            <GaugeMeta pct={gaugePct} faltamLabel={faltamLabel} caption={`meta ${RANGE_LABEL_ADJ[granularidade]} ${SQUAD_LABEL[squad]}`} />
+          </section>
+
+          <TimeComercialLista pessoas={pessoasVisiveis} granularidade={granularidade} />
+        </>
       )}
     </div>
   );

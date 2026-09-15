@@ -15,6 +15,8 @@ const IGNORAR_DIRS = new Set(["fixtures", "node_modules"]);
 // status-bad (azul) é a exceção deliberada: verde-da-marca falha CVD contra
 // qualquer vermelho (daltonismo vermelho-verde), validado com a skill de
 // dataviz — ver comentário em src/app/globals.css.
+// #eaeee9 (page-bg) é o fundo de página do redesign novo_template — ver
+// docs/plans/novo-layout-template.md.
 const TOKENS_PERMITIDOS = new Set([
   "#8edd65",
   "#2f6b0f",
@@ -23,6 +25,7 @@ const TOKENS_PERMITIDOS = new Set([
   "#0f1a1c",
   "#1d4ed8",
   "#3987e5",
+  "#eaeee9",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 

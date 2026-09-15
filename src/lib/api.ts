@@ -1,7 +1,8 @@
 import comercialClosterFixture from "./fixtures/comercial_closer.example.json";
 import comercialSdrFixture from "./fixtures/comercial_sdr.example.json";
+import geralFixture from "./fixtures/geral.example.json";
 import pessoasFixture from "./fixtures/pessoas.example.json";
-import type { Erro, ParametrosComercial, Pessoa, RespostaComercial } from "./tipos-api";
+import type { Erro, ParametrosComercial, ParametrosGeral, Pessoa, RespostaComercial, RespostaGeral } from "./tipos-api";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const USA_FIXTURES = import.meta.env.VITE_USE_FIXTURES === "true";
@@ -80,4 +81,9 @@ export async function buscarComercialCloser(params: ParametrosComercial): Promis
     periodo: params.periodo,
     pessoas: params.pessoas,
   });
+}
+
+export async function buscarGeral(params: ParametrosGeral = {}): Promise<RespostaGeral> {
+  if (USA_FIXTURES) return geralFixture as RespostaGeral;
+  return requisitar<RespostaGeral>("/geral", { granularidade: params.granularidade, periodo: params.periodo });
 }

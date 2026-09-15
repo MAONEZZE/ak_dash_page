@@ -1,11 +1,14 @@
 /**
  * Contrato BFF (ak_dash) <-> Frontend (ak_dash_page).
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
- * Escopo: /pessoas, /comercial/sdr, /comercial/closer.
- * Financeiro e imersão ficam pendentes (ver README.md).
+ * Fonte única de dado: Supabase (dash.vw_metricas, dash.metricas_metas,
+ * dash.metricas_faturamento, dash.users). Escopo: /pessoas, /comercial/sdr,
+ * /comercial/closer, /geral. Financeiro detalhado fica pendente (ver
+ * ak_dash/README.md).
  */
 
-export type Granularidade = "dia" | "mes" | "ano";
+export type Granularidade = "dia" | "semana" | "mes" | "ano";
+export type Cargo = "sdr" | "closer";
 
 export interface Erro {
   erro: {
@@ -17,8 +20,9 @@ export interface Erro {
 export interface Pessoa {
   id: string;
   nome: string;
-  cargo: string;
+  cargo: Cargo;
   email: string;
+  imagem_url: string | null;
 }
 
 export interface Periodo {
@@ -27,12 +31,15 @@ export interface Periodo {
   fim: string; // AAAA-MM-DD
 }
 
-export type StatusMetrica = "atingido" | "abaixo_da_meta" | "sem_preenchimento";
+/** Formato do parâmetro `periodo` por granularidade: dia `AAAA-MM-DD`, semana `AAAA-Wnn` (ISO, segunda a domingo), mês `AAAA-MM`, ano `AAAA`. */
+
+export type StatusMetrica = "atingido" | "abaixo_da_meta" | "sem_preenchimento" | "sem_meta";
 
 export interface Metrica {
-  metrica: string; // chave estável snake_case, ex. "conexoes_enviadas"
+  metrica: string; // nome da coluna de origem, o mesmo dos dois lados: ex. "numeros_captados", "ligacoes_agendadas"
   nome_exibicao: string;
-  meta_periodo: number;
+  /** Meta do cargo já multiplicada pelos dias úteis do período (no banco ela é DIÁRIA por pessoa): dia = a diária, semana = 5×, mês de 22 dias úteis = 22×. `null` = sem meta cadastrada, nunca 0. */
+  meta_periodo: number | null;
   realizado: number;
   status: StatusMetrica;
   dias_com_lacuna: number;
@@ -44,32 +51,29 @@ export interface MetasAtingidas {
 }
 
 export interface PessoaComercial {
+  id_user: string;
   email: string;
   nome: string | null;
   metas_atingidas: MetasAtingidas;
   metricas: Metrica[];
   /**
-   * Gamificação — sem persistência nova, recalculado do zero a cada
-   * requisição em cima do período filtrado. Regra fixa: 1 ponto por dia,
-   * por métrica, em que o valor realizado do dia bateu ou superou a meta
-   * diária daquela coluna, somado por pessoa no período filtrado. Lacuna
-   * (célula vazia) não pontua e não penaliza; "0" preenchido também não
-   * pontua mas não é lacuna. Pessoa em mais de uma planilha: pontos
-   * somados de todas.
+   * `Σ(realizado/meta × 100) / qtd_metricas`, escala 0-100+, SEM cap,
+   * contra a meta cheia do período. `null` quando QUALQUER métrica do cargo
+   * não tem meta cadastrada — nunca uma média parcial disfarçada de total.
    */
-  pontuacao_total: number;
+  pontuacao_total: number | null;
   /**
-   * Gamificação — dense rank (1-based) de pontuacao_total decrescente,
-   * dentro do mesmo pool (SDR só compete com SDR, Closer só com Closer —
-   * nunca misture os dois conjuntos de métricas num ranking só). Empate =
-   * mesma posição, sem pular número.
+   * Dense rank (1-based) de pontuacao_total decrescente, dentro do mesmo
+   * pool (SDR só compete com SDR, Closer só com Closer). Empate = mesma
+   * posição, sem pular número. `null` junto com `pontuacao_total: null`.
    */
-  posicao: number;
-  planilhas_origem: string[];
+  posicao: number | null;
+  /** Contas (vw_metricas.conta) que contribuíram pra essa pessoa no período. */
+  contas_origem: string[];
 }
 
 export interface SerieDiariaDia {
-  dia: number; // dia do mês (1-31)
+  dia: string; // AAAA-MM-DD
   metricas: Record<string, number>; // chave da métrica -> soma do TIME INTEIRO naquele dia
 }
 
@@ -78,47 +82,98 @@ export interface RespostaComercial {
   periodo_parcial: boolean;
   avisos: string[];
   pessoas: PessoaComercial[];
-  /**
-   * Evolução diária agregada do time (não por pessoa) — só cobre a fatia do
-   * mês corrente do período pedido; vazia quando o período é inteiramente
-   * histórico.
-   */
   serie_diaria: SerieDiariaDia[];
 }
 
-/** Chaves das 8 métricas de função SDR — para tipar colunas de tabela sem "magic string". */
+/** Chaves das 9 métricas de cargo SDR. `reunioes_agendadas` e `indicacoes` aparecem nos dois cargos (SDR e Closer agendam reunião e trabalham indicação), cada um com a sua meta. */
 export const METRICAS_SDR = [
   "conexoes_enviadas",
   "conexoes_aceitas",
   "abordagens",
-  "inmails_enviados",
-  "follow_ups",
+  "in_mails",
+  "fups",
   "numeros_captados",
   "ligacoes_agendadas",
-  "indicacoes_captadas",
+  "reunioes_agendadas",
+  "indicacoes",
 ] as const;
 export type MetricaSdr = (typeof METRICAS_SDR)[number];
 
-/** Chaves das 4 métricas de função Closer. */
-export const METRICAS_CLOSER = [
-  "ligacoes_realizadas",
-  "reunioes_agendadas",
-  "reunioes_realizadas",
-  "indicacoes",
-] as const;
+/** Chaves das 4 métricas de cargo Closer. */
+export const METRICAS_CLOSER = ["ligacoes_realizadas", "reunioes_agendadas", "reunioes_realizadas", "indicacoes"] as const;
 export type MetricaCloser = (typeof METRICAS_CLOSER)[number];
-
-/**
- * Métricas sem coluna equivalente em `dash.metricas` — sem dado histórico
- * algum em mês fechado (ver `ak_dash/app/dominios/comercial/banco.py:28-40`,
- * `_COLUNA_DB_POR_METRICA`). Front marca como "não disponível" nesse caso em
- * vez de exibir como se fosse uma lacuna comum de preenchimento.
- */
-export const METRICAS_SEM_HISTORICO = new Set<string>(["indicacoes_captadas"]);
 
 /** Parâmetros de query aceitos por /comercial/sdr e /comercial/closer. */
 export interface ParametrosComercial {
   granularidade: Granularidade;
   periodo: string; // formato depende de granularidade — ver openapi.yaml
-  pessoas?: string[]; // emails; ausente/vazio = todas as pessoas ativas
+  pessoas?: string[]; // emails; ausente/vazio = todas as pessoas ativas do cargo
+}
+
+// ---- /geral ----
+
+export interface DiasUteis {
+  decorridos: number;
+  total: number;
+}
+
+export interface CardGeral {
+  metrica: string;
+  nome_exibicao: string;
+  /** true pros cards de faturamento (linha 1, variante escura). Inscritos/Aprovados ficam na mesma linha mas vêm de `eventos`, não daqui. */
+  escuro: boolean;
+  realizado: number | null;
+  /** Meta da empresa: a do cargo × pessoas ativas do cargo, somada sobre os cargos do card (reuniões agendadas e indicações somam SDR + Closer). `null` se faltar meta em alguma parte. */
+  meta: number | null;
+  pct: number | null;
+  pct_ritmo: number | null;
+}
+
+export interface MetricaPessoaGeral {
+  metrica: string;
+  nome_exibicao: string;
+  realizado: number | null;
+  meta: number | null;
+}
+
+export interface PessoaGeral {
+  id_user: number;
+  nome: string;
+  cargo: Cargo;
+  /** nome, ou "{nome} ({SDR|Closer})" quando duas pessoas ativas têm o mesmo nome — calculado no BFF. */
+  rotulo: string;
+  imagem_url: string | null;
+  pontuacao: number | null;
+  posicao: number | null;
+  /** Colunas da tabela pro cargo — ver docs/plans/migracao-banco-pagina-geral.md. */
+  metricas: MetricaPessoaGeral[];
+}
+
+/** Um dos próximos eventos de `SED.events` — alimenta os cards de Inscritos e Aprovados, que giram entre eles. */
+export interface EventoGeral {
+  id: string;
+  titulo: string;
+  /** `events.event_date` cru: timestamp SEM fuso, já em horário de São Paulo — formatar sem converter fuso. */
+  data: string;
+  /** `null` = evento sem limite cadastrado. */
+  capacidade: number | null;
+  /** Inscrições com status `pending` ou `approved`. */
+  inscritos: number;
+  /** Subconjunto de `inscritos` — só `approved`. */
+  aprovados: number;
+}
+
+export interface RespostaGeral {
+  periodo: Periodo;
+  dias_uteis: DiasUteis;
+  cards: CardGeral[];
+  /** Até 3, em data crescente. Ignora o período da página (são eventos futuros). Vazio = sem evento futuro. */
+  eventos: EventoGeral[];
+  pessoas: PessoaGeral[];
+  avisos: string[];
+}
+
+export interface ParametrosGeral {
+  granularidade?: Granularidade; // padrão "mes"
+  periodo?: string; // "atual" (padrão) ou formato de acordo com granularidade — ver openapi.yaml
 }

@@ -13,6 +13,9 @@
  * (light #2f6b0f×#1d4ed8 ΔE 29.4 protan; dark #8edd65×#3987e5 ΔE 34.0 protan).
  */
 :root {
+  /* Largura máxima do container do dashboard (header + filtros + conteúdo) — ajuste aqui, os três acompanham. */
+  --dashboard-max-width: 5120px;
+
   --color-accent: #8edd65;
   --color-accent-ink: #2f6b0f;
   --color-bg-dark-2: #0c1b1f;
@@ -27,6 +30,27 @@
   --fg: var(--color-ink);
   --accent-fg: var(--color-accent-ink);
   --border-2: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  /*
+   * Redesenho novo_template (docs/plans/novo-layout-template.md) — fundo de
+   * página em vidro (glassmorphism). Só tema claro: no escuro reaproveita
+   * --color-ink (já é o --bg do tema escuro), sem hex novo. Nome distinto de
+   * --color-page-bg (exposto abaixo em @theme) — mesmo nome nos dois criaria
+   * referência circular entre a variável crua e a que o Tailwind gera.
+   */
+  --page-bg: #eaeee9;
+
+  /* superfícies de vidro do redesenho — misturadas sobre tokens já existentes, sem hex novo */
+  --glass-bg: color-mix(in srgb, var(--bg-2) 55%, transparent);
+  --glass-border: color-mix(in srgb, var(--fg) 14%, transparent);
+
+  /*
+   * Variante escura de CardKpi (linha de faturamento da Geral) — igual em
+   * claro e escuro por design (é o tratamento "hero" do template, não um
+   * tema). Cores misturadas de --color-bg-dark-2/--color-accent, já
+   * cadastrados acima — sem hex novo.
+   */
+  --glass-dark-bg: color-mix(in srgb, var(--color-bg-dark-2) 74%, transparent);
+  --glass-dark-border: color-mix(in srgb, var(--color-accent) 28%, transparent);
 
   /* status de métrica/gráfico — sempre com ícone+texto, nunca só cor */
   --status-good: var(--color-accent-ink);
@@ -42,6 +66,9 @@
   --border-forte: color-mix(in srgb, var(--fg) 32%, transparent);
   --hachura-a: color-mix(in srgb, var(--fg) 22%, transparent);
   --hachura-b: transparent;
+
+  --font-display: "Bricolage Grotesque", serif;
+  --font-body: "Manrope", system-ui, sans-serif;
 }
 
 [data-theme="dark"] {
@@ -51,6 +78,7 @@
   --fg: var(--color-offwhite);
   --accent-fg: var(--color-accent);
   --border-2: color-mix(in srgb, var(--color-offwhite) 20%, transparent);
+  --page-bg: var(--color-ink);
 
   --status-good: var(--color-accent);
   --status-bad: var(--color-status-bad-dark);
@@ -66,6 +94,9 @@
   --color-offwhite: var(--color-offwhite);
   --color-ink: var(--color-ink);
   --color-border-2: var(--border-2);
+  --color-page-bg: var(--page-bg);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
   --color-status-good: var(--status-good);
   --color-status-bad: var(--status-bad);
   --color-status-neutro: var(--status-neutro);
@@ -73,11 +104,101 @@
   --color-border-forte: var(--border-forte);
   --color-hachura-a: var(--hachura-a);
   --color-hachura-b: var(--hachura-b);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-fg);
+  font-family: var(--font-body);
+}
+
+/*
+ * Casca do dashboard (redesenho novo_template) — fundo em glassmorphism com
+ * glow radial da marca por trás dos painéis de vidro. overflow-x (não full
+ * overflow) porque o gradiente decorativo pode sangrar nas bordas em telas
+ * muito largas, mas o conteúdo real tem que poder rolar verticalmente.
+ */
+.dashboard-shell {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--page-bg);
+}
+
+.dashboard-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(680px 420px at 12% -8%, color-mix(in srgb, var(--color-accent) 42%, transparent), transparent 70%),
+    radial-gradient(620px 480px at 88% 4%, color-mix(in srgb, var(--color-accent-ink) 22%, transparent), transparent 72%),
+    radial-gradient(700px 520px at 60% 100%, color-mix(in srgb, var(--color-bg-dark-2) 16%, transparent), transparent 70%);
+}
+
+.glass-panel {
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--color-glass-border);
+}
+
+.glass-panel-escuro {
+  background: var(--glass-dark-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-dark-border);
+}
+
+.glass-pill {
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 999px;
+}
+
+.pill {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--fg) 60%, transparent);
+  background: transparent;
+  transition:
+    background 200ms,
+    color 200ms;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.pill.pill-ativo {
+  background: var(--color-accent-fg);
+  color: var(--color-bg-2);
+}
+
+/*
+ * Barrinha do evento em tela nos cards de Inscritos/Aprovados: enche em 5s,
+ * o mesmo tempo que o card leva pra girar pro próximo evento. Classe própria
+ * (não utilitário do Tailwind) pra manter os dois números na mesma linha.
+ */
+@keyframes preencher-evento {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.barra-evento-preenchendo {
+  animation: preencher-evento 5s linear forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

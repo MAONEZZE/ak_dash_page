@@ -1,0 +1,317 @@
+{
+    "periodo": {
+        "granularidade": "mes",
+        "inicio": "2026-09-01",
+        "fim": "2026-09-14"
+    },
+    "dias_uteis": {
+        "decorridos": 10,
+        "total": 22
+    },
+    "cards": [
+        {
+            "metrica": "faturamento",
+            "nome_exibicao": "Faturamento",
+            "escuro": true,
+            "realizado": null,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "liquidado",
+            "nome_exibicao": "Liquidado",
+            "escuro": true,
+            "realizado": null,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "inscritos",
+            "nome_exibicao": "Inscritos",
+            "escuro": true,
+            "realizado": null,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "aprovados",
+            "nome_exibicao": "Aprovados",
+            "escuro": true,
+            "realizado": null,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "numeros_captados",
+            "nome_exibicao": "N\u00fameros Captados",
+            "escuro": false,
+            "realizado": 28,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "ligacoes_agendadas",
+            "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+            "escuro": false,
+            "realizado": 65,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "reunioes_agendadas",
+            "nome_exibicao": "Reuni\u00f5es Agendadas",
+            "escuro": false,
+            "realizado": 23,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        },
+        {
+            "metrica": "indicacoes",
+            "nome_exibicao": "Indica\u00e7\u00f5es",
+            "escuro": false,
+            "realizado": 49,
+            "meta": null,
+            "pct": null,
+            "pct_ritmo": null
+        }
+    ],
+    "pessoas": [
+        {
+            "id_user": 9,
+            "nome": "Nathan",
+            "cargo": "sdr",
+            "rotulo": "Nathan",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "realizado": 16,
+                    "meta": null
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "realizado": 31,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "realizado": 42,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 2,
+            "nome": "Jonathan",
+            "cargo": "sdr",
+            "rotulo": "Jonathan (SDR)",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "realizado": 0,
+                    "meta": null
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "realizado": 0,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "realizado": 0,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 4,
+            "nome": "Jennifer",
+            "cargo": "sdr",
+            "rotulo": "Jennifer",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "numeros_captados",
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "realizado": 12,
+                    "meta": null
+                },
+                {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "realizado": 34,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "realizado": 0,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 8,
+            "nome": "Thalyson",
+            "cargo": "closer",
+            "rotulo": "Thalyson",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "reunioes_realizadas",
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 17,
+                    "meta": null
+                },
+                {
+                    "metrica": "liquidado",
+                    "nome_exibicao": "Liquidado",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "aprovados",
+                    "nome_exibicao": "Aprovados",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 7,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 1,
+            "nome": "Jacob",
+            "cargo": "closer",
+            "rotulo": "Jacob",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "reunioes_realizadas",
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 0,
+                    "meta": null
+                },
+                {
+                    "metrica": "liquidado",
+                    "nome_exibicao": "Liquidado",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "aprovados",
+                    "nome_exibicao": "Aprovados",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 0,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 3,
+            "nome": "Alex",
+            "cargo": "closer",
+            "rotulo": "Alex",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "reunioes_realizadas",
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 0,
+                    "meta": null
+                },
+                {
+                    "metrica": "liquidado",
+                    "nome_exibicao": "Liquidado",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "aprovados",
+                    "nome_exibicao": "Aprovados",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 0,
+                    "meta": null
+                }
+            ]
+        },
+        {
+            "id_user": 10,
+            "nome": "Jonathan",
+            "cargo": "closer",
+            "rotulo": "Jonathan (Closer)",
+            "imagem_url": null,
+            "pontuacao": null,
+            "posicao": null,
+            "metricas": [
+                {
+                    "metrica": "reunioes_realizadas",
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 0,
+                    "meta": null
+                },
+                {
+                    "metrica": "liquidado",
+                    "nome_exibicao": "Liquidado",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "aprovados",
+                    "nome_exibicao": "Aprovados",
+                    "realizado": null,
+                    "meta": null
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 0,
+                    "meta": null
+                }
+            ]
+        }
+    ],
+    "avisos": [
+        "metas_nao_cadastradas"
+    ]
+}
