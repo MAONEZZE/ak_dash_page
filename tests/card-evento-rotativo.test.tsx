@@ -25,7 +25,9 @@ describe("CardEventoRotativo", () => {
   it("mostra título, data, contagem e capacidade do primeiro evento", () => {
     render(<CardEventoRotativo label="Inscritos" campo="inscritos" eventos={EVENTOS} />);
     expect(screen.getByText("Imersão Akeel")).toBeTruthy();
-    expect(screen.getByText("20/09 · 19:00")).toBeTruthy();
+    // 19:00 UTC = 16:00 em São Paulo. A asserção antiga esperava "19:00",
+    // travando o bug de exibir o relógio UTC como se fosse local.
+    expect(screen.getByText("20/09 · 16:00")).toBeTruthy();
     expect(screen.getByText("31")).toBeTruthy();
     expect(screen.getByText("/ 50")).toBeTruthy();
   });
