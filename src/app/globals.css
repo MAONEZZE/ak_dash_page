@@ -24,12 +24,33 @@
   --color-status-bad-light: #1d4ed8;
   --color-status-bad-dark: #3987e5;
 
+  /*
+   * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
+   * translucidez como rgb(var(--x-rgb) / N%) em vez de color-mix().
+   * color-mix() só existe a partir do Chrome 111; o browser da TV Samsung 2023
+   * (Chromium 94) caía no fallback opaco que o Tailwind emite, e um token como
+   * --progress-track (trilho da barra de progresso) virava sólido, fazendo
+   * toda barra parecer 100% cheia. rgb(R G B / N%) funciona desde o Chrome 65.
+   * Mixar com transparent é exatamente multiplicar o alfa, então a cor
+   * renderizada é idêntica à de antes nos browsers modernos.
+   * Ver docs/plans/compat-navegador-antigo.md.
+   * Se mudar um hex acima, mude o trio correspondente aqui —
+   * tests/compat-navegador-antigo.test.ts falha se os dois divergirem.
+   */
+  --color-accent-rgb: 142 221 101;
+  --color-accent-ink-rgb: 47 107 15;
+  --color-bg-dark-2-rgb: 12 27 31;
+  --color-offwhite-rgb: 244 244 244;
+  --color-ink-rgb: 15 26 28;
+
   /* semânticos — tema claro (default): accent-ink é o par de texto/UI */
   --bg: var(--color-offwhite);
   --bg-2: var(--color-offwhite);
+  --bg-2-rgb: var(--color-offwhite-rgb);
   --fg: var(--color-ink);
+  --fg-rgb: var(--color-ink-rgb);
   --accent-fg: var(--color-accent-ink);
-  --border-2: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --border-2: rgb(var(--color-ink-rgb) / 12%);
   /*
    * Redesenho novo_template (docs/plans/novo-layout-template.md) — fundo de
    * página em vidro (glassmorphism). Só tema claro: no escuro reaproveita
@@ -40,8 +61,8 @@
   --page-bg: #eaeee9;
 
   /* superfícies de vidro do redesenho — misturadas sobre tokens já existentes, sem hex novo */
-  --glass-bg: color-mix(in srgb, var(--bg-2) 55%, transparent);
-  --glass-border: color-mix(in srgb, var(--fg) 14%, transparent);
+  --glass-bg: rgb(var(--bg-2-rgb) / 55%);
+  --glass-border: rgb(var(--fg-rgb) / 14%);
 
   /*
    * Variante escura de CardKpi (linha de faturamento da Geral) — igual em
@@ -49,22 +70,22 @@
    * tema). Cores misturadas de --color-bg-dark-2/--color-accent, já
    * cadastrados acima — sem hex novo.
    */
-  --glass-dark-bg: color-mix(in srgb, var(--color-bg-dark-2) 74%, transparent);
-  --glass-dark-border: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  --glass-dark-bg: rgb(var(--color-bg-dark-2-rgb) / 74%);
+  --glass-dark-border: rgb(var(--color-accent-rgb) / 28%);
 
   /* status de métrica/gráfico — sempre com ícone+texto, nunca só cor */
   --status-good: var(--color-accent-ink);
   --status-bad: var(--color-status-bad-light);
-  --status-neutro: color-mix(in srgb, var(--fg) 40%, transparent);
+  --status-neutro: rgb(var(--fg-rgb) / 40%);
 
   /*
    * Redesenho Comercial — derivados de --fg, que já inverte por tema
    * (ver bloco [data-theme="dark"] abaixo), então não precisam de
    * equivalente próprio no dark: a mistura já resolve certo nos dois temas.
    */
-  --progress-track: color-mix(in srgb, var(--fg) 10%, transparent);
-  --border-forte: color-mix(in srgb, var(--fg) 32%, transparent);
-  --hachura-a: color-mix(in srgb, var(--fg) 22%, transparent);
+  --progress-track: rgb(var(--fg-rgb) / 10%);
+  --border-forte: rgb(var(--fg-rgb) / 32%);
+  --hachura-a: rgb(var(--fg-rgb) / 22%);
   --hachura-b: transparent;
 
   --font-display: "Bricolage Grotesque", serif;
@@ -75,9 +96,11 @@
   /* tema escuro: accent (não accent-ink) é o par de texto/UI */
   --bg: var(--color-ink);
   --bg-2: var(--color-bg-dark-2);
+  --bg-2-rgb: var(--color-bg-dark-2-rgb);
   --fg: var(--color-offwhite);
+  --fg-rgb: var(--color-offwhite-rgb);
   --accent-fg: var(--color-accent);
-  --border-2: color-mix(in srgb, var(--color-offwhite) 20%, transparent);
+  --border-2: rgb(var(--color-offwhite-rgb) / 20%);
   --page-bg: var(--color-ink);
 
   --status-good: var(--color-accent);
@@ -133,9 +156,9 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(680px 420px at 12% -8%, color-mix(in srgb, var(--color-accent) 42%, transparent), transparent 70%),
-    radial-gradient(620px 480px at 88% 4%, color-mix(in srgb, var(--color-accent-ink) 22%, transparent), transparent 72%),
-    radial-gradient(700px 520px at 60% 100%, color-mix(in srgb, var(--color-bg-dark-2) 16%, transparent), transparent 70%);
+    radial-gradient(680px 420px at 12% -8%, rgb(var(--color-accent-rgb) / 42%), transparent 70%),
+    radial-gradient(620px 480px at 88% 4%, rgb(var(--color-accent-ink-rgb) / 22%), transparent 72%),
+    radial-gradient(700px 520px at 60% 100%, rgb(var(--color-bg-dark-2-rgb) / 16%), transparent 70%);
 }
 
 .glass-panel {
@@ -169,7 +192,7 @@ body {
   font-weight: 600;
   padding: 8px 16px;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--fg) 60%, transparent);
+  color: rgb(var(--fg-rgb) / 60%);
   background: transparent;
   transition:
     background 200ms,
