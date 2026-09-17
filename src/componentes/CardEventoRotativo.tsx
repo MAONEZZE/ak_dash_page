@@ -5,6 +5,7 @@ import {
   CARD_COMPACTO_CAIXA,
   CARD_COMPACTO_LABEL,
   CARD_COMPACTO_META,
+  CARD_COMPACTO_MIUDO,
   CARD_COMPACTO_RODAPE,
   CARD_COMPACTO_VAO,
   escalaValorCompacto,
@@ -64,10 +65,10 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
     <article className={`flex flex-col overflow-hidden rounded-2xl glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
       <div className="flex items-start justify-between gap-2">
         <span className={`font-semibold uppercase tracking-[0.13em] text-offwhite/74 ${CARD_COMPACTO_LABEL}`}>{label}</span>
-        <span className="whitespace-nowrap text-[clamp(10px,min(4cqw,1.7vh),26px)] font-bold leading-none text-accent">{formatarDataHoraEvento(evento.data)}</span>
+        <span className={`whitespace-nowrap font-bold leading-none text-accent ${CARD_COMPACTO_MIUDO}`}>{formatarDataHoraEvento(evento.data)}</span>
       </div>
 
-      <span className="mt-[clamp(2px,0.5vh,6px)] truncate text-[clamp(10px,min(4cqw,1.7vh),26px)] font-semibold leading-tight text-offwhite/60" title={evento.titulo}>
+      <span className={`mt-[clamp(2px,0.5vh,6px)] truncate font-semibold leading-tight text-offwhite/60 ${CARD_COMPACTO_MIUDO}`} title={evento.titulo}>
         {evento.titulo}
       </span>
 

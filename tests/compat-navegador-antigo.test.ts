@@ -123,6 +123,20 @@ describe("bundle publicado", () => {
     expect(css.flatMap((c) => c.match(/@layer[^{;]*[{;]/g) ?? [])).toEqual([]);
   });
 
+  it.runIf(css.length > 0)("não usa container queries — sem suporte no Chromium 94", () => {
+    // Container queries (`container-type`, `@container`, unidades cq*) só
+    // existem do Chrome 105 pra cima. Diferente de color-mix, aqui não há
+    // fallback nenhum: a declaração some e o elemento fica sem a medida — foi
+    // o que desmontou os cards de KPI da Geral na TV. As medidas fluidas do
+    // projeto usam vw/vh (ver src/lib/card-compacto.ts).
+    const usos = css.flatMap((folha) => [
+      ...(folha.match(/container-type\s*:/g) ?? []),
+      ...(folha.match(/@container\b/g) ?? []),
+      ...(folha.match(/\d\s*cq(w|h|i|b|min|max)\b/g) ?? []),
+    ]);
+    expect(usos).toEqual([]);
+  });
+
   it.runIf(css.length > 0)("todo color-mix do CSS publicado está guardado por @supports", () => {
     // O Tailwind ainda gera color-mix nos modificadores de opacidade
     // (text-fg/50) — tudo bem, desde que venha dentro de @supports com uma

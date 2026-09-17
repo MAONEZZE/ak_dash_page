@@ -4,6 +4,7 @@ import {
   CARD_COMPACTO_LABEL,
   CARD_COMPACTO_LEGENDA,
   CARD_COMPACTO_META,
+  CARD_COMPACTO_MIUDO,
   CARD_COMPACTO_RODAPE,
   CARD_COMPACTO_VAO,
   escalaValorCompacto,
@@ -49,7 +50,7 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
         </span>
         {squadTag && (
           <span
-            className={`whitespace-nowrap font-bold ${compacto ? "text-[clamp(11px,min(4cqw,1.7vh),28px)]" : "text-[17px]"} ${escuro ? "text-accent" : "text-accent-fg"}`}
+            className={`whitespace-nowrap font-bold ${compacto ? CARD_COMPACTO_MIUDO : "text-[17px]"} ${escuro ? "text-accent" : "text-accent-fg"}`}
           >
             {squadTag}
           </span>
@@ -76,7 +77,7 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
           {legenda}
         </span>
       ) : (
-        <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(3px,min(1.5cqw,0.65vh),12px)]` : "gap-1.5"}`}>
+        <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(3px,min(0.36vw,0.65vh),12px)]` : "gap-1.5"}`}>
           <div className={`overflow-hidden rounded-full ${compacto ? CARD_COMPACTO_BARRA : "h-[5px]"} ${escuro ? "bg-offwhite/18" : "bg-progress-track"}`}>
             <div className={`h-full rounded-full ${escuro ? "bg-accent" : "bg-accent-fg"}`} style={{ width: `${largura}%` }} />
           </div>
