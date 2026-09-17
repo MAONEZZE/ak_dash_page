@@ -18,16 +18,35 @@ export class RedeError extends Error {
 }
 
 /**
- * Sonda `no-cors` para separar "servidor inalcançável" de "servidor respondeu e o
- * browser barrou por CORS". Uma resposta opaca só existe se o servidor respondeu —
- * se até ela rejeita, o problema é anterior ao HTTP (DNS, TLS, rede bloqueada).
+ * Separa as três causas que o `fetch` funde num único "Failed to fetch".
+ *
+ * Sonda 1 (`no-cors`): resposta opaca só existe se o servidor respondeu — se
+ * até ela rejeita, o problema é anterior ao HTTP (DNS, TLS, rede bloqueada).
+ *
+ * Sonda 2 (`cors`, sem header nenhum): GET sem header custom é *requisição
+ * simples* e não dispara preflight. Se ela passa e a real (com `Authorization`)
+ * não, então a origem está liberada e o que quebrou foi o `OPTIONS` — que morre
+ * antes do FastAPI, no proxy/CDN na frente dele. Se ela também falha, a origem
+ * desta página não está em `CORS_ORIGINS`.
+ *
+ * A origem entra na mensagem porque é o dado que falta: a TV pode estar abrindo
+ * o dashboard por um host diferente do que se usa no desktop (workers.dev vs.
+ * domínio próprio, `www.`, ou `http://` sem o upgrade que o HSTS dá no desktop).
  */
 async function classificarFalhaDeRede(url: string): Promise<string> {
+  const origem = window.location.origin;
+
   try {
     await fetch(url, { mode: "no-cors" });
-    return "Servidor respondeu, mas o navegador bloqueou por CORS";
   } catch {
-    return "Servidor inalcançável (DNS, TLS ou rede)";
+    return `Servidor inalcançável (DNS, TLS ou rede) · origem ${origem}`;
+  }
+
+  try {
+    await fetch(url, { mode: "cors" });
+    return `Preflight OPTIONS barrado antes do backend (origem ${origem} está liberada)`;
+  } catch {
+    return `Origem ${origem} não está em CORS_ORIGINS do backend`;
   }
 }
 
