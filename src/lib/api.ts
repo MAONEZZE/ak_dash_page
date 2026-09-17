@@ -3,6 +3,7 @@ import comercialSdrFixture from "./fixtures/comercial_sdr.example.json";
 import geralFixture from "./fixtures/geral.example.json";
 import pessoasFixture from "./fixtures/pessoas.example.json";
 import type { Erro, ParametrosComercial, ParametrosGeral, Pessoa, RespostaComercial, RespostaGeral } from "./tipos-api";
+import { supabase } from "./supabase";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const USA_FIXTURES = import.meta.env.VITE_USE_FIXTURES === "true";
@@ -61,16 +62,20 @@ export class ApiError extends Error {
   }
 }
 
-function getToken(): string | null {
-  return localStorage.getItem("ak_dash_token");
-}
-
-type ManipuladorNaoAutorizado = () => void;
-let manipuladorNaoAutorizado: ManipuladorNaoAutorizado | null = null;
-
-/** Registrado pelo AuthProvider — chamado quando o BFF responde 401 (sessão expirada/token inválido). */
-export function aoNaoAutorizado(manipulador: ManipuladorNaoAutorizado): void {
-  manipuladorNaoAutorizado = manipulador;
+/**
+ * Token pedido ao supabase-js na hora da requisição — nunca uma cópia guardada.
+ *
+ * Havia aqui um `localStorage.getItem("ak_dash_token")`, espelho que o
+ * AuthProvider atualizava a cada `onAuthStateChange`. O espelho envelhecia: o
+ * access token vence (1h por padrão) e o auto-refresh do supabase-js roda no
+ * seu próprio relógio, então bastava a busca automática (a cada 60s, ver
+ * `INTERVALO_AUTO_REFRESH_MS`) cair na janela entre o vencimento e o refresh
+ * pra mandar um token vencido ao BFF. `getSession()` fecha essa janela: ele
+ * renova o token antes de devolver quando já está vencido.
+ */
+async function obterToken(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
 async function requisitar<T>(caminho: string, params?: Record<string, string | string[] | undefined>): Promise<T> {
@@ -86,21 +91,38 @@ async function requisitar<T>(caminho: string, params?: Record<string, string | s
   const queryString = query.toString();
   const url = `${BASE_URL}${caminho}${queryString ? `?${queryString}` : ""}`;
 
-  const token = getToken();
-  let resposta: Response;
-  try {
-    resposta = await fetch(url, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-  } catch (causa: unknown) {
-    // `fetch` rejeita sem dizer por quê: DNS, TLS e CORS viram o mesmo
-    // "Failed to fetch". Na TV não há devtools, então a distinção precisa
-    // chegar à tela — ver docs/plans/compat-navegador-antigo.md.
-    throw new RedeError(url, await classificarFalhaDeRede(url), causa);
+  async function enviar(): Promise<Response> {
+    const token = await obterToken();
+    try {
+      return await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+    } catch (causa: unknown) {
+      // `fetch` rejeita sem dizer por quê: DNS, TLS e CORS viram o mesmo
+      // "Failed to fetch". Na TV não há devtools, então a distinção precisa
+      // chegar à tela — ver docs/plans/compat-navegador-antigo.md.
+      throw new RedeError(url, await classificarFalhaDeRede(url), causa);
+    }
+  }
+
+  let resposta = await enviar();
+
+  // 401 NÃO derruba a sessão. Antes derrubava (um `signOut()` no primeiro 401),
+  // e era isso que fazia a TV amanhecer na tela de login: qualquer 401 — token
+  // vencido por segundos, BFF reiniciando, JWKS momentaneamente fora do ar —
+  // matava uma sessão que continuava perfeitamente válida.
+  //
+  // Agora tenta renovar UMA vez e repetir. Se o refresh trouxe sessão nova e o
+  // BFF ainda assim recusa, o problema é do BFF, não da sessão: vira erro na
+  // tela (a página tenta de novo em 60s) em vez de logout. Quem decide que a
+  // sessão acabou de verdade é o supabase-js, que emite `SIGNED_OUT` quando o
+  // refresh token é revogado — o AuthProvider escuta esse evento.
+  if (resposta.status === 401) {
+    const { data } = await supabase.auth.refreshSession();
+    if (data.session) resposta = await enviar();
   }
 
   if (!resposta.ok) {
-    if (resposta.status === 401) manipuladorNaoAutorizado?.();
     const corpo = (await resposta.json().catch(() => null)) as Erro | null;
     throw new ApiError(
       resposta.status,

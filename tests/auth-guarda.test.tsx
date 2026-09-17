@@ -23,10 +23,22 @@ function criarSupabaseMock(sessaoInicial: SessaoFake | null) {
     return { error: null };
   });
 
+  // Renova o token como o supabase-js faz: mesma sessão, access_token novo.
+  const refreshSession = vi.fn().mockImplementation(async () => {
+    if (sessaoAtual === null) return { data: { session: null }, error: { message: "refresh_token_not_found" } };
+    sessaoAtual = { ...sessaoAtual, access_token: "token-renovado" };
+    callback?.("TOKEN_REFRESHED", sessaoAtual);
+    return { data: { session: sessaoAtual }, error: null };
+  });
+
   return {
     _estado: () => sessaoAtual,
+    _expirarSessao: () => {
+      sessaoAtual = null;
+    },
     auth: {
       getSession: vi.fn().mockImplementation(async () => ({ data: { session: sessaoAtual } })),
+      refreshSession,
       onAuthStateChange: vi.fn().mockImplementation((cb: Callback) => {
         callback = cb;
         return { data: { subscription: { unsubscribe: vi.fn() } } };
@@ -71,13 +83,11 @@ describe("guarda de rota e sessão", () => {
   it("sem sessão, /comercial redireciona para a tela de login", async () => {
     await montarApp(null, "/comercial");
     await waitFor(() => expect(screen.getByRole("heading", { name: "Entrar" })).toBeTruthy());
-    expect(localStorage.getItem("ak_dash_token")).toBeNull();
   });
 
-  it("com sessão, /comercial libera a página e grava o token", async () => {
+  it("com sessão, /comercial libera a página", async () => {
     await montarApp({ access_token: "token-fake", user: { email: "pessoa@akeel.com.br" } }, "/comercial");
     await waitFor(() => expect(screen.getByText("pagina-comercial")).toBeTruthy());
-    expect(localStorage.getItem("ak_dash_token")).toBe("token-fake");
   });
 
   it("logout limpa o token e volta para a tela de login", async () => {
@@ -88,10 +98,35 @@ describe("guarda de rota e sessão", () => {
 
     await waitFor(() => expect(supabaseMock.auth.signOut).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByRole("heading", { name: "Entrar" })).toBeTruthy());
-    expect(localStorage.getItem("ak_dash_token")).toBeNull();
   });
 
-  it("401 do BFF força logout automaticamente, sem clique do usuário", async () => {
+  // A TV fica ligada dias sem ninguém por perto e rebusca a cada 60s. Antes,
+  // qualquer 401 disparava signOut() e a tela amanhecia no login. Estes três
+  // testes travam o comportamento novo.
+  it("401 renova o token e repete a requisição, sem derrubar a sessão", async () => {
+    const supabaseMock = await montarApp({ access_token: "token-fake", user: { email: "pessoa@akeel.com.br" } }, "/comercial");
+    await waitFor(() => expect(screen.getByText("pagina-comercial")).toBeTruthy());
+
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ erro: { codigo: "nao_autenticado", mensagem: "token inválido" } }), { status: 401 }),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: "1" }]), { status: 200 }));
+
+    const { buscarPessoas } = await import("../src/lib/api");
+    await expect(buscarPessoas()).resolves.toEqual([{ id: "1" }]);
+
+    expect(supabaseMock.auth.refreshSession).toHaveBeenCalledTimes(1);
+    expect(supabaseMock.auth.signOut).not.toHaveBeenCalled();
+    // A repetição foi com o token novo, não com o que tomou 401.
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ headers: { Authorization: "Bearer token-renovado" } });
+    expect(screen.getByText("pagina-comercial")).toBeTruthy();
+
+    fetchMock.mockRestore();
+  });
+
+  it("401 que persiste depois da renovação vira erro, não logout", async () => {
     const supabaseMock = await montarApp({ access_token: "token-fake", user: { email: "pessoa@akeel.com.br" } }, "/comercial");
     await waitFor(() => expect(screen.getByText("pagina-comercial")).toBeTruthy());
 
@@ -104,9 +139,23 @@ describe("guarda de rota e sessão", () => {
     const { buscarPessoas } = await import("../src/lib/api");
     await expect(buscarPessoas()).rejects.toThrow();
 
-    await waitFor(() => expect(supabaseMock.auth.signOut).toHaveBeenCalled());
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Entrar" })).toBeTruthy());
+    // BFF recusando token recém-renovado é problema do BFF: a tela mostra erro
+    // e tenta de novo em 60s. Derrubar a sessão aqui só trocaria o dashboard
+    // por uma tela de login que, ao entrar, cairia no mesmo 401.
+    expect(supabaseMock.auth.signOut).not.toHaveBeenCalled();
+    expect(screen.getByText("pagina-comercial")).toBeTruthy();
 
     fetchMock.mockRestore();
+  });
+
+  it("sessão revogada pelo Supabase (SIGNED_OUT) volta para o login", async () => {
+    const supabaseMock = await montarApp({ access_token: "token-fake", user: { email: "pessoa@akeel.com.br" } }, "/comercial");
+    await waitFor(() => expect(screen.getByText("pagina-comercial")).toBeTruthy());
+
+    // Único caminho que ainda encerra a sessão sozinho: o supabase-js
+    // concluindo que o refresh token morreu.
+    await supabaseMock.auth.signOut();
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Entrar" })).toBeTruthy());
   });
 });

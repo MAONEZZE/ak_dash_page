@@ -1,9 +1,5 @@
-import type { Session } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { aoNaoAutorizado } from "./api";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "./supabase";
-
-const CHAVE_TOKEN = "ak_dash_token";
 
 interface Usuario {
   email: string;
@@ -18,48 +14,33 @@ interface AuthContextValor {
 
 const AuthContext = createContext<AuthContextValor | null>(null);
 
-function sincronizarToken(session: Session | null): void {
-  if (session?.access_token) {
-    localStorage.setItem(CHAVE_TOKEN, session.access_token);
-  } else {
-    localStorage.removeItem(CHAVE_TOKEN);
-  }
-}
-
 function traduzirErro(mensagem: string): string {
   if (/invalid/i.test(mensagem)) return "Email ou senha inválidos.";
   return "Não foi possível entrar. Tente novamente.";
 }
 
+/**
+ * Dono da sessão. O supabase-js é a única fonte da verdade — não há cópia do
+ * access token em `localStorage` (havia, e era ela que envelhecia e derrubava a
+ * TV; ver `obterToken` em `api.ts`), nem logout disparado por 401 do BFF.
+ *
+ * A sessão só acaba de duas formas: o clique em "Sair", ou o supabase-js
+ * emitindo `SIGNED_OUT` porque o refresh token foi revogado/perdido. Um 401 do
+ * BFF não é uma delas — a TV fica ligada dias sem ninguém por perto, e um 401
+ * passageiro não pode custar a sessão.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carregando, setCarregando] = useState(true);
-  const temSessaoRef = useRef(false);
-  const saindoPor401Ref = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      sincronizarToken(data.session);
-      temSessaoRef.current = data.session !== null;
       setUsuario(data.session?.user.email ? { email: data.session.user.email } : null);
       setCarregando(false);
     });
 
     const { data: assinatura } = supabase.auth.onAuthStateChange((_evento, session) => {
-      sincronizarToken(session);
-      temSessaoRef.current = session !== null;
-      if (session !== null) saindoPor401Ref.current = false;
       setUsuario(session?.user.email ? { email: session.user.email } : null);
-    });
-
-    // Sessão expirada/token inválido detectado pelo BFF (401) força o mesmo caminho de saída.
-    // Guardado contra chamadas repetidas: sem isso, cada requisição que falhar com 401
-    // (ex: BFF fora do ar ou mal configurado) dispara um signOut() novo, e o signOut()
-    // num cliente que já não tem sessão responde 403 — loop de erro sem fim.
-    aoNaoAutorizado(() => {
-      if (!temSessaoRef.current || saindoPor401Ref.current) return;
-      saindoPor401Ref.current = true;
-      supabase.auth.signOut().catch(() => {});
     });
 
     return () => assinatura.subscription.unsubscribe();
