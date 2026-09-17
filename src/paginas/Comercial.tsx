@@ -3,7 +3,7 @@ import { CardKpi } from "../componentes/CardKpi";
 import { GaugeMeta } from "../componentes/GaugeMeta";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
 import { TimeComercialLista, type PessoaUnificada } from "../componentes/TimeComercialLista";
-import { ApiError, buscarComercialCloser, buscarComercialSdr } from "../lib/api";
+import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { agregarConsolidado, agregarPorMetrica } from "../lib/insights";
@@ -68,12 +68,12 @@ export function Comercial() {
       buscarComercialSdr(params)
         .then((dado) => setSdr({ dado, carregando: false, erro: null }))
         .catch((erro: unknown) =>
-          setSdr({ dado: null, carregando: false, erro: erro instanceof ApiError ? erro.message : "Falha ao carregar SDRs." }),
+          setSdr({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar SDRs." }),
         ),
       buscarComercialCloser(params)
         .then((dado) => setCloser({ dado, carregando: false, erro: null }))
         .catch((erro: unknown) =>
-          setCloser({ dado: null, carregando: false, erro: erro instanceof ApiError ? erro.message : "Falha ao carregar Closers." }),
+          setCloser({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar Closers." }),
         ),
     ]);
 

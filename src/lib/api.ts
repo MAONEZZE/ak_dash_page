@@ -7,6 +7,30 @@ import type { Erro, ParametrosComercial, ParametrosGeral, Pessoa, RespostaComerc
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const USA_FIXTURES = import.meta.env.VITE_USE_FIXTURES === "true";
 
+export class RedeError extends Error {
+  url: string;
+
+  constructor(url: string, motivo: string, causa: unknown) {
+    const bruto = causa instanceof Error ? `${causa.name}: ${causa.message}` : String(causa);
+    super(`${motivo} · ${url} · ${bruto}`);
+    this.url = url;
+  }
+}
+
+/**
+ * Sonda `no-cors` para separar "servidor inalcançável" de "servidor respondeu e o
+ * browser barrou por CORS". Uma resposta opaca só existe se o servidor respondeu —
+ * se até ela rejeita, o problema é anterior ao HTTP (DNS, TLS, rede bloqueada).
+ */
+async function classificarFalhaDeRede(url: string): Promise<string> {
+  try {
+    await fetch(url, { mode: "no-cors" });
+    return "Servidor respondeu, mas o navegador bloqueou por CORS";
+  } catch {
+    return "Servidor inalcançável (DNS, TLS ou rede)";
+  }
+}
+
 export class ApiError extends Error {
   codigo: string;
   status: number;
@@ -44,16 +68,24 @@ async function requisitar<T>(caminho: string, params?: Record<string, string | s
   const url = `${BASE_URL}${caminho}${queryString ? `?${queryString}` : ""}`;
 
   const token = getToken();
-  const resposta = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
+  let resposta: Response;
+  try {
+    resposta = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  } catch (causa: unknown) {
+    // `fetch` rejeita sem dizer por quê: DNS, TLS e CORS viram o mesmo
+    // "Failed to fetch". Na TV não há devtools, então a distinção precisa
+    // chegar à tela — ver docs/plans/compat-navegador-antigo.md.
+    throw new RedeError(url, await classificarFalhaDeRede(url), causa);
+  }
 
   if (!resposta.ok) {
     if (resposta.status === 401) manipuladorNaoAutorizado?.();
     const corpo = (await resposta.json().catch(() => null)) as Erro | null;
     throw new ApiError(
       resposta.status,
-      corpo?.erro ?? { codigo: "erro_desconhecido", mensagem: `Falha ao consultar ${caminho}` },
+      corpo?.erro ?? { codigo: "erro_desconhecido", mensagem: `Falha ao consultar ${caminho} (HTTP ${resposta.status})` },
     );
   }
 

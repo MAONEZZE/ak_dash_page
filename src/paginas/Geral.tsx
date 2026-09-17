@@ -4,7 +4,7 @@ import { CardKpi } from "../componentes/CardKpi";
 import { RankingPodio } from "../componentes/RankingPodio";
 import { TabelaPessoas } from "../componentes/TabelaPessoas";
 import { UltimaAtualizacao } from "../componentes/UltimaAtualizacao";
-import { ApiError, buscarGeral } from "../lib/api";
+import { buscarGeral } from "../lib/api";
 import { formatarMoeda, formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
@@ -51,7 +51,7 @@ export function Geral() {
       const dado = await buscarGeral({ granularidade, periodo });
       setEstado({ dado, carregando: false, erro: null });
     } catch (erro: unknown) {
-      setEstado({ dado: null, carregando: false, erro: erro instanceof ApiError ? erro.message : "Falha ao carregar a visão geral." });
+      setEstado({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar a visão geral." });
     }
     setAtualizadoEm(new Date());
     setAtualizando(false);
