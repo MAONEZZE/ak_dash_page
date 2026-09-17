@@ -47,6 +47,8 @@
    * tests/compat-navegador-antigo.test.ts falha se os dois divergirem.
    */
   --color-accent-rgb: 142 221 101;
+  --color-status-bad-light-rgb: 29 78 216;
+  --color-status-bad-dark-rgb: 57 135 229;
   --color-accent-ink-rgb: 47 107 15;
   --color-bg-dark-2-rgb: 12 27 31;
   --color-offwhite-rgb: 244 244 244;
@@ -82,6 +84,18 @@
   --glass-dark-bg: rgb(var(--color-bg-dark-2-rgb) / 74%);
   --glass-dark-border: rgb(var(--color-accent-rgb) / 28%);
 
+  /*
+   * Os dois painéis da tabela de pessoas da Geral: verde pastel pros SDRs,
+   * azul pastel pros closers. Só separam visualmente os dois times — não são
+   * status de métrica (o azul de status continua sendo --status-bad, e por isso
+   * nenhum texto dentro dos cards herda essas cores). Derivados dos tokens de
+   * marca por translucidez, sem hex novo.
+   */
+  --painel-sdr-bg: rgb(var(--color-accent-rgb) / 24%);
+  --painel-sdr-border: rgb(var(--color-accent-rgb) / 42%);
+  --painel-closer-bg: rgb(var(--color-status-bad-light-rgb) / 14%);
+  --painel-closer-border: rgb(var(--color-status-bad-light-rgb) / 28%);
+
   /* status de métrica/gráfico — sempre com ícone+texto, nunca só cor */
   --status-good: var(--color-accent-ink);
   --status-bad: var(--color-status-bad-light);
@@ -116,6 +130,12 @@
   --status-good: var(--color-accent);
   --status-bad: var(--color-status-bad-dark);
   --perigo: var(--color-perigo-dark);
+
+  /* mesma leitura dos painéis pastel sobre fundo escuro: menos alfa, mais borda */
+  --painel-sdr-bg: rgb(var(--color-accent-rgb) / 13%);
+  --painel-sdr-border: rgb(var(--color-accent-rgb) / 30%);
+  --painel-closer-bg: rgb(var(--color-status-bad-dark-rgb) / 17%);
+  --painel-closer-border: rgb(var(--color-status-bad-dark-rgb) / 34%);
 }
 
 @theme {
@@ -220,6 +240,20 @@ body {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--glass-dark-border);
+}
+
+.glass-panel-sdr {
+  background: var(--painel-sdr-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--painel-sdr-border);
+}
+
+.glass-panel-closer {
+  background: var(--painel-closer-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--painel-closer-border);
 }
 
 .glass-pill {

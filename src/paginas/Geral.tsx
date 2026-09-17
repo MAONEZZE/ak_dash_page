@@ -37,7 +37,14 @@ function legendaCard(c: CardGeral): string {
   return `${c.pct === null ? 0 : Math.round(c.pct)}% da meta`;
 }
 
-/** Reconstrução da página Geral: 8 cards (2 escuros de faturamento + 2 escuros dos próximos eventos + 4 claros de métricas), tabela de 7 pessoas e dois pódios (SDR/Closer). Layout pensado pra caber numa tela só, sem rolagem. */
+/**
+ * Reconstrução da página Geral: 8 cards (2 escuros de faturamento + 2 escuros
+ * dos próximos eventos + 4 claros de métricas), tabela de 7 pessoas e dois
+ * pódios (SDR/Closer). Cabe numa tela só, sem rolagem: a linha de baixo
+ * (tabela + pódios) fica na altura mínima do conteúdo e as duas linhas de card
+ * dividem entre si todo o resto da tela — por isso a tipografia dos cards é em
+ * vh, pra crescer junto.
+ */
 export function Geral() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const [estado, setEstado] = useState<EstadoGeral>(ESTADO_INICIAL);
@@ -87,7 +94,7 @@ export function Geral() {
         </p>
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <section className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {cardsEscuros.map((c) => (
               <CardKpi
                 key={c.metrica}
@@ -104,7 +111,7 @@ export function Geral() {
             <CardEventoRotativo label="Aprovados" campo="aprovados" eventos={eventos} />
           </section>
 
-          <section className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <section className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {cardsClaros.map((c) => (
               <CardKpi
                 key={c.metrica}
@@ -118,11 +125,17 @@ export function Geral() {
             ))}
           </section>
 
-          <section className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            <div className="min-w-0 sm:col-span-2 lg:col-span-3">
+          {/*
+            * `flex-[0.6_1_auto]`: parte da altura que sobra vem pra cá em vez de
+            * ir toda pros cards — é o que mantém os KPIs colados no conteúdo
+            * deles e dá corpo aos pódios. `grid-rows-[minmax(0,1fr)]`: em tela
+            * baixa demais quem cede é a tabela (rola por dentro), não o grid.
+            */}
+          <section className="grid min-h-0 flex-[0.6_1_auto] grid-cols-1 grid-rows-[minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-3">
               <TabelaPessoas pessoas={estado.dado?.pessoas ?? []} />
             </div>
-            <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex min-h-0 min-w-0 flex-col gap-2">
               <RankingPodio titulo="Ranking SDR" pessoas={sdrs} />
               <RankingPodio titulo="Ranking Closer" pessoas={closers} />
             </div>

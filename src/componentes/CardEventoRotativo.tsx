@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { CardKpi } from "./CardKpi";
+import {
+  CARD_COMPACTO_BARRA,
+  CARD_COMPACTO_CAIXA,
+  CARD_COMPACTO_LABEL,
+  CARD_COMPACTO_META,
+  CARD_COMPACTO_RODAPE,
+  CARD_COMPACTO_VAO,
+  escalaValorCompacto,
+} from "../lib/card-compacto";
 import { formatarDataHoraEvento, formatarNumero } from "../lib/formato";
 import type { EventoGeral } from "../lib/tipos-api";
 
@@ -49,31 +58,32 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
   const atual = indice % eventos.length;
   const evento = eventos[atual];
   const valor = campo === "inscritos" ? evento.inscritos : evento.aprovados;
+  const valorTexto = formatarNumero(valor);
 
   return (
-    <article className="flex h-[160px] flex-col gap-1 overflow-hidden rounded-2xl p-5 glass-panel-escuro">
+    <article className={`flex flex-col overflow-hidden rounded-2xl glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[19px] font-semibold uppercase leading-none tracking-[0.13em] text-offwhite/74">{label}</span>
-        <span className="whitespace-nowrap text-[15px] font-bold leading-none text-accent">{formatarDataHoraEvento(evento.data)}</span>
+        <span className={`font-semibold uppercase tracking-[0.13em] text-offwhite/74 ${CARD_COMPACTO_LABEL}`}>{label}</span>
+        <span className="whitespace-nowrap text-[clamp(10px,min(4cqw,1.7vh),26px)] font-bold leading-none text-accent">{formatarDataHoraEvento(evento.data)}</span>
       </div>
 
-      <span className="truncate text-[15px] font-semibold leading-tight text-offwhite/60" title={evento.titulo}>
+      <span className="mt-[clamp(2px,0.5vh,6px)] truncate text-[clamp(10px,min(4cqw,1.7vh),26px)] font-semibold leading-tight text-offwhite/60" title={evento.titulo}>
         {evento.titulo}
       </span>
 
-      <div className="mt-auto flex flex-wrap items-baseline gap-1.5">
-        <span className="font-display text-[36px] font-extrabold leading-none tracking-tight text-offwhite">{formatarNumero(valor)}</span>
+      <div className={`flex flex-wrap items-baseline gap-1.5 ${CARD_COMPACTO_VAO}`}>
+        <span className={`font-display font-extrabold leading-none tracking-tight text-offwhite ${escalaValorCompacto(valorTexto)}`}>{valorTexto}</span>
         {/* Aprovados é número absoluto: a capacidade só faz sentido como denominador dos inscritos. */}
         {campo === "inscritos" && (
-          <span className="whitespace-nowrap text-[22px] font-semibold leading-none text-offwhite/60">
+          <span className={`whitespace-nowrap font-semibold leading-none text-offwhite/60 ${CARD_COMPACTO_META}`}>
             / {evento.capacidade === null ? "—" : formatarNumero(evento.capacidade)}
           </span>
         )}
       </div>
 
-      <div className="mt-2 flex gap-1.5" aria-hidden="true">
+      <div className={`flex gap-1.5 ${CARD_COMPACTO_RODAPE}`} aria-hidden="true">
         {eventos.map((e, i) => (
-          <div key={e.id} className="h-[5px] flex-1 overflow-hidden rounded-full bg-offwhite/18">
+          <div key={e.id} className={`flex-1 overflow-hidden rounded-full bg-offwhite/18 ${CARD_COMPACTO_BARRA}`}>
             {i === atual ? (
               // `key` muda a cada volta: remonta a div e reinicia a animação do zero.
               <div key={`${indice}-${e.id}`} className="h-full rounded-full bg-accent barra-evento-preenchendo" />
