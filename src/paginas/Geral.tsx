@@ -3,8 +3,8 @@ import { CardEventoRotativo } from "../componentes/CardEventoRotativo";
 import { CardKpi } from "../componentes/CardKpi";
 import { RankingPodio } from "../componentes/RankingPodio";
 import { TabelaPessoas } from "../componentes/TabelaPessoas";
-import { UltimaAtualizacao } from "../componentes/UltimaAtualizacao";
 import { buscarGeral } from "../lib/api";
+import { useAtualizacao } from "../lib/atualizacao";
 import { formatarMoeda, formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
@@ -43,6 +43,7 @@ export function Geral() {
   const [estado, setEstado] = useState<EstadoGeral>(ESTADO_INICIAL);
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
+  const { registrar } = useAtualizacao();
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
@@ -63,6 +64,12 @@ export function Geral() {
     return () => clearInterval(id);
   }, [carregar]);
 
+  // O "Atualizar" virou item do menu do header, que vive fora da árvore da página.
+  useEffect(() => {
+    registrar({ atualizadoEm, atualizando, aoAtualizar: carregar });
+    return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
+  }, [atualizadoEm, atualizando, carregar, registrar]);
+
   const cardsEscuros = estado.dado?.cards.filter((c) => c.escuro) ?? [];
   // Inscritos/Aprovados não são card de período: giram entre os próximos eventos.
   const eventos = estado.dado?.eventos ?? [];
@@ -72,15 +79,10 @@ export function Geral() {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-hidden">
-      <div className="flex shrink-0 items-baseline justify-between gap-3">
-        <span className="font-display text-xl font-semibold tracking-tight">Visão geral</span>
-        <UltimaAtualizacao atualizadoEm={atualizadoEm} atualizando={atualizando} aoAtualizar={carregar} />
-      </div>
-
       {estado.carregando && !estado.dado ? (
-        <p className="text-sm text-fg/60">Carregando…</p>
+        <p className="text-xl text-fg/60">Carregando…</p>
       ) : estado.erro ? (
-        <p className="text-sm text-fg/60" role="alert">
+        <p className="text-xl text-fg/60" role="alert">
           {estado.erro}
         </p>
       ) : (

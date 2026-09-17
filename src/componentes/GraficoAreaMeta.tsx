@@ -50,8 +50,8 @@ export function GraficoAreaMeta({ titulo, fontes, granularidade }: Props) {
   if (!atual) {
     return (
       <article className="glass-panel flex flex-col gap-3 rounded-2xl px-[21px] pb-3 pt-[19px]">
-        <span className="font-display text-xl font-semibold tracking-tight">{titulo}</span>
-        <p className="text-sm text-fg/60">Sem evolução diária pro período selecionado (só cobre o mês corrente).</p>
+        <span className="font-display text-4xl font-semibold tracking-tight">{titulo}</span>
+        <p className="text-xl text-fg/60">Sem evolução diária pro período selecionado (só cobre o mês corrente).</p>
       </article>
     );
   }
@@ -66,15 +66,15 @@ export function GraficoAreaMeta({ titulo, fontes, granularidade }: Props) {
     <article className="glass-panel flex flex-col gap-4 rounded-2xl px-[21px] pb-3 pt-[19px]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="text-[10.5px] font-semibold uppercase tracking-[0.13em] text-fg/56">Acompanhamento de metas</span>
-          <span className="font-display text-xl font-semibold tracking-tight">{titulo}</span>
+          <span className="text-[17px] font-semibold uppercase tracking-[0.13em] text-fg/56">Acompanhamento de metas</span>
+          <span className="font-display text-4xl font-semibold tracking-tight">{titulo}</span>
         </div>
-        <label className="flex items-center gap-2 text-xs text-fg/70">
+        <label className="flex items-center gap-2 text-lg text-fg/70">
           Métrica
           <select
             value={atual.metrica}
             onChange={(e) => setSelecionada(e.target.value)}
-            className="rounded-md border border-glass-border bg-glass-bg px-2 py-1 text-sm text-fg"
+            className="rounded-md border border-glass-border bg-glass-bg px-2 py-1 text-xl text-fg"
           >
             {opcoes.map((o) => (
               <option key={o.metrica} value={o.metrica}>
@@ -85,7 +85,7 @@ export function GraficoAreaMeta({ titulo, fontes, granularidade }: Props) {
         </label>
       </div>
 
-      <span className="flex items-center gap-2 text-xs text-fg/70">
+      <span className="flex items-center gap-2 text-lg text-fg/70">
         <span className="inline-block h-[3px] w-4 bg-accent-fg" /> Realizado
       </span>
 
@@ -107,14 +107,14 @@ export function GraficoAreaMeta({ titulo, fontes, granularidade }: Props) {
           </svg>
           <div className="flex justify-between px-1 pb-1.5">
             {geo.ticks.map((t, i) => (
-              <span key={i} className="text-[11.5px] font-medium text-fg/50">
+              <span key={i} className="text-[17px] font-medium text-fg/50">
                 {t.rotulo}
               </span>
             ))}
           </div>
         </>
       ) : (
-        <p className="text-sm text-fg/60">Sem evolução diária pro período selecionado (só cobre o mês corrente).</p>
+        <p className="text-xl text-fg/60">Sem evolução diária pro período selecionado (só cobre o mês corrente).</p>
       )}
     </article>
   );

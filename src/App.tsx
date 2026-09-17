@@ -1,10 +1,11 @@
-import { LogOut, Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { LogOut, Menu, Moon, RefreshCw, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { UltimaAtualizacao } from "./componentes/UltimaAtualizacao";
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
+import { formatarHora } from "./lib/formato";
 import { useDefinirGranularidade, useFiltrosAtuais } from "./lib/periodo";
+import { SQUADS, useDefinirSquad, useSquadAtual } from "./lib/squad";
 import type { Granularidade } from "./lib/tipos-api";
 import { Comercial } from "./paginas/Comercial";
 import { Financeiro } from "./paginas/Financeiro";
@@ -31,11 +32,7 @@ const NAV_ITENS = [
   { rota: "/financeiro", rotulo: "Financeiro" },
 ];
 
-const SUBTITULO_POR_ROTA: Record<string, string> = {
-  "/geral": "Visão consolidada — comercial e financeiro",
-  "/comercial": "Métricas diárias de prospecção — SDRs e closers",
-  "/financeiro": "Caixa, margem e obrigações",
-};
+
 
 const GRANULARIDADES: { id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
@@ -83,8 +80,37 @@ function PillPeriodo() {
   );
 }
 
-/** Botão de tema + logout, e o "Atualizar" da página atual (se ela tiver registrado um) 10px à esquerda do toggle de tema. */
-function AcoesHeader({
+/** Filtro de squad da Comercial — vive aqui, à direita do período, e conversa com a página pela querystring. */
+function PillSquad() {
+  const squad = useSquadAtual();
+  const definirSquad = useDefinirSquad();
+
+  return (
+    <div className="glass-pill flex gap-1 p-1" role="group" aria-label="Squad">
+      {SQUADS.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          onClick={() => definirSquad(s.id)}
+          aria-pressed={squad === s.id}
+          className={`pill ${squad === s.id ? "pill-ativo" : ""}`}
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const ITEM_MENU =
+  "flex w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-semibold transition-colors hover:bg-glass-border disabled:pointer-events-none disabled:opacity-45";
+
+/**
+ * Único botão de ação do header (onde antes ficava o logout): abre atualizar,
+ * tema e sair. "Atualizar" só fica ativo na página que registrou um refresh
+ * (ver lib/atualizacao) — a Financeiro é estática e não registra nada.
+ */
+function MenuAcoes({
   tema,
   alternarTema,
   aoSair,
@@ -94,25 +120,79 @@ function AcoesHeader({
   aoSair: () => void;
 }) {
   const { valor } = useAtualizacao();
+  const [aberto, setAberto] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+
+    function aoClicarFora(evento: MouseEvent) {
+      if (!container.current?.contains(evento.target as Node)) setAberto(false);
+    }
+    function aoTeclar(evento: KeyboardEvent) {
+      if (evento.key === "Escape") setAberto(false);
+    }
+
+    document.addEventListener("mousedown", aoClicarFora);
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("mousedown", aoClicarFora);
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, [aberto]);
 
   return (
-    <div className="flex items-center gap-2">
-      {valor.aoAtualizar && (
-        <div className="mr-[10px]">
-          <UltimaAtualizacao atualizadoEm={valor.atualizadoEm ?? new Date()} atualizando={valor.atualizando} aoAtualizar={valor.aoAtualizar} />
-        </div>
-      )}
+    <div className="relative" ref={container}>
       <button
         type="button"
-        onClick={alternarTema}
-        aria-label={tema === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
-        className="glass-panel rounded-full p-2 hover:opacity-80"
+        onClick={() => setAberto((a) => !a)}
+        aria-label="Menu de ações"
+        aria-haspopup="menu"
+        aria-expanded={aberto}
+        className="glass-panel rounded-full p-2.5 hover:opacity-80"
       >
-        {tema === "light" ? <Moon className="size-4" aria-hidden /> : <Sun className="size-4" aria-hidden />}
+        <Menu className="size-5" aria-hidden />
       </button>
-      <button type="button" onClick={aoSair} aria-label="Sair" className="glass-panel rounded-full p-2 hover:opacity-80">
-        <LogOut className="size-4" aria-hidden />
-      </button>
+
+      {aberto && (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl border border-glass-border bg-bg-2 py-1 shadow-2xl"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!valor.aoAtualizar || valor.atualizando}
+            onClick={() => {
+              valor.aoAtualizar?.();
+              setAberto(false);
+            }}
+            className={ITEM_MENU}
+          >
+            <RefreshCw className={`size-[18px] shrink-0 ${valor.atualizando ? "animate-spin" : ""}`} aria-hidden />
+            Atualizar
+            {valor.atualizadoEm && <span className="ml-auto text-[13px] font-medium text-fg/55">{formatarHora(valor.atualizadoEm)}</span>}
+          </button>
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              alternarTema();
+              setAberto(false);
+            }}
+            className={ITEM_MENU}
+          >
+            {tema === "light" ? <Moon className="size-[18px] shrink-0" aria-hidden /> : <Sun className="size-[18px] shrink-0" aria-hidden />}
+            {tema === "light" ? "Tema escuro" : "Tema claro"}
+          </button>
+
+          <button type="button" role="menuitem" onClick={aoSair} className={`${ITEM_MENU} text-perigo`}>
+            <LogOut className="size-[18px] shrink-0" aria-hidden />
+            Sair
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -147,8 +227,6 @@ export default function App() {
     );
   }
 
-  const subtitulo = SUBTITULO_POR_ROTA[location.pathname] ?? "";
-
   return (
     <AtualizacaoProvider>
       <div className="dashboard-shell font-body text-fg">
@@ -159,12 +237,12 @@ export default function App() {
                 <span className="font-display text-[29px] font-extrabold tracking-tight">akeel</span>
                 <span className="inline-block size-[7px] rounded-full bg-accent-ink" />
               </div>
-              <span className="text-[13px] text-fg/62">{subtitulo}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
               <PillNav />
               <PillPeriodo />
-              <AcoesHeader tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
+              {location.pathname === "/comercial" && <PillSquad />}
+              <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
             </div>
           </header>
 

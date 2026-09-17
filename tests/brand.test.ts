@@ -26,6 +26,9 @@ const TOKENS_PERMITIDOS = new Set([
   "#1d4ed8",
   "#3987e5",
   "#eaeee9",
+  // vermelho do "Sair" (claro/escuro) — ver comentário em src/app/globals.css
+  "#b3261e",
+  "#f28b82",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 

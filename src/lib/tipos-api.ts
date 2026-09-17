@@ -157,7 +157,7 @@ export interface EventoGeral {
   data: string;
   /** `null` = evento sem limite cadastrado. */
   capacidade: number | null;
-  /** Inscrições com status `pending` ou `approved`. */
+  /** TODAS as inscrições do evento, qualquer status — recusadas incluídas. */
   inscritos: number;
   /** Subconjunto de `inscritos` — só `approved`. */
   aprovados: number;

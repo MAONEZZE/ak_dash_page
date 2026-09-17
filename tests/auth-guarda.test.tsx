@@ -94,7 +94,9 @@ describe("guarda de rota e sessão", () => {
     const supabaseMock = await montarApp({ access_token: "token-fake", user: { email: "pessoa@akeel.com.br" } }, "/comercial");
     await waitFor(() => expect(screen.getByText("pagina-comercial")).toBeTruthy());
 
-    fireEvent.click(screen.getByRole("button", { name: "Sair" }));
+    // "Sair" agora é item do menu do header — precisa abrir o menu antes.
+    fireEvent.click(screen.getByRole("button", { name: "Menu de ações" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Sair" }));
 
     await waitFor(() => expect(supabaseMock.auth.signOut).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByRole("heading", { name: "Entrar" })).toBeTruthy());

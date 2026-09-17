@@ -20,7 +20,7 @@ export function Financeiro() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="font-display text-xl font-semibold tracking-tight">Financeiro</span>
+        <span className="font-display text-4xl font-semibold tracking-tight">Financeiro</span>
         <MarcadorGlobal />
       </div>
 
@@ -32,8 +32,8 @@ export function Financeiro() {
 
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.15fr)_minmax(272px,1fr)]">
         <article className="glass-panel flex flex-col gap-3 rounded-2xl p-5">
-          <span className="font-display text-lg font-semibold tracking-tight">Caixa, margem e obrigações</span>
-          <p className="text-sm text-fg/60">{MENSAGEM_INDISPONIVEL}.</p>
+          <span className="font-display text-3xl font-semibold tracking-tight">Caixa, margem e obrigações</span>
+          <p className="text-xl text-fg/60">{MENSAGEM_INDISPONIVEL}.</p>
         </article>
         <GaugeMeta pct={null} faltamLabel="—" caption={MENSAGEM_INDISPONIVEL} />
       </section>

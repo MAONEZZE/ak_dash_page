@@ -25,6 +25,15 @@
   --color-status-bad-dark: #3987e5;
 
   /*
+   * Vermelho de ação destrutiva (só o "Sair" do menu do header). Não entra em
+   * gráfico nem em status de métrica — lá o par verde×vermelho falha CVD e quem
+   * marca "ruim" é --status-bad (azul). Dois tons porque um só não passa 4.5:1
+   * nos dois temas: #b3261e dá 5.9:1 sobre o claro, #f28b82 dá 7.4:1 sobre o escuro.
+   */
+  --color-perigo-light: #b3261e;
+  --color-perigo-dark: #f28b82;
+
+  /*
    * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
    * translucidez como rgb(var(--x-rgb) / N%) em vez de color-mix().
    * color-mix() só existe a partir do Chrome 111; o browser da TV Samsung 2023
@@ -77,6 +86,7 @@
   --status-good: var(--color-accent-ink);
   --status-bad: var(--color-status-bad-light);
   --status-neutro: rgb(var(--fg-rgb) / 40%);
+  --perigo: var(--color-perigo-light);
 
   /*
    * Redesenho Comercial — derivados de --fg, que já inverte por tema
@@ -105,6 +115,7 @@
 
   --status-good: var(--color-accent);
   --status-bad: var(--color-status-bad-dark);
+  --perigo: var(--color-perigo-dark);
 }
 
 @theme {
@@ -123,6 +134,7 @@
   --color-status-good: var(--status-good);
   --color-status-bad: var(--status-bad);
   --color-status-neutro: var(--status-neutro);
+  --color-perigo: var(--perigo);
   --color-progress-track: var(--progress-track);
   --color-border-forte: var(--border-forte);
   --color-hachura-a: var(--hachura-a);
@@ -135,6 +147,41 @@ body {
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-body);
+}
+
+/*
+ * Scrollbar no tom da página: trilho transparente (o vidro/gradiente aparece por
+ * baixo) e polegar em --fg translúcido, que já inverte por tema. Os dois jeitos
+ * de declarar convivem de propósito: scrollbar-color só existe do Chrome 121 pra
+ * cima, e o browser da TV (Chromium 94) só entende o ::-webkit-scrollbar.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--fg-rgb) / 26%) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--fg-rgb) / 26%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--fg-rgb) / 42%);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /*

@@ -6,7 +6,7 @@ interface AvatarProps {
 }
 
 /** Foto de `imagem_url`, com fallback pra inicial num círculo — hoje o caminho comum (imagem_url é NULL pra todo mundo). */
-export function Avatar({ nome, imagemUrl, tamanho = 38 }: AvatarProps) {
+export function Avatar({ nome, imagemUrl, tamanho = 57 }: AvatarProps) {
   if (imagemUrl) {
     return (
       <img

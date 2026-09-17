@@ -8,6 +8,7 @@ import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { agregarConsolidado, agregarPorMetrica } from "../lib/insights";
 import { useFiltrosAtuais } from "../lib/periodo";
+import { useSquadAtual, type Squad } from "../lib/squad";
 import { METRICAS_SDR } from "../lib/tipos-api";
 import type { Granularidade, Metrica, RespostaComercial } from "../lib/tipos-api";
 
@@ -21,7 +22,6 @@ interface EstadoBloco {
 
 const ESTADO_INICIAL: EstadoBloco = { dado: null, carregando: true, erro: null };
 
-const RANGE_LABEL: Record<Granularidade, string> = { dia: "dia", semana: "semana", mes: "mês", ano: "ano" };
 const RANGE_LABEL_ADJ: Record<Granularidade, string> = { dia: "diária", semana: "semanal", mes: "mensal", ano: "anual" };
 const CHART_TITLE: Record<Granularidade, string> = {
   dia: "Dias do mês atual",
@@ -29,14 +29,6 @@ const CHART_TITLE: Record<Granularidade, string> = {
   mes: "Progressão dos meses",
   ano: "Progressão dos anos",
 };
-
-type Squad = "todos" | "sdr" | "closer";
-
-const SQUADS: { id: Squad; label: string }[] = [
-  { id: "todos", label: "Todos" },
-  { id: "sdr", label: "SDR" },
-  { id: "closer", label: "Closers" },
-];
 
 const SQUAD_LABEL: Record<Squad, string> = { todos: "do time", sdr: "dos SDRs", closer: "dos closers" };
 
@@ -52,7 +44,8 @@ export function Comercial() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
-  const [squad, setSquad] = useState<Squad>("todos");
+  // O filtro de squad vive no header, à direita do período — a página só lê.
+  const squad = useSquadAtual();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   const { registrar } = useAtualizacao();
@@ -117,29 +110,10 @@ export function Comercial() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg/50">
-          Métricas do time comercial · acumulado {RANGE_LABEL[granularidade]} / meta
-        </span>
-        <div className="glass-pill flex gap-1 p-1">
-          {SQUADS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setSquad(s.id)}
-              aria-pressed={squad === s.id}
-              className={`pill ${squad === s.id ? "pill-ativo" : ""}`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {carregando ? (
-        <p className="text-sm text-fg/60">Carregando…</p>
+        <p className="text-xl text-fg/60">Carregando…</p>
       ) : erro ? (
-        <p className="text-sm text-fg/60" role="alert">
+        <p className="text-xl text-fg/60" role="alert">
           {erro}
         </p>
       ) : (

@@ -28,26 +28,26 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
     >
       <div className="flex items-start justify-between">
         <span
-          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? "text-[19px] leading-none" : "text-[10.5px] leading-snug"} ${escuro ? "text-offwhite/74" : "text-fg/56"}`}
+          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? "text-[19px] leading-none" : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/74" : "text-fg/56"}`}
         >
           {label}
         </span>
-        {squadTag && <span className={`whitespace-nowrap text-[11.5px] font-bold ${escuro ? "text-accent" : "text-accent-fg"}`}>{squadTag}</span>}
+        {squadTag && <span className={`whitespace-nowrap text-[17px] font-bold ${escuro ? "text-accent" : "text-accent-fg"}`}>{squadTag}</span>}
       </div>
       <div className="mt-auto flex flex-wrap items-baseline gap-1.5">
         <span
-          className={`font-display font-extrabold leading-none tracking-tight ${compacto ? "text-[36px]" : "text-[32px]"} ${escuro ? "text-offwhite" : ""}`}
+          className={`font-display font-extrabold leading-none tracking-tight ${compacto ? "text-[36px]" : "text-[50px]"} ${escuro ? "text-offwhite" : ""}`}
         >
           {value}
         </span>
         {meta !== undefined && (
-          <span className={`whitespace-nowrap font-semibold leading-none ${compacto ? "text-[22px]" : "text-xs"} ${escuro ? "text-offwhite/60" : "text-fg/45"}`}>
+          <span className={`whitespace-nowrap font-semibold leading-none ${compacto ? "text-[22px]" : "text-[19px]"} ${escuro ? "text-offwhite/60" : "text-fg/45"}`}>
             / {meta}
           </span>
         )}
       </div>
       {indisponivel || pct === null ? (
-        <span className={`font-semibold ${compacto ? "text-[19px] leading-none" : "text-[11px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>
+        <span className={`font-semibold ${compacto ? "text-[19px] leading-none" : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>
           {legenda}
         </span>
       ) : (
@@ -55,7 +55,7 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
           <div className={`h-[5px] overflow-hidden rounded-full ${escuro ? "bg-offwhite/18" : "bg-progress-track"}`}>
             <div className={`h-full rounded-full ${escuro ? "bg-accent" : "bg-accent-fg"}`} style={{ width: `${largura}%` }} />
           </div>
-          <span className={`font-semibold ${compacto ? "text-[19px] leading-none" : "text-[11px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>
+          <span className={`font-semibold ${compacto ? "text-[19px] leading-none" : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>
             {legenda}
           </span>
         </div>
