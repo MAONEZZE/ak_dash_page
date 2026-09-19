@@ -27,9 +27,11 @@ function Degrau({ pessoa, posicao }: { pessoa: PessoaGeral; posicao: number }) {
 }
 
 /**
- * Pódio top 3 de um cargo — 1º ao centro e maior. Oculto (com aviso) enquanto
- * não há meta cadastrada, que é quando posicao vem null pra todo mundo. Os dois
- * pódios dividem em partes iguais a altura da coluna (a mesma da tabela ao lado).
+ * Pódio top 3 de um cargo — 1º ao centro e maior. Pontuação da Geral é soma
+ * bruta de quantidade, não percentual de meta: todo mundo do cargo entra no
+ * ranking, cadastrado meta ou não. Só fica vazio se não houver ninguém no
+ * cargo. Os dois pódios dividem em partes iguais a altura da coluna (a
+ * mesma da tabela ao lado).
  */
 export function RankingPodio({ titulo, pessoas }: Props) {
   const ranking = pessoas
@@ -41,7 +43,7 @@ export function RankingPodio({ titulo, pessoas }: Props) {
     <article className="glass-panel flex min-h-0 flex-1 flex-col gap-[clamp(4px,0.8vh,10px)] rounded-2xl p-[clamp(10px,1.4vh,16px)]">
       <span className="text-[clamp(13px,1.55vh,22px)] font-semibold uppercase leading-none tracking-[0.13em] text-fg/56">{titulo}</span>
       {ranking.length === 0 ? (
-        <p className="text-[clamp(13px,1.6vh,24px)] leading-snug text-fg/50">Cadastre as metas em dash.metricas_metas pra ver o ranking.</p>
+        <p className="text-[clamp(13px,1.6vh,24px)] leading-snug text-fg/50">Nenhuma pessoa ativa nesse cargo.</p>
       ) : (
         <div className="mb-4 flex flex-1 items-end justify-center gap-1">
           {ranking.map((p, i) => (

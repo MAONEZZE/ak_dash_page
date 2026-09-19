@@ -3,6 +3,9 @@ const moedaFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
+/** Métricas em R$ na Geral — cards escuros e a coluna Liquidado do Closer na tabela de pessoas. */
+export const METRICAS_EM_MOEDA = new Set(["faturamento", "liquidado"]);
+
 const numeroFormatter = new Intl.NumberFormat("pt-BR");
 
 const dataFormatter = new Intl.DateTimeFormat("pt-BR", {

@@ -5,7 +5,7 @@ import { RankingPodio } from "../componentes/RankingPodio";
 import { TabelaPessoas } from "../componentes/TabelaPessoas";
 import { buscarGeral } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
-import { formatarMoeda, formatarNumero } from "../lib/formato";
+import { formatarMoeda, formatarNumero, METRICAS_EM_MOEDA } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 
@@ -18,8 +18,6 @@ interface EstadoGeral {
 }
 
 const ESTADO_INICIAL: EstadoGeral = { dado: null, carregando: true, erro: null };
-
-const METRICAS_EM_MOEDA = new Set(["faturamento", "liquidado"]);
 
 function valorCard(c: CardGeral): string {
   if (c.realizado === null) return "—";
@@ -102,9 +100,8 @@ export function Geral() {
                 tamanho="compacto"
                 label={c.nome_exibicao}
                 value={valorCard(c)}
-                meta={metaCard(c)}
-                pct={c.pct}
-                legenda={legendaCard(c)}
+                pct={null}
+                legenda=""
               />
             ))}
             <CardEventoRotativo label="Inscritos" campo="inscritos" eventos={eventos} />

@@ -1,4 +1,4 @@
-import { formatarNumero } from "../lib/formato";
+import { formatarMoeda, formatarNumero, METRICAS_EM_MOEDA } from "../lib/formato";
 import { Avatar } from "./Avatar";
 import type { PessoaGeral } from "../lib/tipos-api";
 
@@ -9,8 +9,9 @@ interface Props {
 /** Avatar da linha: menor item que ainda identifica a pessoa — é ele que dita a altura da linha. */
 const AVATAR_LINHA = "clamp(24px,3vh,36px)";
 
-function valorTexto(v: number | null): string {
-  return v === null ? "—" : formatarNumero(v);
+function valorTexto(v: number | null, metrica: string): string {
+  if (v === null) return "—";
+  return METRICAS_EM_MOEDA.has(metrica) ? formatarMoeda(v) : formatarNumero(v);
 }
 
 /**
@@ -61,8 +62,8 @@ function CardCargo({ titulo, pessoas, painel }: { titulo: string; pessoas: Pesso
                   key={m.metrica}
                   className="whitespace-nowrap px-3 py-[clamp(2px,0.42vh,5px)] font-display text-[clamp(15px,1.95vh,23px)] font-bold leading-none tracking-tight"
                 >
-                  {valorTexto(m.realizado)}
-                  <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta)}</span>
+                  {valorTexto(m.realizado, m.metrica)}
+                  <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta, m.metrica)}</span>
                 </td>
               ))}
             </tr>
