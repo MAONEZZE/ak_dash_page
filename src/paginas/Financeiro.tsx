@@ -4,10 +4,10 @@ import { GraficoLinhasFinanceiro } from "../componentes/GraficoLinhasFinanceiro"
 import { TabelaAgrupada, type ColunaAgrupada } from "../componentes/TabelaAgrupada";
 import {
   agruparPor,
+  agruparPorFormaPagamento,
   CANAIS_CANONICOS,
   chaveCanal,
   chaveCloser,
-  chaveMetodoPagamento,
   chaveProduto,
   METODOS_PAGAMENTO_CANONICOS,
   PRODUTOS_CANONICOS,
@@ -146,7 +146,7 @@ export function Financeiro() {
   const closersCanonicos: ItemCanonico[] = estado.closers.map((c) => ({ chave: c.id, rotulo: c.nome }));
 
   const porCanal = tabelaComTotal(agruparPor(vendasPeriodo, chaveCanal, CANAIS_CANONICOS));
-  const porMetodo = tabelaComTotal(agruparPor(vendasPeriodo, chaveMetodoPagamento, METODOS_PAGAMENTO_CANONICOS));
+  const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasPeriodo, METODOS_PAGAMENTO_CANONICOS));
   const porCloser = tabelaComTotal(agruparPor(vendasPeriodo, chaveCloser, closersCanonicos));
   const porProduto = tabelaComTotal(agruparPor(vendasPeriodo, chaveProduto, PRODUTOS_CANONICOS));
 
@@ -186,7 +186,14 @@ export function Financeiro() {
             mostrarEixoX
           />
         </article>
-        <TabelaAgrupada titulo="Por canal" colunaRotulo="Canal" linhas={porCanal.linhas} colunas={COLUNAS_CANAL} total={porCanal.total} />
+        <TabelaAgrupada
+          titulo="Por canal"
+          colunaRotulo="Canal"
+          linhas={porCanal.linhas}
+          colunas={COLUNAS_CANAL}
+          total={porCanal.total}
+          tamanho="compacto"
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -196,7 +203,7 @@ export function Financeiro() {
           linhas={porMetodo.linhas}
           colunas={COLUNAS_METODO}
           total={porMetodo.total}
-          tamanho="compacto"
+          tamanho="grande"
         />
         <TabelaAgrupada
           titulo="Desempenho por closer"
@@ -204,14 +211,14 @@ export function Financeiro() {
           linhas={porCloser.linhas}
           colunas={COLUNAS_CLOSER}
           total={porCloser.total}
-          tamanho="compacto"
+          tamanho="grande"
         />
         <TabelaAgrupada
           titulo="Desempenho por produto"
           colunaRotulo="Produto"
           linhas={porProduto.linhas}
           colunas={COLUNAS_PRODUTO}
-          tamanho="compacto"
+          tamanho="grande"
           total={porProduto.total}
         />
       </section>

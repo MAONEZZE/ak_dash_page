@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   agruparPor,
+  agruparPorFormaPagamento,
   CANAIS_CANONICOS,
   chaveCanal,
   chaveCloser,
@@ -28,6 +29,10 @@ function venda(over: Partial<VendaFinanceiro>): VendaFinanceiro {
     liquido_entrada: 0,
     imposto: 0.1,
     taxa: 0,
+    valor_pgto_2: 0,
+    taxa_pgto_2: 0,
+    liquido_pgto_2: 0,
+    forma_pgto_2: null,
     user_closer: null,
     closer: null,
     ...over,
@@ -101,6 +106,113 @@ describe("agruparPor", () => {
     expect(linhas).toHaveLength(2);
     expect(linhas.find((l) => l.chave === "2")!.bruto).toBe(100);
     expect(linhas.find((l) => l.chave === "10")!.bruto).toBe(200);
+  });
+});
+
+describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_2)", () => {
+  it("agruparPor (canal/closer/produto) soma pago e líquido dos DOIS pagamentos da mesma venda", () => {
+    const vendas = [
+      venda({
+        canal: "LinkedIn",
+        valor_entrada: 30000,
+        liquido_entrada: 27000,
+        valor_pgto_2: 30000,
+        taxa_pgto_2: 0.1949,
+        liquido_pgto_2: 21737.7,
+        forma_pgto_2: "Cartão",
+      }),
+    ];
+    const [linha] = agruparPor(vendas, chaveCanal, [{ chave: "LinkedIn", rotulo: "LinkedIn" }]);
+
+    expect(linha.pago).toBe(60000);
+    expect(linha.liquido).toBeCloseTo(48737.7, 2);
+  });
+
+  it("agruparPor sem segundo pagamento não muda (valor_pgto_2/liquido_pgto_2 zerados)", () => {
+    const vendas = [venda({ canal: "LinkedIn", valor_entrada: 1000, liquido_entrada: 900 })];
+    const [linha] = agruparPor(vendas, chaveCanal, [{ chave: "LinkedIn", rotulo: "LinkedIn" }]);
+
+    expect(linha.pago).toBe(1000);
+    expect(linha.liquido).toBe(900);
+  });
+
+  it("totaisDoPeriodo (cards Pago/Líquido) também soma os dois pagamentos", () => {
+    const vendas = [venda({ valor_entrada: 30000, liquido_entrada: 27000, valor_pgto_2: 30000, liquido_pgto_2: 21737.7 })];
+    const totais = totaisDoPeriodo(vendas);
+
+    expect(totais.pago).toBe(60000);
+    expect(totais.liquido).toBeCloseTo(48737.7, 2);
+  });
+
+  it("serieMensal soma os dois pagamentos no mês da venda", () => {
+    const vendas = [
+      venda({ data_venda: "2026-03-10T00:00:00", valor_entrada: 30000, liquido_entrada: 27000, valor_pgto_2: 30000, liquido_pgto_2: 21737.7 }),
+    ];
+    const serie = serieMensal(vendas, "2026");
+
+    expect(serie[2].mes).toBe("2026-03");
+    expect(serie[2].pago).toBe(60000);
+    expect(serie[2].liquido).toBeCloseTo(48737.7, 2);
+  });
+
+  describe("agruparPorFormaPagamento — 'Como entrou o dinheiro'", () => {
+    it("uma venda com um só pagamento vira uma única linha, igual agruparPor", () => {
+      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, imposto: 0.1, taxa: 0, liquido_entrada: 90 })];
+      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
+
+      const pix = linhas.find((l) => l.chave === "PIX")!;
+      expect(pix.pago).toBe(100);
+      expect(pix.liquido).toBe(90);
+      expect(linhas.reduce((acc, l) => acc + l.vendas, 0)).toBe(1);
+    });
+
+    it("uma venda com forma_pgto_2 DIFERENTE de metodo_pagamento vira DUAS linhas — uma por forma", () => {
+      const vendas = [
+        venda({
+          metodo_pagamento: "PIX",
+          valor_entrada: 30000,
+          imposto: 0.1,
+          taxa: 0,
+          liquido_entrada: 27000,
+          forma_pgto_2: "Cartão",
+          valor_pgto_2: 30000,
+          taxa_pgto_2: 0.1949,
+          liquido_pgto_2: 21737.7,
+        }),
+      ];
+      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
+
+      const pix = linhas.find((l) => l.chave === "PIX")!;
+      const cartao = linhas.find((l) => l.chave === "Cartão")!;
+      expect(pix.pago).toBe(30000);
+      expect(pix.liquido).toBe(27000);
+      expect(cartao.pago).toBe(30000);
+      expect(cartao.liquido).toBeCloseTo(21737.7, 2);
+
+      // Reconciliação por linha: Pago − Imposto − Taxa = Líquido, nas duas.
+      expect(pix.pago - pix.imposto - pix.taxa).toBeCloseTo(pix.liquido, 2);
+      expect(cartao.pago - cartao.imposto - cartao.taxa).toBeCloseTo(cartao.liquido, 2);
+
+      // A soma das duas linhas fecha com o total combinado da venda (mesmo que agruparPor daria numa tabela por canal/closer/produto).
+      const [linhaCombinada] = agruparPor(vendas, () => ({ chave: "x", rotulo: "x" }), []);
+      expect(pix.pago + cartao.pago).toBe(linhaCombinada.pago);
+      expect(pix.liquido + cartao.liquido).toBeCloseTo(linhaCombinada.liquido, 2);
+    });
+
+    it("forma_pgto_2 vazia/ausente com valor_pgto_2 > 0 vira 'Não informado'", () => {
+      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, valor_pgto_2: 50, forma_pgto_2: null })];
+      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
+
+      const naoInformado = linhas.find((l) => l.chave === "Não informado")!;
+      expect(naoInformado.pago).toBe(50);
+    });
+
+    it("sem segundo pagamento (valor_pgto_2 = 0), gera só a linha do metodo_pagamento", () => {
+      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, valor_pgto_2: 0 })];
+      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
+
+      expect(linhas.reduce((acc, l) => acc + l.vendas, 0)).toBe(1);
+    });
   });
 });
 

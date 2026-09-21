@@ -27,7 +27,7 @@ describe("GraficoLinhasFinanceiro", () => {
     expect(rotulos.length).toBeGreaterThan(0);
   });
 
-  it("desenha um ponto (círculo) em cada um dos 12 meses, por série", () => {
+  it("desenha um ponto (redondo, tamanho fixo em px) em cada um dos 12 meses, por série", () => {
     const { container } = render(
       <GraficoLinhasFinanceiro
         titulo="Pago × Líquido"
@@ -40,7 +40,16 @@ describe("GraficoLinhasFinanceiro", () => {
       />,
     );
 
-    expect(container.querySelectorAll("circle")).toHaveLength(24);
+    // Os pontos são HTML (`rounded-full`), não `<circle>` do SVG — dentro do
+    // SVG com `preserveAspectRatio="none"` eles sairiam como elipse achatada
+    // (escala X ≠ escala Y). Fora do SVG, com tamanho fixo em px, ficam redondos.
+    expect(container.querySelectorAll("svg circle")).toHaveLength(0);
+    const pontos = Array.from(container.querySelectorAll(".rounded-full"));
+    expect(pontos).toHaveLength(24);
+    for (const ponto of pontos) {
+      const estilo = (ponto as HTMLElement).style;
+      expect(estilo.width).toBe(estilo.height);
+    }
   });
 
   it("a grade (linhas de cruzamento X/Y) é pontilhada e discreta, não sólida", () => {

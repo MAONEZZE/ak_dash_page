@@ -30,6 +30,10 @@
       "liquido_entrada": 15000,
       "imposto": 0.1,
       "taxa": 0,
+      "valor_pgto_2": 16666.67,
+      "taxa_pgto_2": 0.1949,
+      "liquido_pgto_2": 12076.5,
+      "forma_pgto_2": "Cartão",
       "user_closer": 1,
       "closer": "Jacob"
     },
@@ -46,6 +50,10 @@
       "liquido_entrada": 6738.69,
       "imposto": 0.1,
       "taxa": 0.1949,
+      "valor_pgto_2": 0,
+      "taxa_pgto_2": 0,
+      "liquido_pgto_2": 0,
+      "forma_pgto_2": null,
       "user_closer": 3,
       "closer": "Alex"
     },
@@ -62,6 +70,10 @@
       "liquido_entrada": 0,
       "imposto": 0.1,
       "taxa": 0,
+      "valor_pgto_2": 0,
+      "taxa_pgto_2": 0,
+      "liquido_pgto_2": 0,
+      "forma_pgto_2": null,
       "user_closer": null,
       "closer": null
     }

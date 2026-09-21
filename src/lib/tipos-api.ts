@@ -207,6 +207,14 @@ export interface VendaFinanceiro {
   imposto: number;
   /** Percentual decimal da maquininha; 0 em boa parte das vendas. */
   taxa: number;
+  /** Bruto do SEGUNDO pagamento da venda (ex. entrada no PIX + resto no cartão) — 0 sem segundo pagamento. */
+  valor_pgto_2: number;
+  /** Percentual decimal da maquininha do segundo pagamento — mesmo `imposto` da venda se aplica aos dois. 0 sem segundo pagamento. */
+  taxa_pgto_2: number;
+  /** Líquido do segundo pagamento — soma com liquido_entrada pro líquido total da venda. 0 sem segundo pagamento. */
+  liquido_pgto_2: number;
+  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Entra como linha própria em "Como entrou o dinheiro" (agrupa por forma, não por venda). */
+  forma_pgto_2: string | null;
   /** FK dash.users.id do closer. Agrupar por ESTE campo, não por `closer` — dois ids podem compartilhar o mesmo nome (ex. dois "Jonathan" cadastrados). */
   user_closer: number | null;
   /** dash.users.nome via user_closer — inclui closer inativo (saiu do time mas vendeu no período); null sem user_closer ou sem correspondente. */
