@@ -91,12 +91,14 @@ export function Financeiro() {
       ]);
       setEstado({ dado, closers: pessoas.filter((p) => p.cargo === "closer"), carregando: false, erro: null });
     } catch (erro: unknown) {
-      setEstado({
-        dado: null,
-        closers: [],
+      // Mantém o `dado`/`closers` já carregados no refresh que falhou — um
+      // 401 passageiro ou uma instabilidade de rede no auto-refresh de 60s
+      // não pode apagar a tela que já estava funcionando.
+      setEstado((atual) => ({
+        ...atual,
         carregando: false,
         erro: erro instanceof Error ? erro.message : "Falha ao carregar Financeiro.",
-      });
+      }));
     }
     setAtualizadoEm(new Date());
     setAtualizando(false);
@@ -114,16 +116,21 @@ export function Financeiro() {
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar]);
 
-  if (estado.carregando) {
+  // `carregando`/`erro` só tomam a tela inteira quando ainda não há `dado`
+  // nenhum (primeira carga). Depois disso, o auto-refresh de 60s troca só os
+  // valores — sem esse guard, a página piscava a cada refresh (voltava pro
+  // "Carregando…" e sumia o conteúdo por um instante).
+  if (estado.carregando && !estado.dado) {
     return <p className="text-xl text-fg/60">Carregando…</p>;
   }
-  if (estado.erro || !estado.dado) {
+  if (estado.erro && !estado.dado) {
     return (
       <p className="text-xl text-fg/60" role="alert">
         {estado.erro}
       </p>
     );
   }
+  if (!estado.dado) return null;
 
   const vendasAno = estado.dado.vendas;
   const { inicio, fim } = limitesPeriodo(granularidade, periodo);
@@ -152,8 +159,15 @@ export function Financeiro() {
         <CardKpi label="Bruto vendido no ano (YTD)" value={formatarMoeda(ytd)} pct={null} legenda={LEGENDA_SEM_META} />
       </section>
 
-      <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.15fr)_minmax(272px,1fr)]">
-        <article className="glass-panel flex flex-col gap-4 rounded-2xl px-[21px] pb-3 pt-[19px]">
+      {/*
+        * O grid de baixo é `grid-cols-3` (metodo/closer/produto). Este aqui
+        * usa a MESMA grade — gráficos ocupando 2 colunas, canal 1 — pra
+        * "gráficos" ficar alinhado com "metodo + closer" e "canal" alinhado
+        * com "produto", em vez de uma largura própria (2.15fr/1fr) que não
+        * batia com a linha de baixo.
+        */}
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <article className="glass-panel flex flex-col gap-4 rounded-2xl px-[21px] pb-3 pt-[19px] lg:col-span-2">
           <GraficoLinhasFinanceiro
             titulo="Vendido"
             series={[{ rotulo: "Vendido", valores: serie.map((p) => p.vendido), cor: "accent" }]}
@@ -182,6 +196,7 @@ export function Financeiro() {
           linhas={porMetodo.linhas}
           colunas={COLUNAS_METODO}
           total={porMetodo.total}
+          tamanho="compacto"
         />
         <TabelaAgrupada
           titulo="Desempenho por closer"
@@ -189,12 +204,14 @@ export function Financeiro() {
           linhas={porCloser.linhas}
           colunas={COLUNAS_CLOSER}
           total={porCloser.total}
+          tamanho="compacto"
         />
         <TabelaAgrupada
           titulo="Desempenho por produto"
           colunaRotulo="Produto"
           linhas={porProduto.linhas}
           colunas={COLUNAS_PRODUTO}
+          tamanho="compacto"
           total={porProduto.total}
         />
       </section>

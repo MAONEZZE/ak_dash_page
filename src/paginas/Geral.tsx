@@ -57,7 +57,13 @@ export function Geral() {
       const dado = await buscarGeral({ granularidade, periodo });
       setEstado({ dado, carregando: false, erro: null });
     } catch (erro: unknown) {
-      setEstado({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar a visão geral." });
+      // Mantém o `dado` já carregado — um refresh que falhou não apaga a
+      // tela que já estava funcionando.
+      setEstado((atual) => ({
+        ...atual,
+        carregando: false,
+        erro: erro instanceof Error ? erro.message : "Falha ao carregar a visão geral.",
+      }));
     }
     setAtualizadoEm(new Date());
     setAtualizando(false);

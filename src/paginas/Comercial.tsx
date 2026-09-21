@@ -57,16 +57,18 @@ export function Comercial() {
 
     const params = { granularidade, periodo };
 
+    // No `catch`, mantém o `dado` já carregado — um refresh que falhou não
+    // pode apagar a tela que já estava funcionando (ver guard de render abaixo).
     await Promise.all([
       buscarComercialSdr(params)
         .then((dado) => setSdr({ dado, carregando: false, erro: null }))
         .catch((erro: unknown) =>
-          setSdr({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar SDRs." }),
+          setSdr((atual) => ({ ...atual, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar SDRs." })),
         ),
       buscarComercialCloser(params)
         .then((dado) => setCloser({ dado, carregando: false, erro: null }))
         .catch((erro: unknown) =>
-          setCloser({ dado: null, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar Closers." }),
+          setCloser((atual) => ({ ...atual, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar Closers." })),
         ),
     ]);
 
@@ -86,7 +88,10 @@ export function Comercial() {
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar]);
 
-  const carregando = sdr.carregando || closer.carregando;
+  // Só toma a tela inteira ("Carregando…"/erro) quando ainda não há dado
+  // nenhum — depois da primeira carga, o auto-refresh de 60s troca só os
+  // valores, sem piscar a página inteira.
+  const carregando = (sdr.carregando || closer.carregando) && !sdr.dado && !closer.dado;
   const erro = !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro) : null;
 
   const todasPessoas: PessoaUnificada[] = [
