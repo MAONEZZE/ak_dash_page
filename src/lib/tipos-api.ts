@@ -2,9 +2,10 @@
  * Contrato BFF (ak_dash) <-> Frontend (ak_dash_page).
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
  * Fonte única de dado: Supabase (dash.vw_metricas, dash.metricas_metas,
- * dash.metricas_faturamento, dash.users). Escopo: /pessoas, /comercial/sdr,
- * /comercial/closer, /geral. Financeiro detalhado fica pendente (ver
- * ak_dash/README.md).
+ * dash.metricas_faturamento, dash.cliente_faturamento, dash.users). Escopo:
+ * /pessoas, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
+ * demais KPIs da página Financeiro (inadimplência, margem, despesas,
+ * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
  */
 
 export type Granularidade = "dia" | "semana" | "mes" | "ano";
@@ -176,4 +177,45 @@ export interface RespostaGeral {
 export interface ParametrosGeral {
   granularidade?: Granularidade; // padrão "mes"
   periodo?: string; // "atual" (padrão) ou formato de acordo com granularidade — ver openapi.yaml
+}
+
+// ---- /financeiro ----
+
+export interface CardFinanceiro {
+  metrica: string;
+  nome_exibicao: string;
+  /** Soma de valor_bruto_contrato (faturamento) ou liquido_entrada (liquidado) das vendas do período — 0, nunca null, sem venda. Sem meta: card mais simples que CardGeral. */
+  realizado: number;
+}
+
+export interface VendaFinanceiro {
+  id: number;
+  /** metricas_faturamento.data_venda cru (ex. "2026-01-26T00:00:00") — cortar os 10 primeiros caracteres antes de formatarData. */
+  data_venda: string;
+  /** cliente_faturamento.nome via id_cliente; null sem id_cliente ou sem cliente correspondente. */
+  cliente: string | null;
+  produto: string | null;
+  canal: string | null;
+  metodo_pagamento: string | null;
+  num_parcelas: number | null;
+  valor_bruto_contrato: number;
+  /** Valor efetivamente pago pelo cliente (bruto de imposto/taxa) — "Pago". */
+  valor_entrada: number;
+  /** liquido_entrada = valor_entrada × (1 − imposto) × (1 − taxa). */
+  liquido_entrada: number;
+  /** Percentual decimal (ex. 0.1 = 10%). */
+  imposto: number;
+  /** Percentual decimal da maquininha; 0 em boa parte das vendas. */
+  taxa: number;
+  /** FK dash.users.id do closer. Agrupar por ESTE campo, não por `closer` — dois ids podem compartilhar o mesmo nome (ex. dois "Jonathan" cadastrados). */
+  user_closer: number | null;
+  /** dash.users.nome via user_closer — inclui closer inativo (saiu do time mas vendeu no período); null sem user_closer ou sem correspondente. */
+  closer: string | null;
+}
+
+export interface RespostaFinanceiro {
+  periodo: Periodo;
+  cards: CardFinanceiro[];
+  /** Ordenadas por data_venda decrescente (venda mais recente primeiro). */
+  vendas: VendaFinanceiro[];
 }

@@ -4,7 +4,7 @@ import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "reac
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
 import { formatarHora } from "./lib/formato";
-import { useDefinirGranularidade, useFiltrosAtuais } from "./lib/periodo";
+import { useDefinirGranularidade, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SQUADS, useDefinirSquad, useSquadAtual } from "./lib/squad";
 import type { Granularidade } from "./lib/tipos-api";
 import { Comercial } from "./paginas/Comercial";
@@ -80,6 +80,39 @@ function PillPeriodo() {
   );
 }
 
+const MES_ROTULO = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+
+/** Navegação de mês passado da Financeiro (`‹ Setembro 2026 ›`) — só aparece sob granularidade Mês. */
+function PillPeriodoNavegavel() {
+  const { mes, podeVoltar, podeAvancar, voltar, avancar } = useNavegarMes();
+  const [ano, mesNum] = mes.split("-").map(Number);
+  const rotulo = MES_ROTULO.format(new Date(ano, mesNum - 1, 1));
+
+  return (
+    <div className="glass-pill flex items-center gap-1 p-1" role="group" aria-label="Mês">
+      <button
+        type="button"
+        onClick={voltar}
+        disabled={!podeVoltar}
+        aria-label="Mês anterior"
+        className="pill disabled:pointer-events-none disabled:opacity-40"
+      >
+        ‹
+      </button>
+      <span className="px-2 text-[15px] font-semibold capitalize">{rotulo}</span>
+      <button
+        type="button"
+        onClick={avancar}
+        disabled={!podeAvancar}
+        aria-label="Próximo mês"
+        className="pill disabled:pointer-events-none disabled:opacity-40"
+      >
+        ›
+      </button>
+    </div>
+  );
+}
+
 /** Filtro de squad da Comercial — vive aqui, à direita do período, e conversa com a página pela querystring. */
 function PillSquad() {
   const squad = useSquadAtual();
@@ -108,7 +141,7 @@ const ITEM_MENU =
 /**
  * Único botão de ação do header (onde antes ficava o logout): abre atualizar,
  * tema e sair. "Atualizar" só fica ativo na página que registrou um refresh
- * (ver lib/atualizacao) — a Financeiro é estática e não registra nada.
+ * (ver lib/atualizacao).
  */
 function MenuAcoes({
   tema,
@@ -202,6 +235,7 @@ export default function App() {
   const { usuario, carregando, sair } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { granularidade } = useFiltrosAtuais();
 
   if (carregando) {
     return (
@@ -241,6 +275,7 @@ export default function App() {
             <div className="flex flex-wrap items-center gap-2.5">
               <PillNav />
               <PillPeriodo />
+              {granularidade === "mes" && <PillPeriodoNavegavel />}
               {location.pathname === "/comercial" && <PillSquad />}
               <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
             </div>

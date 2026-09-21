@@ -3,7 +3,10 @@
 // O dash vive numa TV, com a aba aberta por dias. Estes testes travam o que
 // fazia ele "ficar parado no 17/09": o período pedido ao BFF tem que ser
 // sempre o de HOJE, tanto na virada da meia-noite com a aba aberta quanto
-// numa URL antiga que tenha um período absoluto gravado.
+// numa URL antiga que tenha um período absoluto gravado — em dia/semana/ano.
+// Em MÊS a regra se inverte (ver `useNavegarMes` em src/lib/periodo.ts): a
+// Financeiro navega mês passado pela querystring, então ali o período da URL
+// é respeitado.
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -62,12 +65,36 @@ describe("período corrente", () => {
     expect(filtro()).toBe("mes:2026-10");
   });
 
-  it("período absoluto sobrando numa URL antiga é ignorado", () => {
+  it("período absoluto sobrando numa URL antiga é ignorado em dia", () => {
     // Era exatamente essa URL que a TV reabria todo dia: a pill de período
     // gravava `?periodo=` no clique e a página nunca mais saía daquele dia.
     vi.setSystemTime(new Date(2026, 8, 19, 10, 0));
     montar("/?granularidade=dia&periodo=2026-09-17");
     expect(filtro()).toBe("dia:2026-09-19");
+  });
+
+  it("período absoluto sobrando numa URL antiga é ignorado em semana", () => {
+    vi.setSystemTime(new Date(2026, 8, 19, 10, 0));
+    montar("/?granularidade=semana&periodo=2026-W30");
+    expect(filtro()).toBe("semana:2026-W38");
+  });
+
+  it("período absoluto sobrando numa URL antiga é ignorado em ano", () => {
+    vi.setSystemTime(new Date(2026, 8, 19, 10, 0));
+    montar("/?granularidade=ano&periodo=2020");
+    expect(filtro()).toBe("ano:2026");
+  });
+
+  it("em mês, o período da URL é RESPEITADO — é a navegação de mês passado da Financeiro", () => {
+    vi.setSystemTime(new Date(2026, 8, 19, 10, 0));
+    montar("/?granularidade=mes&periodo=2026-05");
+    expect(filtro()).toBe("mes:2026-05");
+  });
+
+  it("em mês sem período na URL, cai no mês corrente", () => {
+    vi.setSystemTime(new Date(2026, 8, 19, 10, 0));
+    montar("/?granularidade=mes");
+    expect(filtro()).toBe("mes:2026-09");
   });
 
   it("sem granularidade na URL, o padrão é o mês corrente", () => {

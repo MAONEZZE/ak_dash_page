@@ -1,8 +1,17 @@
 import comercialClosterFixture from "./fixtures/comercial_closer.example.json";
 import comercialSdrFixture from "./fixtures/comercial_sdr.example.json";
+import financeiroFixture from "./fixtures/financeiro.example.json";
 import geralFixture from "./fixtures/geral.example.json";
 import pessoasFixture from "./fixtures/pessoas.example.json";
-import type { Erro, ParametrosComercial, ParametrosGeral, Pessoa, RespostaComercial, RespostaGeral } from "./tipos-api";
+import type {
+  Erro,
+  ParametrosComercial,
+  ParametrosGeral,
+  Pessoa,
+  RespostaComercial,
+  RespostaFinanceiro,
+  RespostaGeral,
+} from "./tipos-api";
 import { supabase } from "./supabase";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -159,4 +168,9 @@ export async function buscarComercialCloser(params: ParametrosComercial): Promis
 export async function buscarGeral(params: ParametrosGeral = {}): Promise<RespostaGeral> {
   if (USA_FIXTURES) return geralFixture as RespostaGeral;
   return requisitar<RespostaGeral>("/geral", { granularidade: params.granularidade, periodo: params.periodo });
+}
+
+export async function buscarFinanceiro(params: ParametrosGeral = {}): Promise<RespostaFinanceiro> {
+  if (USA_FIXTURES) return financeiroFixture as RespostaFinanceiro;
+  return requisitar<RespostaFinanceiro>("/financeiro", { granularidade: params.granularidade, periodo: params.periodo });
 }
