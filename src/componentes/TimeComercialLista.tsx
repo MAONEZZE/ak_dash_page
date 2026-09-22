@@ -62,7 +62,7 @@ function CardPessoa({
       className="glass-panel flex cursor-pointer flex-col gap-4 rounded-2xl p-4 outline-offset-[-2px] transition-colors hover:bg-glass-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-fg sm:grid sm:grid-cols-[minmax(180px,1fr)_minmax(0,3fr)] sm:items-center sm:gap-5"
     >
       <div className="flex items-center gap-3">
-        <Avatar nome={nome} />
+        <Avatar nome={nome} imagemUrl={pessoa.imagem_url} />
         <div className="flex flex-col gap-0.5">
           <span className="text-[21px] font-bold tracking-tight">{nome}</span>
           <span className="text-[17px] text-fg/55">

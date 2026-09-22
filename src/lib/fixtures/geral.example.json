@@ -105,6 +105,12 @@
                     "meta": null
                 },
                 {
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 0,
+                    "meta": 88
+                },
+                {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
                     "realizado": 42,
@@ -134,6 +140,12 @@
                     "meta": null
                 },
                 {
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 0,
+                    "meta": 88
+                },
+                {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
                     "realizado": 0,
@@ -161,6 +173,12 @@
                     "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
                     "realizado": 34,
                     "meta": null
+                },
+                {
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 0,
+                    "meta": 88
                 },
                 {
                     "metrica": "indicacoes",

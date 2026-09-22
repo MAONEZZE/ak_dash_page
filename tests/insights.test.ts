@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agregarConsolidado, agregarPorMetrica, serieAteHoje, serieDoTimePorMetrica } from "../src/lib/insights";
+import { agregarConsolidado, agregarPorMetrica, serieDoTimePorMetrica } from "../src/lib/insights";
 import type { Metrica, PessoaComercial } from "../src/lib/tipos-api";
 
 function metrica(parcial: Partial<Metrica> & Pick<Metrica, "metrica" | "status">): Metrica {
@@ -164,25 +164,3 @@ describe("serieDoTimePorMetrica", () => {
   });
 });
 
-describe("serieAteHoje", () => {
-  it("corta os dias depois de hoje", () => {
-    const serie = [
-      { dia: "2026-09-01", valor: 10 },
-      { dia: "2026-09-02", valor: 20 },
-      { dia: "2026-09-03", valor: 0 },
-      { dia: "2026-09-04", valor: 0 },
-    ];
-    expect(serieAteHoje(serie, "2026-09-02")).toEqual([
-      { dia: "2026-09-01", valor: 10 },
-      { dia: "2026-09-02", valor: 20 },
-    ]);
-  });
-
-  it("fica vazia quando hoje é antes do primeiro dia da série", () => {
-    const serie = [
-      { dia: "2026-09-01", valor: 10 },
-      { dia: "2026-09-02", valor: 20 },
-    ];
-    expect(serieAteHoje(serie, "2026-08-31")).toEqual([]);
-  });
-});

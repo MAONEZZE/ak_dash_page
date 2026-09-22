@@ -11,6 +11,9 @@ interface Props {
 /** Avatar da linha: menor item que ainda identifica a pessoa — é ele que dita a altura da linha. */
 const AVATAR_LINHA = "clamp(24px,3vh,36px)";
 
+/** Colunas que mostram só o valor, sem "/ meta" (decisão de produto — Liquidado e Aprovados do closer). */
+const METRICAS_SEM_META = new Set(["liquidado", "aprovados"]);
+
 function valorTexto(v: number | null, metrica: string): string {
   if (v === null) return "—";
   return METRICAS_EM_MOEDA.has(metrica) ? formatarMoeda(v) : formatarNumero(v);
@@ -77,7 +80,9 @@ function CardCargo({
                   }`}
                 >
                   {valorTexto(m.realizado, m.metrica)}
-                  <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta, m.metrica)}</span>
+                  {!METRICAS_SEM_META.has(m.metrica) && (
+                    <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta, m.metrica)}</span>
+                  )}
                 </td>
               ))}
             </tr>

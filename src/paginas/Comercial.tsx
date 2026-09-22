@@ -8,11 +8,10 @@ import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { agregarConsolidado, agregarPorMetrica } from "../lib/insights";
-import { useFiltrosAtuais } from "../lib/periodo";
+import { paraPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import { useSomDeAumento } from "../lib/som";
 import { useSquadAtual, type Squad } from "../lib/squad";
-import { METRICAS_SDR } from "../lib/tipos-api";
-import type { Granularidade, Metrica, RespostaComercial } from "../lib/tipos-api";
+import type { Granularidade, Metrica, PessoaComercial, RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
@@ -25,21 +24,40 @@ interface EstadoBloco {
 const ESTADO_INICIAL: EstadoBloco = { dado: null, carregando: true, erro: null };
 
 const RANGE_LABEL_ADJ: Record<Granularidade, string> = { dia: "diária", semana: "semanal", mes: "mensal", ano: "anual" };
-const CHART_TITLE: Record<Granularidade, string> = {
-  dia: "Dias do mês atual",
-  semana: "Dias da semana",
-  mes: "Progressão dos meses",
-  ano: "Progressão dos anos",
-};
+
+/** O gráfico é fixo no mês corrente — o título não acompanha mais a pill de período. */
+const TITULO_GRAFICO = "Dias do mês atual";
 
 const SQUAD_LABEL: Record<Squad, string> = { todos: "do time", sdr: "dos SDRs", closer: "dos closers" };
 
-function squadDaMetrica(metrica: string): "sdr" | "closer" {
-  return (METRICAS_SDR as readonly string[]).includes(metrica) ? "sdr" : "closer";
+/**
+ * Métricas de prospecção do LinkedIn (origem Dripify) que não aparecem em lugar
+ * nenhum desta página — decisão de produto. O corte é aqui, no topo: cards,
+ * gauge, gráfico e lista do time comem todos da mesma lista já filtrada.
+ */
+const METRICAS_OCULTAS = new Set(["conexoes_enviadas", "conexoes_aceitas", "abordagens", "in_mails"]);
+
+function visiveis(metricas: Metrica[]): Metrica[] {
+  return metricas.filter((m) => !METRICAS_OCULTAS.has(m.metrica));
+}
+
+/** `metas_atingidas` vem do BFF contando todas as métricas do cargo — recontar mantém o "x/y metas batidas" igual ao que está na tela. */
+function semMetricasOcultas(pessoas: PessoaComercial[]): PessoaComercial[] {
+  return pessoas.map((pessoa) => {
+    const metricas = visiveis(pessoa.metricas);
+    return {
+      ...pessoa,
+      metricas,
+      metas_atingidas: {
+        atingidas: metricas.filter((m) => m.status === "atingido").length,
+        total: metricas.length,
+      },
+    };
+  });
 }
 
 function primeiraComMetricas(dado: RespostaComercial | null): Metrica[] {
-  return dado?.pessoas.find((p) => p.metricas.length > 0)?.metricas ?? [];
+  return visiveis(dado?.pessoas.find((p) => visiveis(p.metricas).length > 0)?.metricas ?? []);
 }
 
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
@@ -64,11 +82,18 @@ export function Comercial() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
+  // Série do gráfico: sempre o mês corrente, nunca o período da pill.
+  const [mes, setMes] = useState<{ sdr: RespostaComercial | null; closer: RespostaComercial | null }>({ sdr: null, closer: null });
   // O filtro de squad vive no header, à direita do período — a página só lê.
   const squad = useSquadAtual();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   const { registrar } = useAtualizacao();
+
+  const mesCorrente = paraPeriodo("mes", new Date());
+  // Quando a pill já está no mês corrente, a série do gráfico veio junto com os
+  // dados da página — não vale repetir as duas requisições.
+  const filtroEhMesCorrente = granularidade === "mes" && periodo === mesCorrente;
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
@@ -76,6 +101,7 @@ export function Comercial() {
     setCloser((atual) => ({ ...atual, carregando: true }));
 
     const params = { granularidade, periodo };
+    const paramsMes = { granularidade: "mes" as const, periodo: mesCorrente };
 
     // No `catch`, mantém o `dado` já carregado — um refresh que falhou não
     // pode apagar a tela que já estava funcionando (ver guard de render abaixo).
@@ -90,11 +116,23 @@ export function Comercial() {
         .catch((erro: unknown) =>
           setCloser((atual) => ({ ...atual, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar Closers." })),
         ),
+      // Falha aqui não vira erro de página: só o gráfico fica sem série nova,
+      // o resto da tela continua valendo.
+      ...(filtroEhMesCorrente
+        ? []
+        : [
+            buscarComercialSdr(paramsMes)
+              .then((dado) => setMes((atual) => ({ ...atual, sdr: dado })))
+              .catch(() => undefined),
+            buscarComercialCloser(paramsMes)
+              .then((dado) => setMes((atual) => ({ ...atual, closer: dado })))
+              .catch(() => undefined),
+          ]),
     ]);
 
     setAtualizadoEm(new Date());
     setAtualizando(false);
-  }, [granularidade, periodo]);
+  }, [granularidade, periodo, mesCorrente, filtroEhMesCorrente]);
 
   useEffect(() => {
     carregar();
@@ -118,8 +156,8 @@ export function Comercial() {
   const erro = !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro) : null;
 
   const todasPessoas: PessoaUnificada[] = [
-    ...(sdr.dado?.pessoas.map((pessoa) => ({ squad: "sdr" as const, pessoa })) ?? []),
-    ...(closer.dado?.pessoas.map((pessoa) => ({ squad: "closer" as const, pessoa })) ?? []),
+    ...(sdr.dado ? semMetricasOcultas(sdr.dado.pessoas).map((pessoa) => ({ squad: "sdr" as const, pessoa })) : []),
+    ...(closer.dado ? semMetricasOcultas(closer.dado.pessoas).map((pessoa) => ({ squad: "closer" as const, pessoa })) : []),
   ];
   const pessoasVisiveis = squad === "todos" ? todasPessoas : todasPessoas.filter((u) => u.squad === squad);
   const pessoasParaAgregar = pessoasVisiveis.map((u) => u.pessoa);
@@ -131,9 +169,11 @@ export function Comercial() {
   const falta = consolidado.metaTotal - consolidado.realizadoTotal;
   const faltamLabel = consolidado.metaTotal === 0 ? "—" : falta > 0 ? formatarNumero(Math.round(falta)) : "Meta batida";
 
+  const dadoMesSdr = filtroEhMesCorrente ? sdr.dado : mes.sdr;
+  const dadoMesCloser = filtroEhMesCorrente ? closer.dado : mes.closer;
   const fontesGrafico = [
-    { squad: "sdr" as const, serieDiaria: sdr.dado?.serie_diaria ?? [], metricas: primeiraComMetricas(sdr.dado) },
-    { squad: "closer" as const, serieDiaria: closer.dado?.serie_diaria ?? [], metricas: primeiraComMetricas(closer.dado) },
+    { squad: "sdr" as const, serieDiaria: dadoMesSdr?.serie_diaria ?? [], metricas: primeiraComMetricas(dadoMesSdr) },
+    { squad: "closer" as const, serieDiaria: dadoMesCloser?.serie_diaria ?? [], metricas: primeiraComMetricas(dadoMesCloser) },
   ].filter((f) => squad === "todos" || f.squad === squad);
 
   return (
@@ -151,7 +191,6 @@ export function Comercial() {
               <CardKpi
                 key={m.metrica}
                 label={m.nomeExibicao}
-                squadTag={squadDaMetrica(m.metrica) === "sdr" ? "SDR" : "CLOSER"}
                 value={formatarNumero(m.realizado)}
                 meta={m.meta === null ? "—" : formatarNumero(m.meta)}
                 pct={m.pct === null ? null : Math.round(m.pct * 100)}
@@ -161,7 +200,7 @@ export function Comercial() {
           </section>
 
           <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.15fr)_minmax(272px,1fr)]">
-            <GraficoAreaMeta titulo={CHART_TITLE[granularidade]} fontes={fontesGrafico} granularidade={granularidade} />
+            <GraficoAreaMeta titulo={TITULO_GRAFICO} fontes={fontesGrafico} />
             <GaugeMeta pct={gaugePct} faltamLabel={faltamLabel} caption={`meta ${RANGE_LABEL_ADJ[granularidade]} ${SQUAD_LABEL[squad]}`} />
           </section>
 

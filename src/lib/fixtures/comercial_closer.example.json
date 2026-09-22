@@ -13,6 +13,7 @@
             "id_user": "8",
             "email": "thalyson.teixeira@akeel.com.br",
             "nome": "Thalyson",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 4
@@ -61,6 +62,7 @@
             "id_user": "1",
             "email": "jacob@akeel.com.br",
             "nome": "Jacob",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 4
@@ -109,6 +111,7 @@
             "id_user": "3",
             "email": "alex.muniz@akeel.com.br",
             "nome": "Alex",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 4
@@ -155,6 +158,7 @@
             "id_user": "10",
             "email": "jonathan.pamplona@akeel.com.br",
             "nome": "Jonathan",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 4

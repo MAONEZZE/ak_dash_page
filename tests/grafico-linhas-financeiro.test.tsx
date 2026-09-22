@@ -1,10 +1,31 @@
 // @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GraficoLinhasFinanceiro } from "../src/componentes/GraficoLinhasFinanceiro";
 
+/** Largura do viewBox — casando com ela, o clientX do teste é a própria coordenada do gráfico. */
+const LARGURA_PLOT = 900;
+
 describe("GraficoLinhasFinanceiro", () => {
-  afterEach(() => cleanup());
+  // jsdom não faz layout: sem isto toda caixa mede 0 e o hover não teria onde cair.
+  beforeEach(() => {
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: LARGURA_PLOT,
+      height: 260,
+      right: LARGURA_PLOT,
+      bottom: 260,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    cleanup();
+  });
 
   it("mostra os números do eixo Y (0 até o piso) fora do SVG, sem distorção do preserveAspectRatio", () => {
     const { container } = render(
@@ -102,5 +123,35 @@ describe("GraficoLinhasFinanceiro", () => {
     );
 
     expect(container.textContent).toContain("1.250.000");
+  });
+
+  it("mostra o valor de cada série no mês sob o cursor ao passar o mouse", () => {
+    const valores = Array(12).fill(100_000);
+    valores[5] = 137_500;
+    const { container } = render(
+      <GraficoLinhasFinanceiro
+        titulo="Pago × Líquido"
+        series={[
+          { rotulo: "Pago", valores, cor: "status-bad" },
+          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "status-bad", tracejada: true },
+        ]}
+        piso={300_000}
+        multiploTeto={100_000}
+      />,
+    );
+    const plot = container.querySelector("svg")!.parentElement!;
+
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    // Junho = índice 5; x(5) = PL + (5/11) * (900 - PL - PR).
+    fireEvent.mouseMove(plot, { clientX: 8 + (5 / 11) * (LARGURA_PLOT - 16) });
+
+    const balao = screen.getByRole("tooltip");
+    expect(balao.textContent).toContain("Jun");
+    expect(balao.textContent).toContain("137.500");
+    expect(balao.textContent).toContain("80.000");
+
+    fireEvent.mouseLeave(plot);
+    expect(screen.queryByRole("tooltip")).toBeNull();
   });
 });

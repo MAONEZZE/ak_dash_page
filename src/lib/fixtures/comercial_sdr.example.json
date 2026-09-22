@@ -13,6 +13,7 @@
             "id_user": "9",
             "email": "nathanmayumi5@gmail.com",
             "nome": "Nathan",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 8
@@ -93,6 +94,7 @@
             "id_user": "2",
             "email": "jonathan.pamplona@akeel.com.br",
             "nome": "Jonathan",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 8
@@ -171,6 +173,7 @@
             "id_user": "4",
             "email": "jenniferpamplona007@gmail.com",
             "nome": "Jennifer",
+            "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
                 "total": 8

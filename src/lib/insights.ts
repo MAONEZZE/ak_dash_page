@@ -120,13 +120,3 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
 export function serieDoTimePorMetrica(serieDiaria: SerieDiariaDia[], metrica: string): { dia: string; valor: number }[] {
   return serieDiaria.map((d) => ({ dia: d.dia, valor: d.metricas[metrica] ?? 0 }));
 }
-
-/**
- * Recorta a série no filtro "Dia": serie_diaria vem pré-zerada até o fim do
- * intervalo pedido (comercial/banco.py), então sem recortar a linha cai a
- * zero em dias futuros como se a performance tivesse zerado. Mostra só até
- * a data de hoje (AAAA-MM-DD) — comparação de string funciona por ser ISO.
- */
-export function serieAteHoje(serie: { dia: string; valor: number }[], hojeIso: string): { dia: string; valor: number }[] {
-  return serie.filter((d) => d.dia <= hojeIso);
-}

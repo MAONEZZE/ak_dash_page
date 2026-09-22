@@ -4,7 +4,6 @@ import {
   CARD_COMPACTO_LABEL,
   CARD_COMPACTO_LEGENDA,
   CARD_COMPACTO_META,
-  CARD_COMPACTO_MIUDO,
   CARD_COMPACTO_RODAPE,
   CARD_COMPACTO_VAO,
   escalaValorCompacto,
@@ -12,8 +11,6 @@ import {
 
 interface CardKpiProps {
   label: string;
-  /** Tag pequena no canto (ex. "SDR"/"CLOSER") — omitida quando o card não distingue squad. */
-  squadTag?: string;
   value: string;
   /** Denominador do card ("/ meta"). Omitido = card sem denominador (ex. Aprovados, que é número absoluto). */
   meta?: string;
@@ -33,7 +30,7 @@ interface CardKpiProps {
 }
 
 /** Card de vidro do redesenho novo_template — usado nos grids de KPI de Comercial/Geral/Financeiro. */
-export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legenda, variante = "claro", tamanho = "normal" }: CardKpiProps) {
+export function CardKpi({ label, value, meta, pct, indisponivel, legenda, variante = "claro", tamanho = "normal" }: CardKpiProps) {
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
   const compacto = tamanho === "compacto";
@@ -48,13 +45,6 @@ export function CardKpi({ label, squadTag, value, meta, pct, indisponivel, legen
         >
           {label}
         </span>
-        {squadTag && (
-          <span
-            className={`whitespace-nowrap font-bold ${compacto ? CARD_COMPACTO_MIUDO : "text-[17px]"} ${escuro ? "text-accent" : "text-accent-fg"}`}
-          >
-            {squadTag}
-          </span>
-        )}
       </div>
       <div className={`flex flex-wrap items-baseline gap-1.5 ${compacto ? CARD_COMPACTO_VAO : "mt-auto"}`}>
         <span

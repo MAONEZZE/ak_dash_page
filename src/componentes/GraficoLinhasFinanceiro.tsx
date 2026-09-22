@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { tetoElastico } from "../lib/agregacoes-financeiro";
-import { formatarNumero } from "../lib/formato";
+import { formatarMoeda, formatarNumero } from "../lib/formato";
 
 export interface SerieFinanceiro {
   rotulo: string;
@@ -43,7 +44,22 @@ const SWATCH: Record<SerieFinanceiro["cor"], string> = {
   "status-bad": "bg-status-bad",
 };
 
+/** Rótulo de mês: centrado na coluna, menos nas pontas — Jan bateria no eixo Y e Dez sairia do card. */
+function ancoragemRotulo(indice: number, total: number): string {
+  if (indice === 0) return "translate-x-0";
+  if (indice === total - 1) return "-translate-x-full";
+  return "-translate-x-1/2";
+}
+
+/** Balão perto da borda sairia do card — encosta ele na coluna do mês em vez de centralizar. */
+function ancoragem(pctX: number): string {
+  if (pctX < 12) return "translate-x-0";
+  if (pctX > 88) return "-translate-x-full";
+  return "-translate-x-1/2";
+}
+
 export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mostrarEixoX = false }: Props) {
+  const [hover, setHover] = useState<number | null>(null);
   const teto = tetoElastico(
     series.flatMap((s) => s.valores),
     piso,
@@ -58,6 +74,17 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
     valor: (teto / nLinhasGrade) * i,
   }));
   const colunasX = Array.from({ length: nPontos }, (_, i) => x(i));
+
+  /** Mês mais próximo do cursor — o alvo é a faixa vertical inteira, não o ponto. */
+  function aoMover(evento: React.MouseEvent<HTMLDivElement>) {
+    const caixa = evento.currentTarget.getBoundingClientRect();
+    if (caixa.width === 0) return;
+    const xViewBox = ((evento.clientX - caixa.left) / caixa.width) * W;
+    const indice = Math.round(((xViewBox - PL) / (W - PL - PR)) * (nPontos - 1));
+    setHover(Math.min(Math.max(indice, 0), nPontos - 1));
+  }
+
+  const hoverPctX = hover === null ? 0 : (x(hover) / W) * 100;
 
   return (
     <div className="flex flex-col gap-2">
@@ -93,7 +120,14 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
           ))}
         </div>
 
-        <div className="relative min-w-0 flex-1" style={{ height: ALTURA_PLOT_PX }}>
+        {/* O mouse é ouvido na caixa do plot inteiro: o mês mais próximo do
+            cursor é quem responde, então não é preciso acertar o ponto. */}
+        <div
+          className="relative min-w-0 flex-1"
+          style={{ height: ALTURA_PLOT_PX }}
+          onMouseMove={aoMover}
+          onMouseLeave={() => setHover(null)}
+        >
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible">
             {/* Grade pontilhada e discreta nos cruzamentos entre X e Y — --border-2 já é o token translúcido de baixo contraste usado nas outras grades da casa. */}
             {grade.map((linha, i) => (
@@ -133,6 +167,10 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
                 vectorEffect="non-scaling-stroke"
               />
             ))}
+
+            {hover !== null && (
+              <line x1={x(hover)} x2={x(hover)} y1={PT} y2={H - PB} className="stroke-fg/35" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+            )}
           </svg>
 
           {/*
@@ -157,16 +195,46 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
               />
             )),
           )}
+
+          {hover !== null && (
+            <div
+              role="tooltip"
+              className={`pointer-events-none absolute top-0 ${ancoragem(hoverPctX)} flex flex-col gap-1 whitespace-nowrap rounded-lg border border-border-2 bg-bg-2/95 px-3 py-2`}
+              style={{ left: `${hoverPctX}%` }}
+            >
+              <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-fg/55">{MESES[hover]}</span>
+              {series.map((s) => (
+                <span key={s.rotulo} className="flex items-center gap-2 text-[15px] text-fg/70">
+                  <span className={`inline-block h-[3px] w-4 shrink-0 ${SWATCH[s.cor]}`} />
+                  {s.rotulo}
+                  <span className="ml-auto font-display font-bold text-fg">{formatarMoeda(s.valores[hover])}</span>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-between pb-1 pr-1" style={{ paddingLeft: LARGURA_EIXO_Y + 4 }}>
-        {mostrarEixoX &&
-          MESES.map((m, i) => (
-            <span key={i} className="text-[13px] font-medium text-fg/50">
-              {m}
-            </span>
-          ))}
+      {/*
+       * Cada mês é ancorado na MESMA fração que a coluna dele no plot, não
+       * distribuído por `justify-between` — aí o rótulo cai exatamente sobre a
+       * linha vertical da grade e sobre o ponto, e mirar o cursor num mês não
+       * acerta o vizinho.
+       */}
+      <div className="flex gap-1 pb-1">
+        <div className="shrink-0" style={{ width: LARGURA_EIXO_Y }} />
+        <div className="relative h-[17px] min-w-0 flex-1" data-eixo="x">
+          {mostrarEixoX &&
+            MESES.map((m, i) => (
+              <span
+                key={i}
+                className={`absolute top-0 ${ancoragemRotulo(i, MESES.length)} text-[13px] font-medium leading-none text-fg/50`}
+                style={{ left: `${(x(i) / W) * 100}%` }}
+              >
+                {m}
+              </span>
+            ))}
+        </div>
       </div>
     </div>
   );

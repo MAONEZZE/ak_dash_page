@@ -5,7 +5,7 @@ interface AvatarProps {
   tamanho?: number | string;
 }
 
-/** Foto de `imagem_url`, com fallback pra inicial num círculo — hoje o caminho comum (imagem_url é NULL pra todo mundo). */
+/** Foto de `dash.users.imagem_url` (bucket `fotos_dash`), com fallback pra inicial num círculo quando a pessoa não tem foto cadastrada. */
 export function Avatar({ nome, imagemUrl, tamanho = 57 }: AvatarProps) {
   const dim = typeof tamanho === "number" ? `${tamanho}px` : tamanho;
 

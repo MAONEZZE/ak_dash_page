@@ -55,6 +55,7 @@ export interface PessoaComercial {
   id_user: string;
   email: string;
   nome: string | null;
+  imagem_url: string | null;
   metas_atingidas: MetasAtingidas;
   metricas: Metrica[];
   /**
