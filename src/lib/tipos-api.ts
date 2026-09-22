@@ -169,7 +169,7 @@ export interface RespostaGeral {
   periodo: Periodo;
   dias_uteis: DiasUteis;
   cards: CardGeral[];
-  /** Até 3, em data crescente. Ignora o período da página (são eventos futuros). Vazio = sem evento futuro. */
+  /** Até 2, em data crescente. Ignora o período da página (são eventos futuros). Vazio = sem evento futuro. */
   eventos: EventoGeral[];
   pessoas: PessoaGeral[];
   avisos: string[];

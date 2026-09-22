@@ -18,7 +18,7 @@ const INTERVALO_MS = 5_000;
 
 interface CardEventoRotativoProps {
   label: string;
-  /** Até 3 próximos eventos, em data crescente. Vazio = card em estado vazio. */
+  /** Até 2 próximos eventos, em data crescente. Vazio = card em estado vazio. */
   eventos: EventoGeral[];
   /** Qual contagem do evento o card mostra — só "inscritos" ganha o denominador de capacidade. */
   campo: "inscritos" | "aprovados";
