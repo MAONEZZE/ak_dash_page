@@ -28,6 +28,21 @@ export function escalaValorCompacto(value: string): string {
   return "text-[clamp(16px,min(2.3vw,3.7vh),62px)]";
 }
 
+/**
+ * Mesmos passos, 1,3× — o número de Faturamento e Liquidado da Geral, que são
+ * os dois cards de destaque da faixa de cima.
+ *
+ * As classes são escritas por extenso, e não calculadas a partir da tabela
+ * acima: o Tailwind varre o código-fonte procurando nomes de classe literais e
+ * não geraria uma utilitária montada em runtime.
+ */
+export function escalaValorCompactoDestaque(value: string): string {
+  if (value.length <= 4) return "text-[clamp(28.6px,min(8.45vw,8.71vh),156px)]";
+  if (value.length <= 8) return "text-[clamp(26px,min(5.07vw,7.41vh),135px)]";
+  if (value.length <= 12) return "text-[clamp(23.4px,min(3.9vw,5.98vh),109px)]";
+  return "text-[clamp(20.8px,min(2.99vw,4.81vh),81px)]";
+}
+
 export const CARD_COMPACTO_CAIXA = "h-full min-h-[104px] p-[clamp(10px,min(1.06vw,1.8vh),34px)]";
 export const CARD_COMPACTO_LABEL = "text-[clamp(11px,min(1.2vw,2vh),34px)] leading-none";
 export const CARD_COMPACTO_META = "text-[clamp(13px,min(1.54vw,2.7vh),44px)]";
@@ -36,6 +51,18 @@ export const CARD_COMPACTO_LEGENDA = "text-[clamp(11px,min(1.11vw,1.9vh),32px)] 
 export const CARD_COMPACTO_MIUDO = "text-[clamp(10px,min(0.96vw,1.7vh),26px)]";
 /** Respiro entre o título e o número — metade do vão que o `mt-auto` abria antes. */
 export const CARD_COMPACTO_VAO = "mt-[clamp(4px,min(1.8vw,3.4vh),44px)]";
+const RODAPE_RESPIRO = "pt-[clamp(4px,min(0.55vw,1vh),16px)]";
 /** Respiro antes do rodapé (barra + legenda), que fica colado na base do card. */
-export const CARD_COMPACTO_RODAPE = "mt-auto pt-[clamp(4px,min(0.55vw,1vh),16px)]";
+export const CARD_COMPACTO_RODAPE = `mt-auto ${RODAPE_RESPIRO}`;
+/**
+ * Rodapé da faixa de cima da Geral (Faturamento/Liquidado e os dois cards de
+ * evento): igual ao de cima, mas sem o `mt-auto` — ali quem leva a sobra de
+ * altura é o número, que encosta na base. É isso que põe os quatro números da
+ * faixa na mesma linha: as escalas tipográficas são diferentes (um número
+ * curto cresce, uma moeda longa encolhe), então alinhar os topos deixaria as
+ * baselines em alturas diferentes.
+ */
+export const CARD_COMPACTO_RODAPE_FIXO = RODAPE_RESPIRO;
+/** Número encostado na base do card — ver CARD_COMPACTO_RODAPE_FIXO. */
+export const CARD_COMPACTO_NUMERO_NA_BASE = "mt-auto";
 export const CARD_COMPACTO_BARRA = "h-[clamp(4px,min(0.41vw,0.75vh),11px)]";

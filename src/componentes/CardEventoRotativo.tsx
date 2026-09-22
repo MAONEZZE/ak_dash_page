@@ -6,8 +6,8 @@ import {
   CARD_COMPACTO_LABEL,
   CARD_COMPACTO_META,
   CARD_COMPACTO_MIUDO,
-  CARD_COMPACTO_RODAPE,
-  CARD_COMPACTO_VAO,
+  CARD_COMPACTO_NUMERO_NA_BASE,
+  CARD_COMPACTO_RODAPE_FIXO,
   escalaValorCompacto,
 } from "../lib/card-compacto";
 import { formatarDataHoraEvento, formatarNumero } from "../lib/formato";
@@ -72,7 +72,9 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
         {evento.titulo}
       </span>
 
-      <div className={`flex flex-wrap items-baseline gap-1.5 ${CARD_COMPACTO_VAO}`}>
+      {/* Número na base, e não logo abaixo do título: é o que alinha os quatro
+          números da faixa de cima da Geral — ver CARD_COMPACTO_RODAPE_FIXO. */}
+      <div className={`flex flex-wrap items-baseline gap-1.5 ${CARD_COMPACTO_NUMERO_NA_BASE}`}>
         <span className={`font-display font-extrabold leading-none tracking-tight text-offwhite ${escalaValorCompacto(valorTexto)}`}>{valorTexto}</span>
         {/* Aprovados é número absoluto: a capacidade só faz sentido como denominador dos inscritos. */}
         {campo === "inscritos" && (
@@ -82,7 +84,7 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
         )}
       </div>
 
-      <div className={`flex gap-1.5 ${CARD_COMPACTO_RODAPE}`} aria-hidden="true">
+      <div className={`flex gap-1.5 ${CARD_COMPACTO_RODAPE_FIXO}`} aria-hidden="true">
         {eventos.map((e, i) => (
           <div key={e.id} className={`flex-1 overflow-hidden rounded-full bg-offwhite/18 ${CARD_COMPACTO_BARRA}`}>
             {i === atual ? (

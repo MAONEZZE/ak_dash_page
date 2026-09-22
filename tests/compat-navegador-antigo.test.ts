@@ -124,14 +124,22 @@ describe("bundle publicado", () => {
   });
 
   it.runIf(css.length > 0)("não usa container queries — sem suporte no Chromium 94", () => {
-    // Container queries (`container-type`, `@container`, unidades cq*) só
-    // existem do Chrome 105 pra cima. Diferente de color-mix, aqui não há
-    // fallback nenhum: a declaração some e o elemento fica sem a medida — foi
-    // o que desmontou os cards de KPI da Geral na TV. As medidas fluidas do
-    // projeto usam vw/vh (ver src/lib/card-compacto.ts).
+    // Container queries (`container-type`, a at-rule de container, unidades
+    // cq*) só existem do Chrome 105 pra cima. Diferente de color-mix, aqui não
+    // há fallback nenhum: a declaração some e o elemento fica sem a medida —
+    // foi o que desmontou os cards de KPI da Geral na TV. As medidas fluidas
+    // do projeto usam vw/vh (ver src/lib/card-compacto.ts).
+    //
+    // O padrão da at-rule é montado por concatenação de propósito, e o nome
+    // dela não aparece por extenso em lugar nenhum deste arquivo: o Tailwind
+    // varre o projeto inteiro atrás de nomes de classe, acharia o nome aqui no
+    // teste e geraria a utilitária correspondente no bundle — o guard passaria
+    // a acusar a si mesmo. Pelo mesmo motivo, um `dist/` antigo com a classe
+    // realimenta a varredura: rebuild de guard quebrado é com `rm -rf dist`.
+    const AT_RULE_CONTAINER = new RegExp(`@${"container"}\\b`, "g");
     const usos = css.flatMap((folha) => [
       ...(folha.match(/container-type\s*:/g) ?? []),
-      ...(folha.match(/@container\b/g) ?? []),
+      ...(folha.match(AT_RULE_CONTAINER) ?? []),
       ...(folha.match(/\d\s*cq(w|h|i|b|min|max)\b/g) ?? []),
     ]);
     expect(usos).toEqual([]);

@@ -4,9 +4,12 @@ import {
   CARD_COMPACTO_LABEL,
   CARD_COMPACTO_LEGENDA,
   CARD_COMPACTO_META,
+  CARD_COMPACTO_NUMERO_NA_BASE,
   CARD_COMPACTO_RODAPE,
+  CARD_COMPACTO_RODAPE_FIXO,
   CARD_COMPACTO_VAO,
   escalaValorCompacto,
+  escalaValorCompactoDestaque,
 } from "../lib/card-compacto";
 
 interface CardKpiProps {
@@ -27,10 +30,30 @@ interface CardKpiProps {
    * sobra de altura, quando existe, cai entre os dois.
    */
   tamanho?: "normal" | "compacto";
+  /**
+   * Os dois cards de destaque da Geral (Faturamento e Liquidado). Duas coisas:
+   * o número sai de baixo do rótulo e encosta na base do card — é o que põe os
+   * quatro números da faixa de cima na mesma linha, já que as escalas
+   * tipográficas diferem entre eles —, e ganha a escala 1,3× (o card não tem
+   * meta, barra nem legenda, então sobra altura pra isso). O rodapé vira um vão
+   * da altura das barrinhas do card de evento, só pra base bater.
+   * Exige `tamanho="compacto"`.
+   */
+  destaque?: boolean;
 }
 
 /** Card de vidro do redesenho novo_template — usado nos grids de KPI de Comercial/Geral/Financeiro. */
-export function CardKpi({ label, value, meta, pct, indisponivel, legenda, variante = "claro", tamanho = "normal" }: CardKpiProps) {
+export function CardKpi({
+  label,
+  value,
+  meta,
+  pct,
+  indisponivel,
+  legenda,
+  variante = "claro",
+  tamanho = "normal",
+  destaque = false,
+}: CardKpiProps) {
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
   const compacto = tamanho === "compacto";
@@ -46,9 +69,15 @@ export function CardKpi({ label, value, meta, pct, indisponivel, legenda, varian
           {label}
         </span>
       </div>
-      <div className={`flex flex-wrap items-baseline gap-1.5 ${compacto ? CARD_COMPACTO_VAO : "mt-auto"}`}>
+      <div
+        className={`flex flex-wrap items-baseline gap-1.5 ${
+          destaque ? CARD_COMPACTO_NUMERO_NA_BASE : compacto ? CARD_COMPACTO_VAO : "mt-auto"
+        }`}
+      >
         <span
-          className={`font-display font-extrabold leading-none tracking-tight ${compacto ? escalaValorCompacto(value) : "text-[50px]"} ${escuro ? "text-offwhite" : ""}`}
+          className={`font-display font-extrabold leading-none tracking-tight ${
+            compacto ? (destaque ? escalaValorCompactoDestaque(value) : escalaValorCompacto(value)) : "text-[50px]"
+          } ${escuro ? "text-offwhite" : ""}`}
         >
           {value}
         </span>
@@ -60,7 +89,9 @@ export function CardKpi({ label, value, meta, pct, indisponivel, legenda, varian
           </span>
         )}
       </div>
-      {indisponivel || pct === null ? (
+      {destaque ? (
+        <div className={`${CARD_COMPACTO_RODAPE_FIXO} ${CARD_COMPACTO_BARRA}`} aria-hidden="true" />
+      ) : indisponivel || pct === null ? (
         <span
           className={`font-semibold ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}
         >

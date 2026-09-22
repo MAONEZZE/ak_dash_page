@@ -144,6 +144,7 @@ export function Geral() {
                 key={c.metrica}
                 variante="escuro"
                 tamanho="compacto"
+                destaque
                 label={c.nome_exibicao}
                 value={valorCard(c)}
                 pct={null}
