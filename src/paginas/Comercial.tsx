@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GaugeMeta } from "../componentes/GaugeMeta";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
@@ -8,6 +9,7 @@ import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { agregarConsolidado, agregarPorMetrica } from "../lib/insights";
 import { useFiltrosAtuais } from "../lib/periodo";
+import { useSomDeAumento } from "../lib/som";
 import { useSquadAtual, type Squad } from "../lib/squad";
 import { METRICAS_SDR } from "../lib/tipos-api";
 import type { Granularidade, Metrica, RespostaComercial } from "../lib/tipos-api";
@@ -38,6 +40,24 @@ function squadDaMetrica(metrica: string): "sdr" | "closer" {
 
 function primeiraComMetricas(dado: RespostaComercial | null): Metrica[] {
   return dado?.pessoas.find((p) => p.metricas.length > 0)?.metricas ?? [];
+}
+
+/** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
+function Esqueleto() {
+  return (
+    <>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <CardEsqueleto key={i} className="min-h-[168px]" />
+        ))}
+      </section>
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.15fr)_minmax(272px,1fr)]">
+        <CardEsqueleto className="min-h-[320px]" />
+        <CardEsqueleto className="min-h-[320px]" />
+      </section>
+      <CardEsqueleto className="min-h-[280px]" />
+    </>
+  );
 }
 
 export function Comercial() {
@@ -82,13 +102,16 @@ export function Comercial() {
     return () => clearInterval(id);
   }, [carregar]);
 
+  // Nathan e Jennifer são os dois SDRs vigiados — não tem por que olhar o bloco de Closer.
+  const { destaques } = useSomDeAumento({ pessoas: sdr.dado?.pessoas, granularidade, periodo });
+
   // Header vive fora da árvore desta página (App.tsx) — repassa o "Atualizar" pra lá.
   useEffect(() => {
     registrar({ atualizadoEm, atualizando, aoAtualizar: carregar });
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar]);
 
-  // Só toma a tela inteira ("Carregando…"/erro) quando ainda não há dado
+  // Só toma a tela inteira (esqueleto/erro) quando ainda não há dado
   // nenhum — depois da primeira carga, o auto-refresh de 60s troca só os
   // valores, sem piscar a página inteira.
   const carregando = (sdr.carregando || closer.carregando) && !sdr.dado && !closer.dado;
@@ -116,7 +139,7 @@ export function Comercial() {
   return (
     <div className="flex flex-col gap-5">
       {carregando ? (
-        <p className="text-xl text-fg/60">Carregando…</p>
+        <Esqueleto />
       ) : erro ? (
         <p className="text-xl text-fg/60" role="alert">
           {erro}
@@ -142,7 +165,7 @@ export function Comercial() {
             <GaugeMeta pct={gaugePct} faltamLabel={faltamLabel} caption={`meta ${RANGE_LABEL_ADJ[granularidade]} ${SQUAD_LABEL[squad]}`} />
           </section>
 
-          <TimeComercialLista pessoas={pessoasVisiveis} granularidade={granularidade} />
+          <TimeComercialLista pessoas={pessoasVisiveis} granularidade={granularidade} destaques={destaques} />
         </>
       )}
     </div>

@@ -1,10 +1,11 @@
-import { LogOut, Menu, Moon, RefreshCw, Sun } from "lucide-react";
+import { LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
 import { formatarHora } from "./lib/formato";
 import { useDefinirGranularidade, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
+import { SomProvider, useSom } from "./lib/som";
 import { SQUADS, useDefinirSquad, useSquadAtual } from "./lib/squad";
 import type { Granularidade } from "./lib/tipos-api";
 import { Comercial } from "./paginas/Comercial";
@@ -139,6 +140,29 @@ const ITEM_MENU =
   "flex w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-semibold transition-colors hover:bg-glass-border disabled:pointer-events-none disabled:opacity-45";
 
 /**
+ * Ícone solto no header (não some no menu — precisa estar visível o tempo
+ * todo pra quem olha pra TV). Destacado enquanto o navegador ainda não
+ * autorizou áudio: o clique nesse estado libera o áudio em vez de mutar.
+ */
+function BotaoSom() {
+  const { ligado, liberado, alternar } = useSom();
+  const precisaAtivar = ligado && !liberado;
+  const rotulo = precisaAtivar ? "Clique para ativar o som" : ligado ? "Desativar som" : "Ativar som";
+
+  return (
+    <button
+      type="button"
+      onClick={() => void alternar()}
+      aria-label={rotulo}
+      title={rotulo}
+      className={`glass-panel rounded-full p-2.5 hover:opacity-80 ${precisaAtivar ? "animate-pulse" : ""}`}
+    >
+      {ligado ? <Volume2 className="size-5" aria-hidden /> : <VolumeX className="size-5" aria-hidden />}
+    </button>
+  );
+}
+
+/**
  * Único botão de ação do header (onde antes ficava o logout): abre atualizar,
  * tema e sair. "Atualizar" só fica ativo na página que registrou um refresh
  * (ver lib/atualizacao).
@@ -263,35 +287,38 @@ export default function App() {
 
   return (
     <AtualizacaoProvider>
-      <div className="dashboard-shell font-body text-fg">
-        <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col gap-5 px-6 py-6 sm:py-7">
-          <header className="flex shrink-0 flex-wrap items-start justify-between gap-5">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-baseline gap-2">
-                <span className="font-display text-[29px] font-extrabold tracking-tight">akeel</span>
-                <span className="inline-block size-[7px] rounded-full bg-accent-ink" />
+      <SomProvider>
+        <div className="dashboard-shell font-body text-fg">
+          <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col gap-5 px-6 py-6 sm:py-7">
+            <header className="flex shrink-0 flex-wrap items-start justify-between gap-5">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-[29px] font-extrabold tracking-tight">akeel</span>
+                  <span className="inline-block size-[7px] rounded-full bg-accent-ink" />
+                </div>
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <PillNav />
-              <PillPeriodo />
-              {granularidade === "mes" && <PillPeriodoNavegavel />}
-              {location.pathname === "/comercial" && <PillSquad />}
-              <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
-            </div>
-          </header>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <PillNav />
+                <PillPeriodo />
+                {granularidade === "mes" && <PillPeriodoNavegavel />}
+                {location.pathname === "/comercial" && <PillSquad />}
+                <BotaoSom />
+                <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
+              </div>
+            </header>
 
-          <main className="min-h-0 flex-1 overflow-y-auto">
-            <Routes>
-              <Route path="/login" element={<Navigate to="/comercial" replace />} />
-              <Route path="/" element={<Navigate to="/comercial" replace />} />
-              <Route path="/geral" element={<Geral />} />
-              <Route path="/comercial" element={<Comercial />} />
-              <Route path="/financeiro" element={<Financeiro />} />
-            </Routes>
-          </main>
+            <main className="min-h-0 flex-1 overflow-y-auto">
+              <Routes>
+                <Route path="/login" element={<Navigate to="/comercial" replace />} />
+                <Route path="/" element={<Navigate to="/comercial" replace />} />
+                <Route path="/geral" element={<Geral />} />
+                <Route path="/comercial" element={<Comercial />} />
+                <Route path="/financeiro" element={<Financeiro />} />
+              </Routes>
+            </main>
+          </div>
         </div>
-      </div>
+      </SomProvider>
     </AtualizacaoProvider>
   );
 }

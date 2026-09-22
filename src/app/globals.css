@@ -256,6 +256,66 @@ body {
   border: 1px solid var(--painel-closer-border);
 }
 
+/*
+ * Esqueleto de carregamento (CardEsqueleto). Tom próprio, mais escuro que o
+ * --color-glass-bg dos cards de verdade: o vidro é 55% do próprio fundo da
+ * página, então o card vazio ficava quase invisível e o `animate-pulse` do
+ * Tailwind (opacidade 1→0.5 de algo que já não se via) não parecia piscar.
+ * Aqui quem pisca é o background, entre dois tons de --fg — que já inverte
+ * por tema, então serve no claro e no escuro sem hex novo.
+ *
+ * `prefers-reduced-motion`: sem animação a peça fica no tom médio, ainda
+ * visível como "espaço reservado".
+ */
+.card-esqueleto {
+  background: rgb(var(--fg-rgb) / 14%);
+  border: 1px solid rgb(var(--fg-rgb) / 18%);
+  animation: pulso-esqueleto 1.4s ease-in-out infinite;
+}
+
+@keyframes pulso-esqueleto {
+  0%,
+  100% {
+    background-color: rgb(var(--fg-rgb) / 8%);
+  }
+  50% {
+    background-color: rgb(var(--fg-rgb) / 22%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-esqueleto {
+    animation: none;
+  }
+}
+
+/*
+ * Destaque de "acabou de subir" (docs/plans/som-agendamento-nathan-jennifer.md):
+ * brilho curto na célula de ligações/reuniões agendadas do Nathan/Jennifer
+ * quando o número sobe entre dois refreshes — a pista visual que funciona
+ * mesmo com o som mudo. Mesmo formato de .card-esqueleto: pisca o próprio
+ * fundo, sem hex novo.
+ */
+.celula-subiu {
+  animation: brilho-subiu 2s ease-out;
+}
+
+@keyframes brilho-subiu {
+  0% {
+    background-color: rgb(var(--color-accent-rgb) / 45%);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celula-subiu {
+    animation: none;
+    background-color: rgb(var(--color-accent-rgb) / 30%);
+  }
+}
+
 .glass-pill {
   background: var(--color-glass-bg);
   backdrop-filter: blur(16px);

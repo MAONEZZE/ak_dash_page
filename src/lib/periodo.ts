@@ -45,6 +45,11 @@ export function paraPeriodo(granularidade: Granularidade, data: Date): string {
   return `${ano}`;
 }
 
+function dataDoDia(dia: string): Date {
+  const [ano, mes, d] = dia.split("-").map(Number);
+  return new Date(ano, mes - 1, d);
+}
+
 /**
  * Período corrente da granularidade, RECALCULADO enquanto a página está aberta.
  *
@@ -54,20 +59,26 @@ export function paraPeriodo(granularidade: Granularidade, data: Date): string {
  * que foi aberta, e o auto-refresh de 60s rebuscava fielmente o dia velho pra
  * sempre — era esse o dash "parado no 17/09".
  *
- * `setPeriodo` com a mesma string é no-op no React, então nos outros 1439
- * minutos do dia isto não re-renderiza nada.
+ * O estado guarda o DIA, e o período sai dele durante o render. Antes o estado
+ * guardava o próprio período e quem o recalculava era um efeito: na troca de
+ * granularidade o render acontecia com o par errado (granularidade nova +
+ * período da granularidade velha, ex. `mes` com `2026-09-22`), a página
+ * disparava a busca com esse par e o BFF respondia 400 "periodo inválido para
+ * granularidade 'mes': esperado AAAA-MM" — o erro que piscava na tela a cada
+ * clique na pill de período. Derivando no render, esse par nunca existe.
+ *
+ * `setDia` com a mesma string é no-op no React, então nos outros 1439 minutos
+ * do dia isto não re-renderiza nada.
  */
 function usePeriodoCorrente(granularidade: Granularidade): string {
-  const [periodo, setPeriodo] = useState(() => paraPeriodo(granularidade, hoje()));
+  const [dia, setDia] = useState(() => paraPeriodo("dia", hoje()));
 
   useEffect(() => {
-    const conferir = () => setPeriodo(paraPeriodo(granularidade, hoje()));
-    conferir();
-    const id = setInterval(conferir, INTERVALO_CHECAGEM_DIA_MS);
+    const id = setInterval(() => setDia(paraPeriodo("dia", hoje())), INTERVALO_CHECAGEM_DIA_MS);
     return () => clearInterval(id);
-  }, [granularidade]);
+  }, []);
 
-  return periodo;
+  return paraPeriodo(granularidade, dataDoDia(dia));
 }
 
 /**

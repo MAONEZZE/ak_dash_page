@@ -11,6 +11,8 @@ export interface PessoaUnificada {
 interface Props {
   pessoas: PessoaUnificada[];
   granularidade: Granularidade;
+  /** Chaves `"id_user:metrica"` de células que acabaram de subir — ver lib/som.tsx. */
+  destaques?: Set<string>;
 }
 
 const RANGE_LABEL: Record<Granularidade, string> = { dia: "dia", semana: "semana", mes: "mês", ano: "ano" };
@@ -33,7 +35,15 @@ function metaTexto(m: Metrica): string {
 
 const ESTILO_HACHURA = { background: "repeating-linear-gradient(135deg, var(--color-hachura-a) 0 4px, var(--color-hachura-b) 4px 8px)" };
 
-function CardPessoa({ unidade, onClick }: { unidade: PessoaUnificada; onClick: () => void }) {
+function CardPessoa({
+  unidade,
+  onClick,
+  destaques,
+}: {
+  unidade: PessoaUnificada;
+  onClick: () => void;
+  destaques: Set<string>;
+}) {
   const { pessoa, squad } = unidade;
   const nome = nomeExibicao(pessoa.nome, pessoa.email);
   const destaque = pessoa.metricas.slice(0, 4);
@@ -63,8 +73,9 @@ function CardPessoa({ unidade, onClick }: { unidade: PessoaUnificada; onClick: (
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {destaque.map((m) => {
           const estado = estadoVisual(m);
+          const subiu = destaques.has(`${pessoa.id_user}:${m.metrica}`);
           return (
-            <div key={m.metrica} className="flex flex-col gap-1">
+            <div key={m.metrica} className={`flex flex-col gap-1 rounded-lg ${subiu ? "celula-subiu" : ""}`}>
               <span className="text-[15px] font-semibold uppercase tracking-[0.1em] text-fg/50">{m.nome_exibicao}</span>
               <span
                 className={`font-display text-2xl font-extrabold tracking-tight ${m.status === "atingido" ? "text-accent-fg" : "text-fg"}`}
@@ -160,9 +171,10 @@ function ModalPessoa({
 }
 
 /** Substitui VisaoGeralComercial + TabelaMetas + Insights + GraficoStatusPizza + GraficoRealizadoMeta — lista de cards com modal de detalhe. */
-export function TimeComercialLista({ pessoas, granularidade }: Props) {
+export function TimeComercialLista({ pessoas, granularidade, destaques }: Props) {
   const [idAberto, setIdAberto] = useState<string | null>(null);
   const aberta = pessoas.find((u) => u.pessoa.id_user === idAberto) ?? null;
+  const destaquesEfetivos = destaques ?? new Set<string>();
 
   if (pessoas.length === 0) {
     return <p className="text-xl text-fg/60">Nenhuma pessoa com dado lançado neste período.</p>;
@@ -176,7 +188,7 @@ export function TimeComercialLista({ pessoas, granularidade }: Props) {
       </div>
       <div className="flex flex-col gap-2.5">
         {pessoas.map((u) => (
-          <CardPessoa key={u.pessoa.id_user} unidade={u} onClick={() => setIdAberto(u.pessoa.id_user)} />
+          <CardPessoa key={u.pessoa.id_user} unidade={u} onClick={() => setIdAberto(u.pessoa.id_user)} destaques={destaquesEfetivos} />
         ))}
       </div>
       {aberta && <ModalPessoa unidade={aberta} rangeLabel={RANGE_LABEL[granularidade]} onFechar={() => setIdAberto(null)} />}

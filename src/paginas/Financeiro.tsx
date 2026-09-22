@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoLinhasFinanceiro } from "../componentes/GraficoLinhasFinanceiro";
 import { TabelaAgrupada, type ColunaAgrupada } from "../componentes/TabelaAgrupada";
@@ -68,6 +69,28 @@ function tabelaComTotal(linhas: LinhaAgrupada[]): { linhas: LinhaAgrupada[]; tot
   return { linhas, total: totalDeLinhas(linhas) };
 }
 
+/** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
+function Esqueleto() {
+  return (
+    <div className="flex flex-col gap-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <CardEsqueleto key={i} className="min-h-[168px]" />
+        ))}
+      </section>
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <CardEsqueleto className="min-h-[420px] lg:col-span-2" />
+        <CardEsqueleto className="min-h-[420px]" />
+      </section>
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          <CardEsqueleto key={i} className="min-h-[320px]" />
+        ))}
+      </section>
+    </div>
+  );
+}
+
 export function Financeiro() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const [estado, setEstado] = useState<Estado>(ESTADO_INICIAL);
@@ -119,9 +142,9 @@ export function Financeiro() {
   // `carregando`/`erro` só tomam a tela inteira quando ainda não há `dado`
   // nenhum (primeira carga). Depois disso, o auto-refresh de 60s troca só os
   // valores — sem esse guard, a página piscava a cada refresh (voltava pro
-  // "Carregando…" e sumia o conteúdo por um instante).
+  // esqueleto e sumia o conteúdo por um instante).
   if (estado.carregando && !estado.dado) {
-    return <p className="text-xl text-fg/60">Carregando…</p>;
+    return <Esqueleto />;
   }
   if (estado.erro && !estado.dado) {
     return (

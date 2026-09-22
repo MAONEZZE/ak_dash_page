@@ -4,6 +4,8 @@ import type { PessoaGeral } from "../lib/tipos-api";
 
 interface Props {
   pessoas: PessoaGeral[];
+  /** Chaves `"id_user:metrica"` de células que acabaram de subir — ver lib/som.tsx. */
+  destaques?: Set<string>;
 }
 
 /** Avatar da linha: menor item que ainda identifica a pessoa — é ele que dita a altura da linha. */
@@ -20,7 +22,17 @@ function valorTexto(v: number | null, metrica: string): string {
  * ao número de linhas: quando sobra altura na coluna, o card de 4 pessoas fica
  * com mais sobra que o de 3, e as duas tabelas mantêm o mesmo respiro por linha.
  */
-function CardCargo({ titulo, pessoas, painel }: { titulo: string; pessoas: PessoaGeral[]; painel: string }) {
+function CardCargo({
+  titulo,
+  pessoas,
+  painel,
+  destaques,
+}: {
+  titulo: string;
+  pessoas: PessoaGeral[];
+  painel: string;
+  destaques: Set<string>;
+}) {
   if (pessoas.length === 0) return null;
   const colunas = pessoas[0].metricas;
 
@@ -60,7 +72,9 @@ function CardCargo({ titulo, pessoas, painel }: { titulo: string; pessoas: Pesso
               {p.metricas.map((m) => (
                 <td
                   key={m.metrica}
-                  className="whitespace-nowrap px-3 py-[clamp(2px,0.42vh,5px)] font-display text-[clamp(15px,1.95vh,23px)] font-bold leading-none tracking-tight"
+                  className={`whitespace-nowrap px-3 py-[clamp(2px,0.42vh,5px)] font-display text-[clamp(15px,1.95vh,23px)] font-bold leading-none tracking-tight ${
+                    destaques.has(`${p.id_user}:${m.metrica}`) ? "celula-subiu" : ""
+                  }`}
                 >
                   {valorTexto(m.realizado, m.metrica)}
                   <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta, m.metrica)}</span>
@@ -80,14 +94,15 @@ function CardCargo({ titulo, pessoas, painel }: { titulo: string; pessoas: Pesso
  * conteúdo, no mínimo possível (paddings e entrelinhas colados no texto): o
  * espaço que sobra na tela é dos 8 cards de KPI acima.
  */
-export function TabelaPessoas({ pessoas }: Props) {
+export function TabelaPessoas({ pessoas, destaques }: Props) {
   const sdrs = pessoas.filter((p) => p.cargo === "sdr");
   const closers = pessoas.filter((p) => p.cargo === "closer");
+  const destaquesEfetivos = destaques ?? new Set<string>();
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col gap-2">
-      <CardCargo titulo="SDRs" pessoas={sdrs} painel="glass-panel-sdr" />
-      <CardCargo titulo="Closers" pessoas={closers} painel="glass-panel-closer" />
+      <CardCargo titulo="SDRs" pessoas={sdrs} painel="glass-panel-sdr" destaques={destaquesEfetivos} />
+      <CardCargo titulo="Closers" pessoas={closers} painel="glass-panel-closer" destaques={destaquesEfetivos} />
     </div>
   );
 }
