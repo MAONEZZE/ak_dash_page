@@ -58,3 +58,23 @@ export function plin(perfil: PerfilSom): void {
   tocarNota(ctx, n1, agora);
   tocarNota(ctx, n2, agora + DURACAO_NOTA_S);
 }
+
+export type SomDeEvento = "inscrito" | "aprovado";
+
+const ARQUIVOS: Record<SomDeEvento, string> = {
+  inscrito: "/sons/inscrito.wav",
+  aprovado: "/sons/aprovado.wav",
+};
+
+/**
+ * Inscritos/Aprovados não usam o plin sintetizado: são arquivos gravados em
+ * `public/sons`. Um `Audio` novo por disparo pra dois sons poderem se
+ * sobrepor. Mesmo portão do plin — enquanto o usuário não liberou o áudio no
+ * botão de som, o navegador bloquearia o play de qualquer jeito.
+ */
+export function tocarArquivo(nome: SomDeEvento): void {
+  if (!estaLiberado()) return;
+  // `play()` rejeita se o navegador ainda barrar o áudio — som não é motivo
+  // pra estourar erro não tratado no dashboard.
+  void new Audio(ARQUIVOS[nome]).play().catch(() => {});
+}

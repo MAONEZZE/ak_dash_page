@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { estaLiberado, liberar as liberarAudio, plin, type PerfilSom } from "./som-audio";
+import { estaLiberado, liberar as liberarAudio, plin, tocarArquivo, type PerfilSom, type SomDeEvento } from "./som-audio";
 import { paraPeriodo } from "./periodo";
 import type { Granularidade } from "./tipos-api";
 
@@ -165,4 +165,56 @@ export function useSomDeAumento({ pessoas, granularidade, periodo }: ParametrosS
   }, [pessoas, granularidade, periodo, ligado]);
 
   return { destaques };
+}
+
+/** Formato mínimo de `EventoGeral` pro disparo de som — só id e as duas contagens. */
+export interface EventoParaSom {
+  id: string;
+  inscritos: number;
+  aprovados: number;
+}
+
+type ContagensPorEvento = Map<string, { inscritos: number; aprovados: number }>;
+
+function indexarEventos(eventos: EventoParaSom[]): ContagensPorEvento {
+  return new Map(eventos.map((e) => [e.id, { inscritos: e.inscritos, aprovados: e.aprovados }]));
+}
+
+/**
+ * Som dos cards de Inscritos/Aprovados: compara as contagens de cada evento
+ * entre dois refreshes e toca `inscrito.wav` / `aprovado.wav` quando sobem.
+ *
+ * A comparação é por `id` de evento, não pela soma: a lista são os próximos 3
+ * eventos, então um evento que entra ou sai dela mexeria na soma sem ninguém
+ * ter se inscrito. Um som por contagem que subiu, nunca um por evento — se
+ * dois eventos ganham inscritos no mesmo refresh, toca uma vez só.
+ */
+export function useSomDeEvento(eventos: EventoParaSom[] | undefined): void {
+  const { ligado } = useSom();
+  const anteriorRef = useRef<ContagensPorEvento | null>(null);
+
+  useEffect(() => {
+    if (!eventos) return;
+
+    const anterior = anteriorRef.current;
+    const atual = indexarEventos(eventos);
+    anteriorRef.current = atual;
+
+    // 1ª carga: só grava a baseline.
+    if (!anterior) return;
+
+    const aTocar: SomDeEvento[] = [];
+    for (const [id, agora] of atual) {
+      const antes = anterior.get(id);
+      if (!antes) continue; // evento que acabou de entrar na lista não é aumento
+      if (agora.inscritos > antes.inscritos && !aTocar.includes("inscrito")) aTocar.push("inscrito");
+      if (agora.aprovados > antes.aprovados && !aTocar.includes("aprovado")) aTocar.push("aprovado");
+    }
+
+    if (aTocar.length === 0 || !ligado) return;
+
+    // Mesmo espaçamento do plin por pessoa — dois sons juntos viram ruído.
+    const timers = aTocar.map((nome, indice) => setTimeout(() => tocarArquivo(nome), indice * ATRASO_ENTRE_PESSOAS_MS));
+    return () => timers.forEach(clearTimeout);
+  }, [eventos, ligado]);
 }

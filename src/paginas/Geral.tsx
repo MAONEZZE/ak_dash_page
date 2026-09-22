@@ -8,7 +8,7 @@ import { buscarGeral } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarMoeda, formatarNumero, METRICAS_EM_MOEDA } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import { useSomDeAumento } from "../lib/som";
+import { useSomDeAumento, useSomDeEvento } from "../lib/som";
 import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
@@ -109,6 +109,8 @@ export function Geral() {
   }, [carregar]);
 
   const { destaques } = useSomDeAumento({ pessoas: estado.dado?.pessoas, granularidade, periodo });
+  // Inscritos/Aprovados têm som próprio (arquivos .wav) e não dependem do período da página.
+  useSomDeEvento(estado.dado?.eventos);
 
   // O "Atualizar" virou item do menu do header, que vive fora da árvore da página.
   useEffect(() => {
