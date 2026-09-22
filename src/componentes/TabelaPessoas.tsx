@@ -11,6 +11,15 @@ interface Props {
 /** Avatar da linha: menor item que ainda identifica a pessoa — é ele que dita a altura da linha. */
 const AVATAR_LINHA = "clamp(24px,3vh,36px)";
 
+/**
+ * Fatia da largura que fica com a coluna da pessoa (avatar + nome); o resto se
+ * divide igualmente entre as colunas de métrica. Com `table-fixed`, as duas
+ * tabelas chegam à mesma grade em vez de cada uma se ajustar ao próprio
+ * conteúdo — é o que mantém as 4 colunas dos SDRs alinhadas com as 4 dos
+ * closers, já que os números de um cargo são mais largos que os do outro.
+ */
+const LARGURA_COLUNA_PESSOA_PCT = 30;
+
 /** Colunas que mostram só o valor, sem "/ meta" (decisão de produto — Liquidado e Aprovados do closer). */
 const METRICAS_SEM_META = new Set(["liquidado", "aprovados"]);
 
@@ -38,6 +47,7 @@ function CardCargo({
 }) {
   if (pessoas.length === 0) return null;
   const colunas = pessoas[0].metricas;
+  const larguraMetrica = `${(100 - LARGURA_COLUNA_PESSOA_PCT) / colunas.length}%`;
 
   return (
     <article
@@ -46,7 +56,13 @@ function CardCargo({
     >
       <span className="text-[clamp(13px,1.55vh,18px)] font-semibold uppercase leading-none tracking-[0.13em] text-fg/56">{titulo}</span>
       {/* `flex-1`: a sobra de altura da coluna vira respiro entre as linhas, em vez de um vão morto no pé do card. */}
-      <table className="w-full flex-1 border-collapse">
+      <table className="w-full flex-1 table-fixed border-collapse">
+        <colgroup>
+          <col style={{ width: `${LARGURA_COLUNA_PESSOA_PCT}%` }} />
+          {colunas.map((c) => (
+            <col key={c.metrica} style={{ width: larguraMetrica }} />
+          ))}
+        </colgroup>
         <thead>
           <tr className="border-b border-border-2">
             {/* A coluna da pessoa se explica pela foto + nome — o rótulo só existe pra leitor de tela. */}
@@ -67,9 +83,10 @@ function CardCargo({
           {pessoas.map((p) => (
             <tr key={p.id_user} className="border-b border-border-2 last:border-0">
               <td className="py-[clamp(2px,0.42vh,5px)]">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <Avatar nome={p.rotulo} imagemUrl={p.imagem_url} tamanho={AVATAR_LINHA} />
-                  <span className="text-[clamp(15px,1.95vh,23px)] font-semibold leading-none tracking-tight">{p.rotulo}</span>
+                  {/* `truncate`: a coluna agora tem largura fixa e não estica mais pro nome caber. */}
+                  <span className="truncate text-[clamp(15px,1.95vh,23px)] font-semibold leading-none tracking-tight">{p.rotulo}</span>
                 </div>
               </td>
               {p.metricas.map((m) => (
