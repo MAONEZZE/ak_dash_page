@@ -47,7 +47,7 @@
         },
         {
             "metrica": "numeros_captados",
-            "nome_exibicao": "N\u00fameros Captados",
+            "nome_exibicao": "Números Captados",
             "escuro": false,
             "realizado": 28,
             "meta": null,
@@ -56,7 +56,7 @@
         },
         {
             "metrica": "ligacoes_agendadas",
-            "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+            "nome_exibicao": "Ligações Agendadas",
             "escuro": false,
             "realizado": 65,
             "meta": null,
@@ -65,7 +65,7 @@
         },
         {
             "metrica": "reunioes_agendadas",
-            "nome_exibicao": "Reuni\u00f5es Agendadas",
+            "nome_exibicao": "Reuniões Agendadas",
             "escuro": false,
             "realizado": 23,
             "meta": null,
@@ -74,7 +74,7 @@
         },
         {
             "metrica": "indicacoes",
-            "nome_exibicao": "Indica\u00e7\u00f5es",
+            "nome_exibicao": "Indicações",
             "escuro": false,
             "realizado": 49,
             "meta": null,
@@ -94,25 +94,25 @@
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "N\u00fameros Captados",
+                    "nome_exibicao": "Números Captados",
                     "realizado": 16,
                     "meta": null
                 },
                 {
                     "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "nome_exibicao": "Ligações Agendadas",
                     "realizado": 31,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
                     "realizado": 0,
                     "meta": 88
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "nome_exibicao": "Indicações Captadas",
                     "realizado": 42,
                     "meta": null
                 }
@@ -129,25 +129,25 @@
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "N\u00fameros Captados",
+                    "nome_exibicao": "Números Captados",
                     "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "nome_exibicao": "Ligações Agendadas",
                     "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
                     "realizado": 0,
                     "meta": 88
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "nome_exibicao": "Indicações Captadas",
                     "realizado": 0,
                     "meta": null
                 }
@@ -164,25 +164,25 @@
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "N\u00fameros Captados",
+                    "nome_exibicao": "Números Captados",
                     "realizado": 12,
                     "meta": null
                 },
                 {
                     "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "nome_exibicao": "Ligações Agendadas",
                     "realizado": 34,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
                     "realizado": 0,
                     "meta": 88
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es Captadas",
+                    "nome_exibicao": "Indicações Captadas",
                     "realizado": 0,
                     "meta": null
                 }
@@ -199,7 +199,7 @@
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "nome_exibicao": "Reuniões Realizadas",
                     "realizado": 17,
                     "meta": null
                 },
@@ -210,14 +210,14 @@
                     "meta": null
                 },
                 {
-                    "metrica": "aprovados",
-                    "nome_exibicao": "Aprovados",
-                    "realizado": null,
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
+                    "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "nome_exibicao": "Indicações",
                     "realizado": 7,
                     "meta": null
                 }
@@ -234,7 +234,7 @@
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "nome_exibicao": "Reuniões Realizadas",
                     "realizado": 0,
                     "meta": null
                 },
@@ -245,14 +245,14 @@
                     "meta": null
                 },
                 {
-                    "metrica": "aprovados",
-                    "nome_exibicao": "Aprovados",
-                    "realizado": null,
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
+                    "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "nome_exibicao": "Indicações",
                     "realizado": 0,
                     "meta": null
                 }
@@ -269,7 +269,7 @@
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "nome_exibicao": "Reuniões Realizadas",
                     "realizado": 0,
                     "meta": null
                 },
@@ -280,14 +280,14 @@
                     "meta": null
                 },
                 {
-                    "metrica": "aprovados",
-                    "nome_exibicao": "Aprovados",
-                    "realizado": null,
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
+                    "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "nome_exibicao": "Indicações",
                     "realizado": 0,
                     "meta": null
                 }
@@ -304,7 +304,7 @@
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "nome_exibicao": "Reuniões Realizadas",
                     "realizado": 0,
                     "meta": null
                 },
@@ -315,14 +315,14 @@
                     "meta": null
                 },
                 {
-                    "metrica": "aprovados",
-                    "nome_exibicao": "Aprovados",
-                    "realizado": null,
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuniões Agendadas",
+                    "realizado": 0,
                     "meta": null
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "nome_exibicao": "Indicações",
                     "realizado": 0,
                     "meta": null
                 }

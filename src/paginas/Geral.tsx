@@ -13,9 +13,9 @@ import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
-const GRADE_CARDS = "grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
+const GRADE_CARDS = "grid min-h-0 flex-1 auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
 const GRADE_RODAPE =
-  "grid min-h-0 flex-[0.6_1_auto] grid-cols-1 grid-rows-[minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4";
+  "grid shrink-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4";
 
 interface EstadoGeral {
   dado: RespostaGeral | null;
@@ -172,10 +172,9 @@ export function Geral() {
           </section>
 
           {/*
-            * `flex-[0.6_1_auto]`: parte da altura que sobra vem pra cá em vez de
-            * ir toda pros cards — é o que mantém os KPIs colados no conteúdo
-            * deles e dá corpo aos pódios. `grid-rows-[minmax(0,1fr)]`: em tela
-            * baixa demais quem cede é a tabela (rola por dentro), não o grid.
+            * Rodapé com a altura exata do conteúdo (shrink-0): tabela sem
+            * scroll e pódio sem cortar a linha de pts. Quem cede altura em
+            * tela baixa são as grades de cards acima (min-h-0 + linhas 1fr).
             */}
           <section className={GRADE_RODAPE}>
             <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-3">
