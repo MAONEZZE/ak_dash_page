@@ -12,6 +12,7 @@ import { Comercial } from "./paginas/Comercial";
 import { Financeiro } from "./paginas/Financeiro";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
+import { Time } from "./paginas/Time";
 
 type Tema = "light" | "dark";
 const CHAVE_TEMA = "ak_dash_tema";
@@ -30,6 +31,7 @@ function useTema(): [Tema, () => void] {
 const NAV_ITENS = [
   { rota: "/geral", rotulo: "Geral" },
   { rota: "/comercial", rotulo: "Comercial" },
+  { rota: "/time", rotulo: "Time" },
   { rota: "/financeiro", rotulo: "Financeiro" },
 ];
 
@@ -301,7 +303,7 @@ export default function App() {
                 <PillNav />
                 <PillPeriodo />
                 {granularidade === "mes" && <PillPeriodoNavegavel />}
-                {location.pathname === "/comercial" && <PillSquad />}
+                {(location.pathname === "/comercial" || location.pathname === "/time") && <PillSquad />}
                 <BotaoSom />
                 <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
               </div>
@@ -313,6 +315,7 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/comercial" replace />} />
                 <Route path="/geral" element={<Geral />} />
                 <Route path="/comercial" element={<Comercial />} />
+                <Route path="/time" element={<Time />} />
                 <Route path="/financeiro" element={<Financeiro />} />
               </Routes>
             </main>

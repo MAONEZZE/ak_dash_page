@@ -19,21 +19,21 @@ const RANGE_LABEL: Record<Granularidade, string> = { dia: "dia", semana: "semana
 
 type EstadoVisual = "sem_meta" | "sem_preenchimento" | "ok";
 
-function estadoVisual(m: Metrica): EstadoVisual {
+export function estadoVisual(m: Metrica): EstadoVisual {
   if (m.status === "sem_preenchimento") return "sem_preenchimento";
   if (m.status === "sem_meta") return "sem_meta";
   return "ok";
 }
 
-function pctMetrica(m: Metrica): number {
+export function pctMetrica(m: Metrica): number {
   return m.meta_periodo !== null && m.meta_periodo > 0 ? Math.min((m.realizado / m.meta_periodo) * 100, 100) : 0;
 }
 
-function metaTexto(m: Metrica): string {
+export function metaTexto(m: Metrica): string {
   return m.meta_periodo === null ? "—" : formatarNumero(m.meta_periodo);
 }
 
-const ESTILO_HACHURA = { background: "repeating-linear-gradient(135deg, var(--color-hachura-a) 0 4px, var(--color-hachura-b) 4px 8px)" };
+export const ESTILO_HACHURA = { background: "repeating-linear-gradient(135deg, var(--color-hachura-a) 0 4px, var(--color-hachura-b) 4px 8px)" };
 
 function CardPessoa({
   unidade,

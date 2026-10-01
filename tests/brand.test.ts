@@ -29,6 +29,9 @@ const TOKENS_PERMITIDOS = new Set([
   // vermelho do "Sair" (claro/escuro) — ver comentário em src/app/globals.css
   "#b3261e",
   "#f28b82",
+  // amarelo da faixa média das barras da Time (claro/escuro)
+  "#b8860b",
+  "#f2c94c",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 

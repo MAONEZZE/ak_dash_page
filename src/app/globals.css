@@ -25,13 +25,20 @@
   --color-status-bad-dark: #3987e5;
 
   /*
-   * Vermelho de ação destrutiva (só o "Sair" do menu do header). Não entra em
-   * gráfico nem em status de métrica — lá o par verde×vermelho falha CVD e quem
-   * marca "ruim" é --status-bad (azul). Dois tons porque um só não passa 4.5:1
-   * nos dois temas: #b3261e dá 5.9:1 sobre o claro, #f28b82 dá 7.4:1 sobre o escuro.
+   * Vermelho de ação destrutiva ("Sair" do menu do header) e faixa baixa das
+   * barras da página Time. Fora dessas duas, não entra em gráfico nem em status
+   * de métrica — lá o par verde×vermelho falha CVD e quem marca "ruim" é
+   * --status-bad (azul). Na Time o vermelho/amarelo/verde foi pedido
+   * explicitamente; a leitura não depende só da cor porque o traço da meta
+   * mostra a posição. Dois tons porque um só não passa 4.5:1 nos dois temas:
+   * #b3261e dá 5.9:1 sobre o claro, #f28b82 dá 7.4:1 sobre o escuro.
    */
   --color-perigo-light: #b3261e;
   --color-perigo-dark: #f28b82;
+
+  /* Amarelo da faixa média das barras da Time. Claro: #b8860b passa 3:1 (WCAG 1.4.11) sobre o offwhite; escuro: #f2c94c. */
+  --color-atencao-light: #b8860b;
+  --color-atencao-dark: #f2c94c;
 
   /*
    * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
@@ -101,6 +108,7 @@
   --status-bad: var(--color-status-bad-light);
   --status-neutro: rgb(var(--fg-rgb) / 40%);
   --perigo: var(--color-perigo-light);
+  --atencao: var(--color-atencao-light);
 
   /*
    * Redesenho Comercial — derivados de --fg, que já inverte por tema
@@ -130,6 +138,7 @@
   --status-good: var(--color-accent);
   --status-bad: var(--color-status-bad-dark);
   --perigo: var(--color-perigo-dark);
+  --atencao: var(--color-atencao-dark);
 
   /* mesma leitura dos painéis pastel sobre fundo escuro: menos alfa, mais borda */
   --painel-sdr-bg: rgb(var(--color-accent-rgb) / 13%);
@@ -155,6 +164,7 @@
   --color-status-bad: var(--status-bad);
   --color-status-neutro: var(--status-neutro);
   --color-perigo: var(--perigo);
+  --color-atencao: var(--atencao);
   --color-progress-track: var(--progress-track);
   --color-border-forte: var(--border-forte);
   --color-hachura-a: var(--hachura-a);
