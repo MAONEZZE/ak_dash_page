@@ -148,7 +148,7 @@ export function Financeiro() {
   }
   if (estado.erro && !estado.dado) {
     return (
-      <p className="text-xl text-fg/60" role="alert">
+      <p className="text-xl text-muted" role="alert">
         {estado.erro}
       </p>
     );
@@ -190,19 +190,19 @@ export function Financeiro() {
         * batia com a linha de baixo.
         */}
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-        <article className="glass-panel flex flex-col gap-4 rounded-2xl px-[21px] pb-3 pt-[19px] lg:col-span-2">
+        <article className="glass-panel flex min-w-0 flex-col gap-4 rounded-[18px] px-[21px] pb-3 pt-[19px] lg:col-span-2">
           <GraficoLinhasFinanceiro
             titulo="Vendido"
-            series={[{ rotulo: "Vendido", valores: serie.map((p) => p.vendido), cor: "accent" }]}
+            series={[{ rotulo: "Vendido", valores: serie.map((p) => p.vendido), cor: "brand" }]}
             piso={1_000_000}
             multiploTeto={250_000}
           />
-          <div className="border-t border-border-2" />
+          <div className="border-t border-line" />
           <GraficoLinhasFinanceiro
             titulo="Pago × Líquido"
             series={[
-              { rotulo: "Pago", valores: serie.map((p) => p.pago), cor: "status-bad" },
-              { rotulo: "Líquido", valores: serie.map((p) => p.liquido), cor: "status-bad", tracejada: true },
+              { rotulo: "Pago", valores: serie.map((p) => p.pago), cor: "brand" },
+              { rotulo: "Líquido", valores: serie.map((p) => p.liquido), cor: "closer", tracejada: true },
             ]}
             piso={300_000}
             multiploTeto={100_000}

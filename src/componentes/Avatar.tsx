@@ -14,7 +14,7 @@ export function Avatar({ nome, imagemUrl, tamanho = 57 }: AvatarProps) {
       <img
         src={imagemUrl}
         alt=""
-        className="shrink-0 rounded-full border border-accent-fg/30 object-cover"
+        className="shrink-0 rounded-full border border-line object-cover"
         style={{ width: dim, height: dim }}
       />
     );
@@ -22,7 +22,7 @@ export function Avatar({ nome, imagemUrl, tamanho = 57 }: AvatarProps) {
 
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-full border border-accent-fg/30 bg-accent-fg/10 font-display font-extrabold text-accent-fg"
+      className="flex shrink-0 items-center justify-center rounded-full border border-line bg-ok-bg font-display font-extrabold text-brand"
       style={{ width: dim, height: dim, fontSize: `calc(${dim} * 0.42)` }}
     >
       {nome.slice(0, 1).toUpperCase()}

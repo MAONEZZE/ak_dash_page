@@ -31,7 +31,7 @@ describe("GraficoLinhasFinanceiro", () => {
     const { container } = render(
       <GraficoLinhasFinanceiro
         titulo="Vendido"
-        series={[{ rotulo: "Vendido", valores: Array(12).fill(500_000), cor: "accent" }]}
+        series={[{ rotulo: "Vendido", valores: Array(12).fill(500_000), cor: "brand" }]}
         piso={1_000_000}
         multiploTeto={250_000}
       />,
@@ -53,8 +53,8 @@ describe("GraficoLinhasFinanceiro", () => {
       <GraficoLinhasFinanceiro
         titulo="Pago × Líquido"
         series={[
-          { rotulo: "Pago", valores: Array(12).fill(100_000), cor: "status-bad" },
-          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "status-bad", tracejada: true },
+          { rotulo: "Pago", valores: Array(12).fill(100_000), cor: "brand" },
+          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "closer", tracejada: true },
         ]}
         piso={300_000}
         multiploTeto={100_000}
@@ -77,7 +77,7 @@ describe("GraficoLinhasFinanceiro", () => {
     const { container } = render(
       <GraficoLinhasFinanceiro
         titulo="Vendido"
-        series={[{ rotulo: "Vendido", valores: Array(12).fill(0), cor: "accent" }]}
+        series={[{ rotulo: "Vendido", valores: Array(12).fill(0), cor: "brand" }]}
         piso={1_000_000}
         multiploTeto={250_000}
       />,
@@ -87,7 +87,8 @@ describe("GraficoLinhasFinanceiro", () => {
     expect(linhas.length).toBeGreaterThan(0);
     for (const linha of linhas) {
       expect(linha.getAttribute("stroke-dasharray")).toBeTruthy();
-      expect(linha.getAttribute("class")).toContain("stroke-border-2");
+      // Traço de grade em --faint (só traço, nunca texto), não em azul/âmbar nem no tom da série.
+      expect(linha.getAttribute("class")).toContain("stroke-faint");
     }
     // 5 horizontais (0/25/50/75/100% do teto) + 12 verticais (uma por mês).
     expect(linhas).toHaveLength(5 + 12);
@@ -98,8 +99,8 @@ describe("GraficoLinhasFinanceiro", () => {
       <GraficoLinhasFinanceiro
         titulo="Pago × Líquido"
         series={[
-          { rotulo: "Pago", valores: Array(12).fill(100_000), cor: "status-bad" },
-          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "status-bad", tracejada: true },
+          { rotulo: "Pago", valores: Array(12).fill(100_000), cor: "brand" },
+          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "closer", tracejada: true },
         ]}
         piso={300_000}
         multiploTeto={100_000}
@@ -116,7 +117,7 @@ describe("GraficoLinhasFinanceiro", () => {
     const { container } = render(
       <GraficoLinhasFinanceiro
         titulo="Vendido"
-        series={[{ rotulo: "Vendido", valores: [...Array(11).fill(0), 1_100_000], cor: "accent" }]}
+        series={[{ rotulo: "Vendido", valores: [...Array(11).fill(0), 1_100_000], cor: "brand" }]}
         piso={1_000_000}
         multiploTeto={250_000}
       />,
@@ -132,8 +133,8 @@ describe("GraficoLinhasFinanceiro", () => {
       <GraficoLinhasFinanceiro
         titulo="Pago × Líquido"
         series={[
-          { rotulo: "Pago", valores, cor: "status-bad" },
-          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "status-bad", tracejada: true },
+          { rotulo: "Pago", valores, cor: "brand" },
+          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "closer", tracejada: true },
         ]}
         piso={300_000}
         multiploTeto={100_000}
@@ -153,5 +154,42 @@ describe("GraficoLinhasFinanceiro", () => {
 
     fireEvent.mouseLeave(plot);
     expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+});
+
+describe("GraficoLinhasFinanceiro — cores e compatibilidade com a TV", () => {
+  afterEach(() => cleanup());
+
+  it("série principal em brand, segunda em closer, cada uma com legenda", () => {
+    const { container } = render(
+      <GraficoLinhasFinanceiro
+        titulo="Pago × Líquido"
+        series={[
+          { rotulo: "Pago", valores: Array(12).fill(100_000), cor: "brand" },
+          { rotulo: "Líquido", valores: Array(12).fill(80_000), cor: "closer", tracejada: true },
+        ]}
+        piso={300_000}
+        multiploTeto={100_000}
+      />,
+    );
+    const [pago, liquido] = Array.from(container.querySelectorAll("polyline"));
+    expect(pago.getAttribute("class")).toContain("stroke-brand");
+    expect(liquido.getAttribute("class")).toContain("stroke-closer");
+    expect(screen.getByText("Pago")).toBeTruthy();
+    expect(screen.getByText("Líquido")).toBeTruthy();
+  });
+
+  it("não usa as utilities translate-* do Tailwind (propriedade `translate` não existe no Chromium 94)", () => {
+    const { container } = render(
+      <GraficoLinhasFinanceiro
+        titulo="Vendido"
+        series={[{ rotulo: "Vendido", valores: Array(12).fill(1), cor: "brand" }]}
+        piso={1_000_000}
+        multiploTeto={250_000}
+        mostrarEixoX
+      />,
+    );
+    const classes = Array.from(container.querySelectorAll("[class]")).map((el) => el.getAttribute("class") ?? "");
+    expect(classes.filter((c) => /(^|\s)-?translate-/.test(c))).toEqual([]);
   });
 });

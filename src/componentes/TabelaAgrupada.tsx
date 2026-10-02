@@ -54,47 +54,50 @@ export function TabelaAgrupada({ titulo, colunaRotulo, linhas, colunas, total, t
   const e = ESCALA[tamanho];
 
   return (
-    <article className={`glass-panel flex min-h-0 w-full min-w-0 flex-col gap-2 overflow-auto rounded-2xl ${e.painel}`}>
-      <span className={`font-semibold uppercase leading-none tracking-[0.13em] text-fg/56 ${e.titulo}`}>{titulo}</span>
-      <table className="w-full flex-1 border-collapse">
-        <thead>
-          <tr className="border-b border-border-2">
-            <th className={`${e.padCabecalho} pr-3 text-left font-semibold uppercase leading-none tracking-[0.08em] text-fg/50 ${e.cabecalho}`}>
-              {colunaRotulo}
-            </th>
-            {colunas.map((c) => (
-              <th
-                key={c.titulo}
-                className={`px-3 ${e.padCabecalho} text-right font-semibold uppercase leading-none tracking-[0.08em] text-fg/50 ${e.cabecalho}`}
-              >
-                {c.titulo}
+    <article className={`glass-panel flex min-h-0 w-full min-w-0 flex-col gap-2 rounded-[18px] ${e.painel}`}>
+      <span className={`font-semibold uppercase leading-none tracking-[0.13em] text-muted ${e.titulo}`}>{titulo}</span>
+      {/* Tabela larga em tela estreita rola na horizontal dentro do card, sem empurrar a página. */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-auto">
+        <table className="w-full flex-1 border-collapse">
+          <thead>
+            <tr className="border-b border-line">
+              <th className={`${e.padCabecalho} pr-3 text-left font-semibold uppercase leading-none tracking-[0.08em] text-muted ${e.cabecalho}`}>
+                {colunaRotulo}
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {linhas.map((linha) => (
-            <tr key={linha.chave} className="border-b border-border-2 last:border-0">
-              <td className={`${e.padCelula} pr-3 font-semibold leading-none tracking-tight ${e.celula}`}>{linha.rotulo}</td>
               {colunas.map((c) => (
-                <td key={c.titulo} className={`whitespace-nowrap px-3 ${e.padCelula} text-right font-display font-bold leading-none tracking-tight ${e.celula}`}>
-                  {c.valor(linha)}
+                <th
+                  key={c.titulo}
+                  className={`px-3 ${e.padCabecalho} text-right font-semibold uppercase leading-none tracking-[0.08em] text-muted ${e.cabecalho}`}
+                >
+                  {c.titulo}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((linha) => (
+              <tr key={linha.chave} className="border-b border-line last:border-0">
+                <td className={`${e.padCelula} pr-3 font-semibold leading-none tracking-tight ${e.celula}`}>{linha.rotulo}</td>
+                {colunas.map((c) => (
+                  <td key={c.titulo} className={`whitespace-nowrap px-3 ${e.padCelula} text-right font-display font-bold leading-none tracking-tight ${e.celula}`}>
+                    {c.valor(linha)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="border-t border-line">
+              <td className={`${e.padTotal} pr-3 font-bold leading-none tracking-tight ${e.celula}`}>{total.rotulo}</td>
+              {colunas.map((c) => (
+                <td key={c.titulo} className={`whitespace-nowrap px-3 ${e.padTotal} text-right font-display font-bold leading-none tracking-tight ${e.celula}`}>
+                  {c.valor(total)}
                 </td>
               ))}
             </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-border-2">
-            <td className={`${e.padTotal} pr-3 font-bold leading-none tracking-tight ${e.celula}`}>{total.rotulo}</td>
-            {colunas.map((c) => (
-              <td key={c.titulo} className={`whitespace-nowrap px-3 ${e.padTotal} text-right font-display font-bold leading-none tracking-tight ${e.celula}`}>
-                {c.valor(total)}
-              </td>
-            ))}
-          </tr>
-        </tfoot>
-      </table>
+          </tfoot>
+        </table>
+      </div>
     </article>
   );
 }

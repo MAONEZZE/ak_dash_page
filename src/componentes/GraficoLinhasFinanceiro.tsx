@@ -5,7 +5,8 @@ import { formatarMoeda, formatarNumero } from "../lib/formato";
 export interface SerieFinanceiro {
   rotulo: string;
   valores: number[]; // 12 pontos, jan..dez
-  cor: "accent" | "status-bad";
+  /** Série principal em brand; a segunda (ex. Líquido) em closer — sempre com legenda. */
+  cor: "brand" | "closer";
   tracejada?: boolean;
 }
 
@@ -36,26 +37,32 @@ const DIAMETRO_PONTO = 9;
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 const STROKE: Record<SerieFinanceiro["cor"], string> = {
-  accent: "stroke-accent",
-  "status-bad": "stroke-status-bad",
+  brand: "stroke-brand",
+  closer: "stroke-closer",
 };
 const SWATCH: Record<SerieFinanceiro["cor"], string> = {
-  accent: "bg-accent",
-  "status-bad": "bg-status-bad",
+  brand: "bg-brand",
+  closer: "bg-closer",
 };
+
+/*
+ * Deslocamentos em `transform` inline, não nas utilities `translate-*` do
+ * Tailwind v4: elas geram a propriedade CSS `translate`, que o Chromium 94 da
+ * TV não conhece.
+ */
 
 /** Rótulo de mês: centrado na coluna, menos nas pontas — Jan bateria no eixo Y e Dez sairia do card. */
 function ancoragemRotulo(indice: number, total: number): string {
-  if (indice === 0) return "translate-x-0";
-  if (indice === total - 1) return "-translate-x-full";
-  return "-translate-x-1/2";
+  if (indice === 0) return "none";
+  if (indice === total - 1) return "translateX(-100%)";
+  return "translateX(-50%)";
 }
 
 /** Balão perto da borda sairia do card — encosta ele na coluna do mês em vez de centralizar. */
 function ancoragem(pctX: number): string {
-  if (pctX < 12) return "translate-x-0";
-  if (pctX > 88) return "-translate-x-full";
-  return "-translate-x-1/2";
+  if (pctX < 12) return "none";
+  if (pctX > 88) return "translateX(-100%)";
+  return "translateX(-50%)";
 }
 
 export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mostrarEixoX = false }: Props) {
@@ -89,10 +96,10 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-lg font-semibold text-fg/70">{titulo}</span>
+        <span className="text-lg font-semibold text-fg">{titulo}</span>
         <div className="flex items-center gap-3">
           {series.map((s) => (
-            <span key={s.rotulo} className="flex items-center gap-1.5 text-[15px] text-fg/60">
+            <span key={s.rotulo} className="flex items-center gap-1.5 text-[15px] text-muted">
               <span className={`inline-block h-[3px] w-4 ${SWATCH[s.cor]}`} />
               {s.rotulo}
             </span>
@@ -112,8 +119,8 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
           {[...grade].reverse().map((linha, i) => (
             <span
               key={i}
-              className="absolute right-1 -translate-y-1/2 whitespace-nowrap text-[13px] font-medium text-fg/50"
-              style={{ top: `${(linha.y / H) * 100}%` }}
+              className="absolute right-1 whitespace-nowrap text-[13px] font-medium text-muted"
+              style={{ top: `${(linha.y / H) * 100}%`, transform: "translateY(-50%)" }}
             >
               {formatarNumero(linha.valor)}
             </span>
@@ -129,7 +136,7 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
           onMouseLeave={() => setHover(null)}
         >
           <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-full w-full overflow-visible">
-            {/* Grade pontilhada e discreta nos cruzamentos entre X e Y — --border-2 já é o token translúcido de baixo contraste usado nas outras grades da casa. */}
+            {/* Grade pontilhada e discreta nos cruzamentos entre X e Y — --faint é o tom de traço (nunca texto); a opacidade baixa deixa a grade atrás das séries. */}
             {grade.map((linha, i) => (
               <line
                 key={`h${i}`}
@@ -137,7 +144,8 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
                 x2={W - PR}
                 y1={linha.y}
                 y2={linha.y}
-                className="stroke-border-2"
+                className="stroke-faint"
+                strokeOpacity={0.5}
                 strokeWidth={1}
                 strokeDasharray="3 4"
               />
@@ -149,7 +157,8 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
                 x2={xx}
                 y1={PT}
                 y2={H - PB}
-                className="stroke-border-2"
+                className="stroke-faint"
+                strokeOpacity={0.5}
                 strokeWidth={1}
                 strokeDasharray="3 4"
               />
@@ -169,7 +178,7 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
             ))}
 
             {hover !== null && (
-              <line x1={x(hover)} x2={x(hover)} y1={PT} y2={H - PB} className="stroke-fg/35" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+              <line x1={x(hover)} x2={x(hover)} y1={PT} y2={H - PB} className="stroke-muted" strokeWidth={1} vectorEffect="non-scaling-stroke" />
             )}
           </svg>
 
@@ -185,8 +194,9 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
             serie.valores.map((v, i) => (
               <span
                 key={`${serie.rotulo}-${i}`}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${SWATCH[serie.cor]}`}
+                className={`absolute rounded-full ${SWATCH[serie.cor]}`}
                 style={{
+                  transform: "translate(-50%, -50%)",
                   left: `${(x(i) / W) * 100}%`,
                   top: `${(y(v) / H) * 100}%`,
                   width: DIAMETRO_PONTO,
@@ -199,12 +209,12 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
           {hover !== null && (
             <div
               role="tooltip"
-              className={`pointer-events-none absolute top-0 ${ancoragem(hoverPctX)} flex flex-col gap-1 whitespace-nowrap rounded-lg border border-border-2 bg-bg-2/95 px-3 py-2`}
-              style={{ left: `${hoverPctX}%` }}
+              className="pointer-events-none absolute top-0 flex flex-col gap-1 whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 shadow-lg"
+              style={{ left: `${hoverPctX}%`, transform: ancoragem(hoverPctX) }}
             >
-              <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-fg/55">{MESES[hover]}</span>
+              <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">{MESES[hover]}</span>
               {series.map((s) => (
-                <span key={s.rotulo} className="flex items-center gap-2 text-[15px] text-fg/70">
+                <span key={s.rotulo} className="flex items-center gap-2 text-[15px] text-muted">
                   <span className={`inline-block h-[3px] w-4 shrink-0 ${SWATCH[s.cor]}`} />
                   {s.rotulo}
                   <span className="ml-auto font-display font-bold text-fg">{formatarMoeda(s.valores[hover])}</span>
@@ -228,8 +238,8 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
             MESES.map((m, i) => (
               <span
                 key={i}
-                className={`absolute top-0 ${ancoragemRotulo(i, MESES.length)} text-[13px] font-medium leading-none text-fg/50`}
-                style={{ left: `${(x(i) / W) * 100}%` }}
+                className="absolute top-0 text-[13px] font-medium leading-none text-muted"
+                style={{ left: `${(x(i) / W) * 100}%`, transform: ancoragemRotulo(i, MESES.length) }}
               >
                 {m}
               </span>
