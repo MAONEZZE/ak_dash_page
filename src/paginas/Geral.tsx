@@ -14,6 +14,8 @@ import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
 const GRADE_CARDS = "grid min-h-0 flex-1 auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
+/** 5 cards claros numa linha só no desktop. */
+const GRADE_CARDS_CLAROS = "grid min-h-0 flex-1 auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5";
 const GRADE_RODAPE =
   "grid shrink-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4";
 
@@ -42,8 +44,8 @@ function legendaCard(c: CardGeral): string {
 }
 
 /**
- * Reconstrução da página Geral: 8 cards (2 escuros de faturamento + 2 escuros
- * dos próximos eventos + 4 claros de métricas), tabela de 7 pessoas e dois
+ * Reconstrução da página Geral: 9 cards (2 escuros de faturamento + 2 escuros
+ * dos próximos eventos + 5 claros de métricas), tabela de 7 pessoas e dois
  * pódios (SDR/Closer). Cabe numa tela só, sem rolagem: a linha de baixo
  * (tabela + pódios) fica na altura mínima do conteúdo e as duas linhas de card
  * dividem entre si todo o resto da tela — por isso a tipografia dos cards é em
@@ -58,8 +60,8 @@ function Esqueleto() {
           <CardEsqueleto key={i} className="h-full min-h-[104px]" />
         ))}
       </section>
-      <section className={GRADE_CARDS}>
-        {Array.from({ length: 4 }, (_, i) => (
+      <section className={GRADE_CARDS_CLAROS}>
+        {Array.from({ length: 5 }, (_, i) => (
           <CardEsqueleto key={i} className="h-full min-h-[104px]" />
         ))}
       </section>
@@ -157,7 +159,7 @@ export function Geral() {
             <CardEventoRotativo label="Aprovados" campo="aprovados" eventos={eventos} />
           </section>
 
-          <section className={GRADE_CARDS}>
+          <section className={GRADE_CARDS_CLAROS}>
             {cardsClaros.map((c) => (
               <CardKpi
                 key={c.metrica}

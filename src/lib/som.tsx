@@ -11,7 +11,7 @@ const VIGIADOS = new Map<string, PerfilSom>([
   ["4", "jennifer"], // jenniferpamplona007@gmail.com
 ]);
 
-const METRICAS_COM_SOM = new Set(["ligacoes_agendadas", "reunioes_agendadas"]);
+const METRICAS_COM_SOM = new Set(["reunioes_agendadas", "ligacoes_realizadas", "inscricoes_realizadas"]);
 
 const ATRASO_ENTRE_PESSOAS_MS = 450;
 const DURACAO_DESTAQUE_MS = 2000;
@@ -92,8 +92,8 @@ function extrairBaseline(pessoas: PessoaParaSom[]): MetricasPorPessoa {
 }
 
 /**
- * Regra de disparo do plin: compara o `realizado` de ligações/reuniões
- * agendadas do Nathan e da Jennifer entre dois refreshes e toca um som por
+ * Regra de disparo do plin: compara o `realizado` de reuniões agendadas,
+ * ligações realizadas e inscrições realizadas do Nathan e da Jennifer entre dois refreshes e toca um som por
  * pessoa que subiu. Ver docs/plans/som-agendamento-nathan-jennifer.md.
  *
  * O efeito roda pela identidade de `pessoas` — cada fetch bem sucedido cria

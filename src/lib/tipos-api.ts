@@ -37,7 +37,7 @@ export interface Periodo {
 export type StatusMetrica = "atingido" | "abaixo_da_meta" | "sem_preenchimento" | "sem_meta";
 
 export interface Metrica {
-  metrica: string; // nome da coluna de origem, o mesmo dos dois lados: ex. "numeros_captados", "ligacoes_agendadas"
+  metrica: string; // nome da coluna de origem, o mesmo dos dois lados: ex. "numeros_captados", "ligacoes_realizadas"
   nome_exibicao: string;
   /** Meta do cargo já multiplicada pelos dias úteis do período (no banco ela é DIÁRIA por pessoa): dia = a diária, semana = 5×, mês de 22 dias úteis = 22×. `null` = sem meta cadastrada, nunca 0. */
   meta_periodo: number | null;
@@ -81,13 +81,20 @@ export interface SerieDiariaDia {
 
 export interface RespostaComercial {
   periodo: Periodo;
+  /** Mesmo cálculo e formato do `dias_uteis` de /geral. */
+  dias_uteis: DiasUteis;
   periodo_parcial: boolean;
   avisos: string[];
   pessoas: PessoaComercial[];
   serie_diaria: SerieDiariaDia[];
 }
 
-/** Chaves das 9 métricas de cargo SDR. `reunioes_agendadas` e `indicacoes` aparecem nos dois cargos (SDR e Closer agendam reunião e trabalham indicação), cada um com a sua meta. */
+/**
+ * Chaves das 10 métricas de cargo SDR: as 4 do Dripify (`conexoes_enviadas`
+ * a `in_mails`) + as 6 lançadas pelo SDR. `ligacoes_realizadas`,
+ * `reunioes_agendadas`, `indicacoes` e `inscricoes_realizadas` aparecem nos
+ * dois cargos, cada um com a sua meta. `ligacoes_agendadas` é só do Closer.
+ */
 export const METRICAS_SDR = [
   "conexoes_enviadas",
   "conexoes_aceitas",
@@ -95,14 +102,22 @@ export const METRICAS_SDR = [
   "in_mails",
   "fups",
   "numeros_captados",
-  "ligacoes_agendadas",
+  "ligacoes_realizadas",
   "reunioes_agendadas",
   "indicacoes",
+  "inscricoes_realizadas",
 ] as const;
 export type MetricaSdr = (typeof METRICAS_SDR)[number];
 
-/** Chaves das 4 métricas de cargo Closer. */
-export const METRICAS_CLOSER = ["ligacoes_realizadas", "reunioes_agendadas", "reunioes_realizadas", "indicacoes"] as const;
+/** Chaves das 6 métricas de cargo Closer. */
+export const METRICAS_CLOSER = [
+  "ligacoes_agendadas",
+  "ligacoes_realizadas",
+  "reunioes_agendadas",
+  "reunioes_realizadas",
+  "indicacoes",
+  "inscricoes_realizadas",
+] as const;
 export type MetricaCloser = (typeof METRICAS_CLOSER)[number];
 
 /** Parâmetros de query aceitos por /comercial/sdr e /comercial/closer. */
@@ -125,7 +140,7 @@ export interface CardGeral {
   /** true pros cards de faturamento (linha 1, variante escura). Inscritos/Aprovados ficam na mesma linha mas vêm de `eventos`, não daqui. */
   escuro: boolean;
   realizado: number | null;
-  /** Meta da empresa: a do cargo × pessoas ativas do cargo, somada sobre os cargos do card (reuniões agendadas e indicações somam SDR + Closer). `null` se faltar meta em alguma parte. */
+  /** Meta da empresa: soma das metas das pessoas ativas que compõem o card (ligações agendadas = Closers; reuniões agendadas, indicações e inscrições realizadas = SDR + Closer). `null` se faltar meta em alguma parte. */
   meta: number | null;
   pct: number | null;
   pct_ritmo: number | null;
@@ -147,7 +162,12 @@ export interface PessoaGeral {
   imagem_url: string | null;
   pontuacao: number | null;
   posicao: number | null;
-  /** Colunas da tabela pro cargo — ver docs/plans/migracao-banco-pagina-geral.md. */
+  /**
+   * Colunas da tabela pro cargo — SDR: numeros_captados, ligacoes_realizadas,
+   * reunioes_agendadas, indicacoes, inscricoes_realizadas; Closer:
+   * reunioes_realizadas, liquidado, reunioes_agendadas, indicacoes,
+   * inscricoes_realizadas.
+   */
   metricas: MetricaPessoaGeral[];
 }
 
@@ -168,6 +188,7 @@ export interface EventoGeral {
 export interface RespostaGeral {
   periodo: Periodo;
   dias_uteis: DiasUteis;
+  /** Escuros (faturamento, liquidado) + claros nesta ordem: numeros_captados, ligacoes_agendadas, reunioes_agendadas, indicacoes, inscricoes_realizadas. */
   cards: CardGeral[];
   /** Até 2, em data crescente. Ignora o período da página (são eventos futuros). Vazio = sem evento futuro. */
   eventos: EventoGeral[];

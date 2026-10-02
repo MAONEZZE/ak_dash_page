@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 //
-// Página Time: um card grande por pessoa só com as métricas de ligação e
-// reunião do cargo, na ordem ligações agendadas → ligações realizadas →
-// reuniões agendadas → reuniões realizadas, com a barra enchendo por
+// Página Time: um card grande por pessoa com todas as métricas do cargo (sem
+// as do Dripify), na ordem fixa do cargo, com a barra enchendo por
 // realizado/meta do período.
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -39,6 +38,7 @@ function pessoa(id: string, nome: string, metricas: Metrica[]): PessoaComercial 
 function resposta(pessoas: PessoaComercial[]): RespostaComercial {
   return {
     periodo: { granularidade: "mes", inicio: "2026-09-01", fim: "2026-09-30" },
+    dias_uteis: { decorridos: 10, total: 22 },
     periodo_parcial: true,
     avisos: [],
     pessoas,
@@ -50,18 +50,23 @@ vi.mock("../src/lib/api", () => ({
   buscarComercialSdr: vi.fn(async () =>
     resposta([
       pessoa("9", "Nathan", [
+        metrica("conexoes_enviadas", "Conexões Enviadas", 40),
+        metrica("inscricoes_realizadas", "Inscrições Realizadas", 1),
         metrica("fups", "Follow-ups", 12),
         metrica("reunioes_agendadas", "Reuniões Agendadas", 3, null),
-        metrica("ligacoes_agendadas", "Ligações Agendadas", 5),
+        metrica("ligacoes_realizadas", "Ligações Realizadas", 5),
         metrica("indicacoes", "Indicações", 2),
+        metrica("numeros_captados", "Números Captados", 7),
       ]),
-      pessoa("2", "Jonathan", [metrica("ligacoes_agendadas", "Ligações Agendadas", 6)]),
+      pessoa("2", "Jonathan", [metrica("ligacoes_realizadas", "Ligações Realizadas", 6)]),
     ]),
   ),
   buscarComercialCloser: vi.fn(async () =>
     resposta([
       pessoa("7", "Carla", [
+        metrica("inscricoes_realizadas", "Inscrições Realizadas", 2),
         metrica("indicacoes", "Indicações", 1),
+        metrica("ligacoes_agendadas", "Ligações Agendadas", 7),
         metrica("reunioes_realizadas", "Reuniões Realizadas", 30),
         metrica("reunioes_agendadas", "Reuniões Agendadas", 4),
         metrica("ligacoes_realizadas", "Ligações Realizadas", 8),
@@ -94,23 +99,37 @@ function card(nome: string): HTMLElement {
 
 function rotulos(el: HTMLElement): string[] {
   return within(el)
-    .getAllByText(/^(Ligações|Reuniões|Follow-ups|Indicações)/)
+    .getAllByText(/^(Ligações|Reuniões|Follow-ups|Indicações|Inscrições|Números|Conexões)/)
     .map((n) => n.textContent ?? "");
 }
 
 afterEach(() => cleanup());
 
 describe("página Time", () => {
-  it("SDR mostra só ligações e reuniões agendadas, na ordem fixa", async () => {
+  it("SDR mostra as 6 métricas do cargo, sem as do Dripify, na ordem fixa", async () => {
     montar();
     await screen.findByText("Nathan");
-    expect(rotulos(card("Nathan"))).toEqual(["Ligações Agendadas", "Reuniões Agendadas"]);
+    expect(rotulos(card("Nathan"))).toEqual([
+      "Follow-ups",
+      "Números Captados",
+      "Ligações Realizadas",
+      "Reuniões Agendadas",
+      "Indicações",
+      "Inscrições Realizadas",
+    ]);
   });
 
-  it("closer mostra as 3 métricas dele, na ordem fixa", async () => {
+  it("closer mostra as 6 métricas do cargo, na ordem fixa", async () => {
     montar();
     await screen.findByText("Carla");
-    expect(rotulos(card("Carla"))).toEqual(["Ligações Realizadas", "Reuniões Agendadas", "Reuniões Realizadas"]);
+    expect(rotulos(card("Carla"))).toEqual([
+      "Ligações Agendadas",
+      "Ligações Realizadas",
+      "Reuniões Agendadas",
+      "Reuniões Realizadas",
+      "Indicações",
+      "Inscrições Realizadas",
+    ]);
   });
 
   it("barra vai até 125% da meta (meta em 80% da largura), e fica hachurada sem meta", async () => {
@@ -119,7 +138,7 @@ describe("página Time", () => {
     const nathan = card("Nathan");
     const carla = card("Carla");
 
-    const ligacoes = within(nathan).getByTestId("barra-ligacoes_agendadas").firstElementChild as HTMLElement;
+    const ligacoes = within(nathan).getByTestId("barra-ligacoes_realizadas").firstElementChild as HTMLElement;
     expect(ligacoes.style.width).toBe("40%");
 
     const reunioes = within(carla).getByTestId("barra-reunioes_realizadas").firstElementChild as HTMLElement;
@@ -134,7 +153,7 @@ describe("página Time", () => {
   it("traço da meta corta a barra em 80% da largura", async () => {
     montar();
     await screen.findByText("Nathan");
-    expect(within(card("Nathan")).getByTestId("meta-ligacoes_agendadas").style.left).toBe("80%");
+    expect(within(card("Nathan")).getByTestId("meta-ligacoes_realizadas").style.left).toBe("80%");
   });
 
   it("meta 0 não tem traço de meta", async () => {
@@ -152,7 +171,7 @@ describe("página Time", () => {
     const fill = (nome: string, chave: string) => within(card(nome)).getByTestId(`barra-${chave}`).firstElementChild as HTMLElement;
 
     expect(fill("Carla", "reunioes_agendadas").className).toContain("bg-perigo"); // 4/10
-    expect(fill("Nathan", "ligacoes_agendadas").className).toContain("bg-atencao"); // 5/10
+    expect(fill("Nathan", "ligacoes_realizadas").className).toContain("bg-atencao"); // 5/10
     expect(fill("Carla", "reunioes_realizadas").className).toContain("bg-status-good"); // 30/10
     expect(fill("Davi", "reunioes_agendadas").className).toContain("bg-status-good"); // meta 0 com lançamento
   });
@@ -192,7 +211,7 @@ describe("página Time", () => {
     const botaoCloser = within(jonathan).getByRole("button", { name: "Closer" });
 
     expect(botaoSdr.getAttribute("aria-pressed")).toBe("true");
-    expect(rotulos(jonathan)).toEqual(["Ligações Agendadas"]);
+    expect(rotulos(jonathan)).toEqual(["Ligações Realizadas"]);
 
     fireEvent.click(botaoCloser);
     expect(botaoCloser.getAttribute("aria-pressed")).toBe("true");

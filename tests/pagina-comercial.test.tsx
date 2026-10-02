@@ -32,6 +32,7 @@ const METRICAS_SDR: Metrica[] = [
 function resposta(pessoas: RespostaComercial["pessoas"]): RespostaComercial {
   return {
     periodo: { granularidade: "mes", inicio: "2026-09-01", fim: "2026-09-30" },
+    dias_uteis: { decorridos: 10, total: 22 },
     periodo_parcial: true,
     avisos: [],
     pessoas,

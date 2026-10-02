@@ -7,12 +7,15 @@ import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import { useSquadAtual } from "../lib/squad";
-import type { Metrica, RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_CLOSER, type Metrica, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
-/** Ordem fixa das barras. Cada cargo só tem parte delas (SDR: 2, Closer: 3) — o card mostra só as que a pessoa tem. */
-const METRICAS_TIME = ["ligacoes_agendadas", "ligacoes_realizadas", "reunioes_agendadas", "reunioes_realizadas"];
+/** Ordem fixa das barras por cargo: todas as métricas do cargo, sem as do Dripify. */
+const METRICAS_TIME: Record<PessoaUnificada["squad"], readonly string[]> = {
+  sdr: ["fups", "numeros_captados", "ligacoes_realizadas", "reunioes_agendadas", "indicacoes", "inscricoes_realizadas"],
+  closer: METRICAS_CLOSER,
+};
 
 interface EstadoBloco {
   dado: RespostaComercial | null;
@@ -26,8 +29,8 @@ const ESTADO_INICIAL: EstadoBloco = {
   erro: null,
 };
 
-function metricasDoTime(metricas: Metrica[]): Metrica[] {
-  return METRICAS_TIME.flatMap((chave) => metricas.filter((m) => m.metrica === chave));
+function metricasDoTime(metricas: Metrica[], squad: PessoaUnificada["squad"]): Metrica[] {
+  return METRICAS_TIME[squad].flatMap((chave) => metricas.filter((m) => m.metrica === chave));
 }
 
 /** Uma coluna até 4 pessoas; acima disso, duas — as linhas dividem a altura da tela igualmente. */
@@ -101,7 +104,7 @@ function CardPessoaTime({ grupo }: { grupo: PessoaTime }) {
   const { pessoa, squad } = cargos[indiceAtivo] ?? cargos[0];
   const nome = nomeExibicao(pessoa.nome, pessoa.email);
   const imagemUrl = pessoa.imagem_url ?? cargos.find((c) => c.pessoa.imagem_url)?.pessoa.imagem_url ?? null;
-  const metricas = metricasDoTime(pessoa.metricas);
+  const metricas = metricasDoTime(pessoa.metricas, squad);
   const alturaBarra = medida(0.05, 0.016);
   const fonteCargo = medida(0.065, 0.022);
 
@@ -141,7 +144,7 @@ function CardPessoaTime({ grupo }: { grupo: PessoaTime }) {
         </div>
         {metricas.length === 0 && (
           <span className="text-fg/55" style={{ fontSize: medida(0.07, 0.024) }}>
-            Sem métricas de ligação ou reunião.
+            Sem métricas lançadas.
           </span>
         )}
         {metricas.map((m) => {

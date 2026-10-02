@@ -13,7 +13,7 @@
             "metrica": "faturamento",
             "nome_exibicao": "Faturamento",
             "escuro": true,
-            "realizado": null,
+            "realizado": 142300.0,
             "meta": null,
             "pct": null,
             "pct_ritmo": null
@@ -22,64 +22,73 @@
             "metrica": "liquidado",
             "nome_exibicao": "Liquidado",
             "escuro": true,
-            "realizado": null,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
-        },
-        {
-            "metrica": "inscritos",
-            "nome_exibicao": "Inscritos",
-            "escuro": true,
-            "realizado": null,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
-        },
-        {
-            "metrica": "aprovados",
-            "nome_exibicao": "Aprovados",
-            "escuro": true,
-            "realizado": null,
+            "realizado": 55530.5,
             "meta": null,
             "pct": null,
             "pct_ritmo": null
         },
         {
             "metrica": "numeros_captados",
-            "nome_exibicao": "Números Captados",
+            "nome_exibicao": "N\u00fameros Captados",
             "escuro": false,
-            "realizado": 28,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
+            "realizado": 51,
+            "meta": 198,
+            "pct": 25.8,
+            "pct_ritmo": 56.7
         },
         {
             "metrica": "ligacoes_agendadas",
-            "nome_exibicao": "Ligações Agendadas",
+            "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
             "escuro": false,
-            "realizado": 65,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
+            "realizado": 139,
+            "meta": 352,
+            "pct": 39.5,
+            "pct_ritmo": 86.9
         },
         {
             "metrica": "reunioes_agendadas",
-            "nome_exibicao": "Reuniões Agendadas",
+            "nome_exibicao": "Reuni\u00f5es Agendadas",
             "escuro": false,
-            "realizado": 23,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
+            "realizado": 120,
+            "meta": 308,
+            "pct": 39.0,
+            "pct_ritmo": 85.7
         },
         {
             "metrica": "indicacoes",
-            "nome_exibicao": "Indicações",
+            "nome_exibicao": "Indica\u00e7\u00f5es",
             "escuro": false,
-            "realizado": 49,
-            "meta": null,
-            "pct": null,
-            "pct_ritmo": null
+            "realizado": 110,
+            "meta": 308,
+            "pct": 35.7,
+            "pct_ritmo": 78.6
+        },
+        {
+            "metrica": "inscricoes_realizadas",
+            "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+            "escuro": false,
+            "realizado": 62,
+            "meta": 154,
+            "pct": 40.3,
+            "pct_ritmo": 88.6
+        }
+    ],
+    "eventos": [
+        {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "titulo": "Evento de exemplo A",
+            "data": "2026-09-20T19:00:00",
+            "capacidade": 120,
+            "inscritos": 87,
+            "aprovados": 54
+        },
+        {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "titulo": "Evento de exemplo B",
+            "data": "2026-10-04T09:30:00",
+            "capacidade": null,
+            "inscritos": 23,
+            "aprovados": 9
         }
     ],
     "pessoas": [
@@ -89,32 +98,38 @@
             "cargo": "sdr",
             "rotulo": "Nathan",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 750,
+            "posicao": 1,
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "Números Captados",
-                    "realizado": 16,
-                    "meta": null
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "realizado": 28,
+                    "meta": 66
                 },
                 {
-                    "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Ligações Agendadas",
-                    "realizado": 31,
-                    "meta": null
-                },
-                {
-                    "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
+                    "metrica": "ligacoes_realizadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
+                    "realizado": 42,
                     "meta": 88
                 },
                 {
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 26,
+                    "meta": 44
+                },
+                {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações Captadas",
-                    "realizado": 42,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 21,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 10,
+                    "meta": 22
                 }
             ]
         },
@@ -124,32 +139,38 @@
             "cargo": "sdr",
             "rotulo": "Jonathan (SDR)",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 0,
+            "posicao": 3,
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "Números Captados",
+                    "nome_exibicao": "N\u00fameros Captados",
                     "realizado": 0,
-                    "meta": null
+                    "meta": 66
                 },
                 {
-                    "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Ligações Agendadas",
-                    "realizado": 0,
-                    "meta": null
-                },
-                {
-                    "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
+                    "metrica": "ligacoes_realizadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
                     "realizado": 0,
                     "meta": 88
                 },
                 {
-                    "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações Captadas",
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
                     "realizado": 0,
-                    "meta": null
+                    "meta": 44
+                },
+                {
+                    "metrica": "indicacoes",
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 0,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 0,
+                    "meta": 22
                 }
             ]
         },
@@ -159,32 +180,38 @@
             "cargo": "sdr",
             "rotulo": "Jennifer",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 520,
+            "posicao": 2,
             "metricas": [
                 {
                     "metrica": "numeros_captados",
-                    "nome_exibicao": "Números Captados",
-                    "realizado": 12,
-                    "meta": null
+                    "nome_exibicao": "N\u00fameros Captados",
+                    "realizado": 23,
+                    "meta": 66
                 },
                 {
-                    "metrica": "ligacoes_agendadas",
-                    "nome_exibicao": "Ligações Agendadas",
-                    "realizado": 34,
-                    "meta": null
-                },
-                {
-                    "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
+                    "metrica": "ligacoes_realizadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
+                    "realizado": 25,
                     "meta": 88
                 },
                 {
+                    "metrica": "reunioes_agendadas",
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 16,
+                    "meta": 44
+                },
+                {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações Captadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 13,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 12,
+                    "meta": 22
                 }
             ]
         },
@@ -194,32 +221,38 @@
             "cargo": "closer",
             "rotulo": "Thalyson",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 630,
+            "posicao": 2,
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuniões Realizadas",
-                    "realizado": 17,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 20,
+                    "meta": 44
                 },
                 {
                     "metrica": "liquidado",
                     "nome_exibicao": "Liquidado",
-                    "realizado": null,
+                    "realizado": 18450.0,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 19,
+                    "meta": 44
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações",
-                    "realizado": 7,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 24,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 15,
+                    "meta": 22
                 }
             ]
         },
@@ -229,32 +262,38 @@
             "cargo": "closer",
             "rotulo": "Jacob",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 600,
+            "posicao": 3,
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuniões Realizadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 20,
+                    "meta": 44
                 },
                 {
                     "metrica": "liquidado",
                     "nome_exibicao": "Liquidado",
-                    "realizado": null,
+                    "realizado": 9200.5,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 21,
+                    "meta": 44
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 19,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 5,
+                    "meta": 22
                 }
             ]
         },
@@ -264,32 +303,38 @@
             "cargo": "closer",
             "rotulo": "Alex",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 840,
+            "posicao": 1,
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuniões Realizadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 35,
+                    "meta": 44
                 },
                 {
                     "metrica": "liquidado",
                     "nome_exibicao": "Liquidado",
-                    "realizado": null,
+                    "realizado": 23780.0,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 26,
+                    "meta": 44
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 23,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 14,
+                    "meta": 22
                 }
             ]
         },
@@ -299,37 +344,41 @@
             "cargo": "closer",
             "rotulo": "Jonathan (Closer)",
             "imagem_url": null,
-            "pontuacao": null,
-            "posicao": null,
+            "pontuacao": 340,
+            "posicao": 4,
             "metricas": [
                 {
                     "metrica": "reunioes_realizadas",
-                    "nome_exibicao": "Reuniões Realizadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Realizadas",
+                    "realizado": 12,
+                    "meta": 44
                 },
                 {
                     "metrica": "liquidado",
                     "nome_exibicao": "Liquidado",
-                    "realizado": null,
+                    "realizado": 4100.0,
                     "meta": null
                 },
                 {
                     "metrica": "reunioes_agendadas",
-                    "nome_exibicao": "Reuniões Agendadas",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Reuni\u00f5es Agendadas",
+                    "realizado": 12,
+                    "meta": 44
                 },
                 {
                     "metrica": "indicacoes",
-                    "nome_exibicao": "Indicações",
-                    "realizado": 0,
-                    "meta": null
+                    "nome_exibicao": "Indica\u00e7\u00f5es",
+                    "realizado": 10,
+                    "meta": 44
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "realizado": 6,
+                    "meta": 22
                 }
             ]
         }
     ],
-    "avisos": [
-        "metas_nao_cadastradas"
-    ]
+    "avisos": []
 }

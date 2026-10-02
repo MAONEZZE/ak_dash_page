@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 //
 // Regra de disparo do plin (docs/plans/som-agendamento-nathan-jennifer.md):
-// só toca quando ligações/reuniões agendadas do Nathan ou da Jennifer sobem
+// só toca quando reuniões agendadas, ligações realizadas ou inscrições
+// realizadas do Nathan ou da Jennifer sobem
 // entre dois refreshes, no período corrente, com o som ligado. O áudio é
 // mockado (jsdom não tem AudioContext) — a asserção é sobre qual perfil
 // tocou, e quantas vezes.
@@ -27,13 +28,18 @@ const NATHAN = "9";
 const JENNIFER = "4";
 const JONATHAN = "99"; // SDR não vigiado
 
-function pessoa(id: string, ligacoesAgendadas: number): PessoaParaSom {
+/** `ligacoesRealizadas` é a métrica que varia na maioria dos casos; `outras` sobrescreve as demais. */
+function pessoa(id: string, ligacoesRealizadas: number, outras: Record<string, number> = {}): PessoaParaSom {
+  const valores: Record<string, number> = {
+    ligacoes_realizadas: ligacoesRealizadas,
+    reunioes_agendadas: 0,
+    inscricoes_realizadas: 0,
+    ligacoes_agendadas: 0,
+    ...outras,
+  };
   return {
     id_user: id,
-    metricas: [
-      { metrica: "ligacoes_agendadas", realizado: ligacoesAgendadas },
-      { metrica: "reunioes_agendadas", realizado: 0 },
-    ],
+    metricas: Object.entries(valores).map(([metrica, realizado]) => ({ metrica, realizado })),
   };
 }
 
@@ -71,13 +77,32 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("som de agendamento — Nathan e Jennifer", () => {
-  it("ligação agendada do Nathan sobe entre dois refreshes → toca nathan, uma vez", async () => {
+  it("ligação realizada do Nathan sobe entre dois refreshes → toca nathan, uma vez", async () => {
     const { rerender } = render(arvore([pessoa(NATHAN, 3)]));
     expect(tocados).toEqual([]);
 
     rerender(arvore([pessoa(NATHAN, 4)]));
 
     await waitFor(() => expect(tocados).toEqual(["nathan"]));
+  });
+
+  it.each(["reunioes_agendadas", "inscricoes_realizadas"])("%s da Jennifer sobe → toca jennifer", async (metrica) => {
+    const { rerender } = render(arvore([pessoa(JENNIFER, 3, { [metrica]: 1 })]));
+    expect(tocados).toEqual([]);
+
+    rerender(arvore([pessoa(JENNIFER, 3, { [metrica]: 2 })]));
+
+    await waitFor(() => expect(tocados).toEqual(["jennifer"]));
+  });
+
+  it("ligações agendadas (métrica de Closer) subindo não toca", async () => {
+    const { rerender } = render(arvore([pessoa(NATHAN, 3, { ligacoes_agendadas: 1 })]));
+    expect(tocados).toEqual([]);
+
+    rerender(arvore([pessoa(NATHAN, 3, { ligacoes_agendadas: 5 })]));
+
+    await aguardar(600);
+    expect(tocados).toEqual([]);
   });
 
   it("primeira carga não toca", async () => {

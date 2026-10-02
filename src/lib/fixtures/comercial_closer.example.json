@@ -4,10 +4,12 @@
         "inicio": "2026-09-01",
         "fim": "2026-09-30"
     },
+    "dias_uteis": {
+        "decorridos": 10,
+        "total": 22
+    },
     "periodo_parcial": true,
-    "avisos": [
-        "metas_nao_cadastradas"
-    ],
+    "avisos": [],
     "pessoas": [
         {
             "id_user": "8",
@@ -16,47 +18,63 @@
             "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
-                "total": 4
+                "total": 6
             },
             "metricas": [
                 {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": 88,
+                    "realizado": 37,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
                     "metrica": "ligacoes_realizadas",
                     "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 32,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 88,
+                    "realizado": 39,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_agendadas",
                     "nome_exibicao": "Reuni\u00f5es Agendadas",
-                    "meta_periodo": null,
-                    "realizado": 23,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 22
+                    "meta_periodo": 44,
+                    "realizado": 19,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_realizadas",
                     "nome_exibicao": "Reuni\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 17,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 44,
+                    "realizado": 20,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es",
-                    "meta_periodo": null,
-                    "realizado": 7,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 44,
+                    "realizado": 24,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "meta_periodo": 22,
+                    "realizado": 15,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 }
             ],
             "contas_origem": [
                 "Linkedin Jonathan"
             ],
-            "pontuacao_total": null,
-            "posicao": null
+            "pontuacao_total": 45.9,
+            "posicao": 2
         },
         {
             "id_user": "1",
@@ -65,47 +83,63 @@
             "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
-                "total": 4
+                "total": 6
             },
             "metricas": [
                 {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": 88,
+                    "realizado": 21,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
                     "metrica": "ligacoes_realizadas",
                     "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 88,
+                    "realizado": 21,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_agendadas",
                     "nome_exibicao": "Reuni\u00f5es Agendadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 44,
+                    "realizado": 21,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_realizadas",
                     "nome_exibicao": "Reuni\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 44,
+                    "realizado": 20,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_meta",
-                    "dias_com_lacuna": 23
+                    "meta_periodo": 44,
+                    "realizado": 19,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "meta_periodo": 22,
+                    "realizado": 5,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 }
             ],
             "contas_origem": [
                 "Linkedin Jacob"
             ],
-            "pontuacao_total": null,
-            "posicao": null
+            "pontuacao_total": 36.8,
+            "posicao": 3
         },
         {
             "id_user": "3",
@@ -114,45 +148,61 @@
             "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
-                "total": 4
+                "total": 6
             },
             "metricas": [
                 {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": 88,
+                    "realizado": 61,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
                     "metrica": "ligacoes_realizadas",
                     "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 88,
+                    "realizado": 42,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_agendadas",
                     "nome_exibicao": "Reuni\u00f5es Agendadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 26,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_realizadas",
                     "nome_exibicao": "Reuni\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 35,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 23,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "meta_periodo": 22,
+                    "realizado": 14,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 }
             ],
             "contas_origem": [],
-            "pontuacao_total": null,
-            "posicao": null
+            "pontuacao_total": 61.6,
+            "posicao": 1
         },
         {
             "id_user": "10",
@@ -161,316 +211,392 @@
             "imagem_url": null,
             "metas_atingidas": {
                 "atingidas": 0,
-                "total": 4
+                "total": 6
             },
             "metricas": [
                 {
+                    "metrica": "ligacoes_agendadas",
+                    "nome_exibicao": "Liga\u00e7\u00f5es Agendadas",
+                    "meta_periodo": 88,
+                    "realizado": 20,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
                     "metrica": "ligacoes_realizadas",
                     "nome_exibicao": "Liga\u00e7\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 88,
+                    "realizado": 16,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_agendadas",
                     "nome_exibicao": "Reuni\u00f5es Agendadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 12,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "reunioes_realizadas",
                     "nome_exibicao": "Reuni\u00f5es Realizadas",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 12,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 },
                 {
                     "metrica": "indicacoes",
                     "nome_exibicao": "Indica\u00e7\u00f5es",
-                    "meta_periodo": null,
-                    "realizado": 0,
-                    "status": "sem_preenchimento",
-                    "dias_com_lacuna": 30
+                    "meta_periodo": 44,
+                    "realizado": 10,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
+                },
+                {
+                    "metrica": "inscricoes_realizadas",
+                    "nome_exibicao": "Inscri\u00e7\u00f5es Realizadas",
+                    "meta_periodo": 22,
+                    "realizado": 6,
+                    "status": "abaixo_da_meta",
+                    "dias_com_lacuna": 20
                 }
             ],
             "contas_origem": [],
-            "pontuacao_total": null,
-            "posicao": null
+            "pontuacao_total": 23.6,
+            "posicao": 4
         }
     ],
     "serie_diaria": [
         {
             "dia": "2026-09-01",
             "metricas": {
-                "reunioes_realizadas": 2,
-                "reunioes_agendadas": 4,
-                "indicacoes": 0,
-                "ligacoes_realizadas": 2
+                "ligacoes_agendadas": 11,
+                "ligacoes_realizadas": 5,
+                "reunioes_agendadas": 10,
+                "reunioes_realizadas": 10,
+                "indicacoes": 7,
+                "inscricoes_realizadas": 2
             }
         },
         {
             "dia": "2026-09-02",
             "metricas": {
-                "reunioes_realizadas": 0,
-                "reunioes_agendadas": 1,
-                "indicacoes": 0,
-                "ligacoes_realizadas": 4
+                "ligacoes_agendadas": 13,
+                "ligacoes_realizadas": 16,
+                "reunioes_agendadas": 8,
+                "reunioes_realizadas": 5,
+                "indicacoes": 7,
+                "inscricoes_realizadas": 3
             }
         },
         {
             "dia": "2026-09-03",
             "metricas": {
-                "reunioes_realizadas": 4,
-                "reunioes_agendadas": 4,
-                "indicacoes": 1,
-                "ligacoes_realizadas": 5
+                "ligacoes_agendadas": 15,
+                "ligacoes_realizadas": 13,
+                "reunioes_agendadas": 7,
+                "reunioes_realizadas": 11,
+                "indicacoes": 6,
+                "inscricoes_realizadas": 5
             }
         },
         {
             "dia": "2026-09-04",
             "metricas": {
-                "reunioes_realizadas": 4,
-                "reunioes_agendadas": 4,
-                "indicacoes": 1,
-                "ligacoes_realizadas": 3
+                "ligacoes_agendadas": 10,
+                "ligacoes_realizadas": 10,
+                "reunioes_agendadas": 10,
+                "reunioes_realizadas": 5,
+                "indicacoes": 4,
+                "inscricoes_realizadas": 6
             }
         },
         {
             "dia": "2026-09-05",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-06",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-07",
             "metricas": {
-                "reunioes_realizadas": 2,
-                "reunioes_agendadas": 3,
-                "indicacoes": 1,
-                "ligacoes_realizadas": 1
+                "ligacoes_agendadas": 12,
+                "ligacoes_realizadas": 15,
+                "reunioes_agendadas": 6,
+                "reunioes_realizadas": 10,
+                "indicacoes": 10,
+                "inscricoes_realizadas": 4
             }
         },
         {
             "dia": "2026-09-08",
             "metricas": {
-                "reunioes_realizadas": 2,
-                "reunioes_agendadas": 3,
-                "indicacoes": 3,
-                "ligacoes_realizadas": 8
+                "ligacoes_agendadas": 16,
+                "ligacoes_realizadas": 7,
+                "reunioes_agendadas": 9,
+                "reunioes_realizadas": 6,
+                "indicacoes": 14,
+                "inscricoes_realizadas": 4
             }
         },
         {
             "dia": "2026-09-09",
             "metricas": {
-                "reunioes_realizadas": 3,
-                "reunioes_agendadas": 3,
-                "indicacoes": 1,
-                "ligacoes_realizadas": 9
+                "ligacoes_agendadas": 18,
+                "ligacoes_realizadas": 11,
+                "reunioes_agendadas": 10,
+                "reunioes_realizadas": 11,
+                "indicacoes": 5,
+                "inscricoes_realizadas": 5
             }
         },
         {
             "dia": "2026-09-10",
             "metricas": {
-                "reunioes_realizadas": 0,
-                "reunioes_agendadas": 1,
-                "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "ligacoes_agendadas": 15,
+                "ligacoes_realizadas": 10,
+                "reunioes_agendadas": 6,
+                "reunioes_realizadas": 13,
+                "indicacoes": 7,
+                "inscricoes_realizadas": 5
             }
         },
         {
             "dia": "2026-09-11",
             "metricas": {
-                "reunioes_realizadas": 0,
-                "reunioes_agendadas": 0,
-                "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "ligacoes_agendadas": 17,
+                "ligacoes_realizadas": 15,
+                "reunioes_agendadas": 2,
+                "reunioes_realizadas": 7,
+                "indicacoes": 8,
+                "inscricoes_realizadas": 2
             }
         },
         {
             "dia": "2026-09-12",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-13",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-14",
             "metricas": {
-                "reunioes_realizadas": 0,
-                "reunioes_agendadas": 0,
-                "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "ligacoes_agendadas": 12,
+                "ligacoes_realizadas": 16,
+                "reunioes_agendadas": 10,
+                "reunioes_realizadas": 9,
+                "indicacoes": 8,
+                "inscricoes_realizadas": 4
             }
         },
         {
             "dia": "2026-09-15",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-16",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-17",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-18",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-19",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-20",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-21",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-22",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-23",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-24",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-25",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-26",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-27",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-28",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-29",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         },
         {
             "dia": "2026-09-30",
             "metricas": {
-                "reunioes_realizadas": 0,
+                "ligacoes_agendadas": 0,
+                "ligacoes_realizadas": 0,
                 "reunioes_agendadas": 0,
+                "reunioes_realizadas": 0,
                 "indicacoes": 0,
-                "ligacoes_realizadas": 0
+                "inscricoes_realizadas": 0
             }
         }
     ]
