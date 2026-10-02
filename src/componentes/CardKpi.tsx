@@ -119,11 +119,14 @@ export function CardKpi({
               esperadoFrac={r.esperadoFrac}
               altura={compacto ? CARD_COMPACTO_BARRA : "h-2"}
             />
+            {/* No compacto (Geral/TV, card de 1/5 da tela) o rodapé encurta pra caber numa linha. */}
             <span className={`font-semibold text-muted ${textoRodape}`}>
-              Esperado hoje {formatarNumero(Math.round(r.esperadoHoje))} · Projeção{" "}
+              {compacto ? "Esperado" : "Esperado hoje"} {formatarNumero(Math.round(r.esperadoHoje))} · {compacto ? "Proj." : "Projeção"}{" "}
               {r.projecao === null
                 ? "—"
-                : `${formatarNumero(Math.round(r.projecao))} (${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%)`}
+                : compacto
+                  ? `${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%`
+                  : `${formatarNumero(Math.round(r.projecao))} (${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%)`}
             </span>
           </div>
         )

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agregarConsolidado, agregarPorMetrica, serieDoTimePorMetrica } from "../src/lib/insights";
+import { agregarPorMetrica, resumoMetas, serieDoTimePorMetrica } from "../src/lib/insights";
 import type { Metrica, PessoaComercial } from "../src/lib/tipos-api";
 
 function metrica(parcial: Partial<Metrica> & Pick<Metrica, "metrica" | "status">): Metrica {
@@ -25,75 +25,6 @@ function pessoa(parcial: Partial<PessoaComercial>): PessoaComercial {
     ...parcial,
   };
 }
-
-describe("agregarConsolidado", () => {
-  it("sem_preenchimento não soma no realizado nem entra na média", () => {
-    const pessoas = [
-      pessoa({
-        metricas: [
-          metrica({ metrica: "a", status: "atingido", meta_periodo: 100, realizado: 100 }),
-          metrica({ metrica: "b", status: "sem_preenchimento", meta_periodo: 100, realizado: 0 }),
-        ],
-      }),
-    ];
-    const consolidado = agregarConsolidado(pessoas);
-    expect(consolidado.realizadoTotal).toBe(100);
-    expect(consolidado.metaTotal).toBe(200);
-    expect(consolidado.pctGeral).toBe(0.5);
-  });
-
-  it("atingido no limite exato conta como atingida", () => {
-    const pessoas = [pessoa({ metricas: [metrica({ metrica: "a", status: "atingido", meta_periodo: 50, realizado: 50 })] })];
-    const consolidado = agregarConsolidado(pessoas);
-    expect(consolidado.contagemStatus.atingido).toBe(1);
-    expect(consolidado.pctGeral).toBe(1);
-  });
-
-  it("metaTotal zero devolve pctGeral null, nunca NaN/Infinity", () => {
-    const pessoas = [pessoa({ metricas: [metrica({ metrica: "a", status: "sem_preenchimento", meta_periodo: 0, realizado: 0 })] })];
-    const consolidado = agregarConsolidado(pessoas);
-    expect(consolidado.pctGeral).toBeNull();
-    expect(Number.isNaN(consolidado.pctGeral)).toBe(false);
-  });
-
-  it("coberturaLancto null quando não há nenhuma métrica considerada", () => {
-    const consolidado = agregarConsolidado([]);
-    expect(consolidado.coberturaLancto).toBeNull();
-    expect(consolidado.metaTotal).toBe(0);
-  });
-
-  it("mistura SDR+Closer produz união sem duplicar contagem", () => {
-    const pessoas = [
-      pessoa({
-        email: "dupla@teste.com",
-        metricas: [
-          metrica({ metrica: "conexoes_enviadas", status: "atingido", meta_periodo: 10, realizado: 10 }),
-          metrica({ metrica: "reunioes_realizadas", status: "abaixo_da_meta", meta_periodo: 5, realizado: 2 }),
-        ],
-      }),
-    ];
-    const consolidado = agregarConsolidado(pessoas);
-    expect(consolidado.contagemStatus.atingido).toBe(1);
-    expect(consolidado.contagemStatus.abaixo_da_meta).toBe(1);
-    expect(consolidado.realizadoTotal).toBe(12);
-  });
-
-  it("sem_meta fica fora do metaTotal mas conta na contagem de status", () => {
-    const pessoas = [
-      pessoa({
-        metricas: [
-          metrica({ metrica: "indicacoes", status: "sem_meta", meta_periodo: null, realizado: 7 }),
-          metrica({ metrica: "numeros_captados", status: "atingido", meta_periodo: 10, realizado: 10 }),
-        ],
-      }),
-    ];
-    const consolidado = agregarConsolidado(pessoas);
-    expect(consolidado.metaTotal).toBe(10);
-    expect(consolidado.realizadoTotal).toBe(17); // sem_meta ainda é dado real, entra no realizado
-    expect(consolidado.contagemStatus.sem_meta).toBe(1);
-    expect(consolidado.contagemStatus.atingido).toBe(1);
-  });
-});
 
 describe("agregarPorMetrica", () => {
   it("soma meta e realizado do time por métrica, preservando dias_com_lacuna", () => {
@@ -164,3 +95,33 @@ describe("serieDoTimePorMetrica", () => {
   });
 });
 
+
+describe("resumoMetas", () => {
+  // Dia útil 10 de 20: no ritmo = pelo menos metade da meta.
+  const DIAS = { decorridos: 10, total: 20 };
+  const CHAVES = ["a", "b", "c", "d"];
+
+  it("conta só métricas com meta: no ritmo pelo esperado de hoje, batida pela meta cheia", () => {
+    const resumo = resumoMetas(
+      [
+        metrica({ metrica: "a", status: "atingido", meta_periodo: 100, realizado: 100 }), // batida e no ritmo
+        metrica({ metrica: "b", status: "abaixo_da_meta", meta_periodo: 100, realizado: 60 }), // no ritmo, não batida
+        metrica({ metrica: "c", status: "abaixo_da_meta", meta_periodo: 100, realizado: 10 }), // muito atrás
+        metrica({ metrica: "d", status: "sem_meta", meta_periodo: null, realizado: 50 }), // fora do Y
+      ],
+      CHAVES,
+      DIAS,
+    );
+    expect(resumo).toEqual({ comMeta: 3, noRitmo: 2, batidas: 1 });
+  });
+
+  it("meta 0 conta como sem meta", () => {
+    const resumo = resumoMetas([metrica({ metrica: "a", status: "atingido", meta_periodo: 0, realizado: 5 })], CHAVES, DIAS);
+    expect(resumo).toEqual({ comMeta: 0, noRitmo: 0, batidas: 0 });
+  });
+
+  it("ignora métricas que não são colunas do cargo", () => {
+    const resumo = resumoMetas([metrica({ metrica: "conexoes_enviadas", status: "atingido", meta_periodo: 10, realizado: 10 })], CHAVES, DIAS);
+    expect(resumo.comMeta).toBe(0);
+  });
+});

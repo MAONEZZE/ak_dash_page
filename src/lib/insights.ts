@@ -1,54 +1,8 @@
-import type { Metrica, PessoaComercial, SerieDiariaDia } from "./tipos-api";
-
-export interface ContagemStatus {
-  atingido: number;
-  abaixo_da_meta: number;
-  sem_preenchimento: number;
-  sem_meta: number;
-}
-
-function semLancamento(m: Metrica): boolean {
-  return m.status === "sem_preenchimento";
-}
+import { calcularRitmo } from "./ritmo";
+import type { DiasUteis, Metrica, PessoaComercial, SerieDiariaDia } from "./tipos-api";
 
 function lancada(m: Metrica): boolean {
-  return !semLancamento(m);
-}
-
-export interface Consolidado {
-  realizadoTotal: number;
-  metaTotal: number;
-  /** null quando metaTotal é 0 — sem base pra comparar. */
-  pctGeral: number | null;
-  contagemStatus: ContagemStatus;
-  /** null quando não há nenhuma métrica considerada (total 0). */
-  coberturaLancto: number | null;
-}
-
-/** Consolidado do time (ou da seleção filtrada) — base do hero, do donut e da linha de contexto. */
-export function agregarConsolidado(pessoas: PessoaComercial[]): Consolidado {
-  let realizadoTotal = 0;
-  let metaTotal = 0;
-  const contagemStatus: ContagemStatus = { atingido: 0, abaixo_da_meta: 0, sem_preenchimento: 0, sem_meta: 0 };
-
-  for (const pessoa of pessoas) {
-    for (const metrica of pessoa.metricas) {
-      if (lancada(metrica)) realizadoTotal += metrica.realizado;
-      if (metrica.meta_periodo !== null) metaTotal += metrica.meta_periodo;
-      contagemStatus[metrica.status] += 1;
-    }
-  }
-
-  const total = contagemStatus.atingido + contagemStatus.abaixo_da_meta + contagemStatus.sem_preenchimento + contagemStatus.sem_meta;
-  const lancadas = contagemStatus.atingido + contagemStatus.abaixo_da_meta;
-
-  return {
-    realizadoTotal,
-    metaTotal,
-    pctGeral: metaTotal > 0 ? realizadoTotal / metaTotal : null,
-    contagemStatus,
-    coberturaLancto: total > 0 ? lancadas / total : null,
-  };
+  return m.status !== "sem_preenchimento";
 }
 
 export interface MetricaAgregada {
@@ -119,4 +73,24 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
 /** Total do time por dia, para uma métrica escolhida — base do gráfico de linha. */
 export function serieDoTimePorMetrica(serieDiaria: SerieDiariaDia[], metrica: string): { dia: string; valor: number }[] {
   return serieDiaria.map((d) => ({ dia: d.dia, valor: d.metricas[metrica] ?? 0 }));
+}
+
+export interface ResumoMetas {
+  /** Métricas com meta > 0 no período — o Y do "X/Y no ritmo". */
+  comMeta: number;
+  noRitmo: number;
+  /** realizado ≥ meta. */
+  batidas: number;
+}
+
+/** Resumo de metas de uma pessoa, só nas métricas listadas (as colunas da tabela do cargo). */
+export function resumoMetas(metricas: Metrica[], chaves: readonly string[], dias: DiasUteis): ResumoMetas {
+  const resumo: ResumoMetas = { comMeta: 0, noRitmo: 0, batidas: 0 };
+  for (const m of metricas) {
+    if (!chaves.includes(m.metrica) || !m.meta_periodo) continue;
+    resumo.comMeta += 1;
+    if (calcularRitmo(m.realizado, m.meta_periodo, dias).status === "no_ritmo") resumo.noRitmo += 1;
+    if (m.realizado >= m.meta_periodo) resumo.batidas += 1;
+  }
+  return resumo;
 }

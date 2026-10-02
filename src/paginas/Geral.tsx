@@ -37,12 +37,6 @@ function metaCard(c: CardGeral): string {
   return METRICAS_EM_MOEDA.has(c.metrica) ? formatarMoeda(c.meta) : formatarNumero(c.meta);
 }
 
-function legendaCard(c: CardGeral): string {
-  if (c.meta === null) return "Meta não cadastrada";
-  if (c.pct_ritmo !== null) return `${Math.round(c.pct_ritmo)}% do ritmo`;
-  return `${c.pct === null ? 0 : Math.round(c.pct)}% da meta`;
-}
-
 /**
  * Reconstrução da página Geral: 9 cards (2 escuros de faturamento + 2 escuros
  * dos próximos eventos + 5 claros de métricas), tabela de 7 pessoas e dois
@@ -124,6 +118,7 @@ export function Geral() {
   // Inscritos/Aprovados não são card de período: giram entre os próximos eventos.
   const eventos = estado.dado?.eventos ?? [];
   const cardsClaros = estado.dado?.cards.filter((c) => !c.escuro) ?? [];
+  const diasUteis = estado.dado?.dias_uteis ?? { decorridos: 0, total: 0 };
   const sdrs = estado.dado?.pessoas.filter((p) => p.cargo === "sdr") ?? [];
   const closers = estado.dado?.pessoas.filter((p) => p.cargo === "closer") ?? [];
 
@@ -137,7 +132,7 @@ export function Geral() {
       {estado.carregando && !estado.dado ? (
         <Esqueleto />
       ) : estado.erro && !estado.dado ? (
-        <p className="text-xl text-fg/60" role="alert">
+        <p className="text-xl text-muted" role="alert">
           {estado.erro}
         </p>
       ) : (
@@ -167,8 +162,7 @@ export function Geral() {
                 label={c.nome_exibicao}
                 value={valorCard(c)}
                 meta={metaCard(c)}
-                pct={c.pct}
-                legenda={legendaCard(c)}
+                ritmo={{ realizado: c.realizado ?? 0, meta: c.meta, dias: diasUteis }}
               />
             ))}
           </section>
@@ -180,7 +174,7 @@ export function Geral() {
             */}
           <section className={GRADE_RODAPE}>
             <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-3">
-              <TabelaPessoas pessoas={estado.dado?.pessoas ?? []} destaques={destaques} />
+              <TabelaPessoas pessoas={estado.dado?.pessoas ?? []} destaques={destaques} dias={diasUteis} />
             </div>
             <div className="flex min-h-0 min-w-0 flex-col gap-2">
               <RankingPodio titulo="Ranking SDR" pessoas={sdrs} />

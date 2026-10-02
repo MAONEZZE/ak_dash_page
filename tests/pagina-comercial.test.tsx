@@ -1,38 +1,83 @@
 // @vitest-environment jsdom
 //
-// Duas decisões de produto que só existem na página Comercial e que nenhum
-// componente sozinho garante:
-//
-// 1. As 4 métricas de prospecção do LinkedIn (Conexões Enviadas/Aceitas,
-//    Abordagens, InMails) não aparecem em lugar nenhum da página — nem nos
-//    cards de cima, nem no seletor do gráfico, nem na lista do time.
-// 2. O gráfico "Acompanhamento de metas" é fixo no MÊS CORRENTE: mesmo com a
-//    pill em Dia/Semana/Ano, a série pedida ao BFF é a do mês.
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { AtualizacaoProvider } from "../src/lib/atualizacao";
+// Página Comercial: dois blocos de cards com ritmo (SDRs e Closers),
+// "Acompanhamento do mês" (gráfico + "Para bater a meta", sempre no mês
+// corrente) e o "Time comercial" em duas tabelas. O filtro de função
+// (?squad=) esconde o que não se aplica. As 4 métricas do Dripify não aparecem
+// em lugar nenhum.
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AtualizacaoProvider, useAtualizacao } from "../src/lib/atualizacao";
 import { SomProvider } from "../src/lib/som";
 import { Comercial } from "../src/paginas/Comercial";
-import type { Metrica, ParametrosComercial, RespostaComercial } from "../src/lib/tipos-api";
+import type { Metrica, ParametrosComercial, PessoaComercial, RespostaComercial } from "../src/lib/tipos-api";
 
-function metrica(chave: string, nome: string, realizado: number): Metrica {
-  return { metrica: chave, nome_exibicao: nome, meta_periodo: 10, realizado, status: "abaixo_da_meta", dias_com_lacuna: 0 };
+const CHAVES_SDR = ["fups", "numeros_captados", "ligacoes_realizadas", "reunioes_agendadas", "indicacoes", "inscricoes_realizadas"];
+const CHAVES_CLOSER = ["ligacoes_agendadas", "ligacoes_realizadas", "reunioes_agendadas", "reunioes_realizadas", "indicacoes", "inscricoes_realizadas"];
+const NOMES: Record<string, string> = {
+  conexoes_enviadas: "Conexões Enviadas",
+  conexoes_aceitas: "Conexões Aceitas",
+  abordagens: "Abordagens",
+  in_mails: "InMails Enviados",
+  fups: "Follow-ups",
+  numeros_captados: "Números Captados",
+  ligacoes_realizadas: "Ligações Realizadas",
+  reunioes_agendadas: "Reuniões Agendadas",
+  indicacoes: "Indicações",
+  inscricoes_realizadas: "Inscrições Realizadas",
+  ligacoes_agendadas: "Ligações Agendadas",
+  reunioes_realizadas: "Reuniões Realizadas",
+};
+
+/** Dia útil 10 de 20: "no ritmo" = pelo menos metade da meta. */
+const DIAS_UTEIS = { decorridos: 10, total: 20 };
+
+function pessoa(id: string, nome: string, email: string, chaves: string[], valores: [realizado: number, meta: number | null][]): PessoaComercial {
+  const metricas: Metrica[] = chaves.map((chave, i) => {
+    const [realizado, meta] = valores[i] ?? [0, null];
+    return {
+      metrica: chave,
+      nome_exibicao: NOMES[chave],
+      meta_periodo: meta,
+      realizado,
+      status: meta === null ? "sem_meta" : realizado >= meta ? "atingido" : "abaixo_da_meta",
+      dias_com_lacuna: 0,
+    };
+  });
+  return { id_user: id, email, nome, imagem_url: null, metas_atingidas: { atingidas: 0, total: 0 }, metricas, pontuacao_total: null, posicao: null, contas_origem: [] };
 }
 
-const METRICAS_SDR: Metrica[] = [
-  metrica("conexoes_enviadas", "Conexões Enviadas", 300),
-  metrica("conexoes_aceitas", "Conexões Aceitas", 120),
-  metrica("abordagens", "Abordagens", 90),
-  metrica("in_mails", "InMails Enviados", 40),
-  metrica("fups", "Follow-ups", 12),
-  metrica("numeros_captados", "Números Captados", 8),
-];
+const seis = (realizado: number, meta: number | null): [number, number | null][] => Array.from({ length: 6 }, () => [realizado, meta]);
 
-function resposta(pessoas: RespostaComercial["pessoas"]): RespostaComercial {
+// Ordem esperada na tabela SDR (fração de metas no ritmo, nome no empate):
+// Ana 6/6, Carla 1/1, Bia 2/3, Nathan 1/6. Zé não tem meta nenhuma.
+function sdrsPadrao(): PessoaComercial[] {
+  return [
+    pessoa("9", "Nathan", "nathan@x.com", ["conexoes_enviadas", "abordagens", ...CHAVES_SDR], [[300, 10], [90, 10], [5, 10], ...seis(0, 10)]),
+    pessoa("2", "Bia", "bia@x.com", CHAVES_SDR, [[10, 10], [10, 10], [0, 10], [0, null], [0, null], [0, null]]),
+    pessoa("3", "Carla", "carla@x.com", CHAVES_SDR, [[10, 10], [0, null], [0, null], [0, null], [0, null], [0, null]]),
+    pessoa("1", "Ana", "Ana.Silva@X.com", CHAVES_SDR, seis(10, 10)),
+    pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null)),
+  ];
+}
+
+function closersPadrao(): PessoaComercial[] {
+  return [
+    pessoa("7", "Bruno", "bruno@x.com", CHAVES_CLOSER, seis(4, 10)),
+    // Dupla função: mesmo email do SDR "Carla".
+    pessoa("8", "Carla", "carla@x.com", CHAVES_CLOSER, seis(1, 10)),
+  ];
+}
+
+let pessoasSdr: PessoaComercial[] = [];
+let pessoasCloser: PessoaComercial[] = [];
+const chamadasSdr: ParametrosComercial[] = [];
+
+function resposta(pessoas: PessoaComercial[]): RespostaComercial {
   return {
     periodo: { granularidade: "mes", inicio: "2026-09-01", fim: "2026-09-30" },
-    dias_uteis: { decorridos: 10, total: 22 },
+    dias_uteis: DIAS_UTEIS,
     periodo_parcial: true,
     avisos: [],
     pessoas,
@@ -43,39 +88,59 @@ function resposta(pessoas: RespostaComercial["pessoas"]): RespostaComercial {
   };
 }
 
-const chamadasSdr: ParametrosComercial[] = [];
-
 vi.mock("../src/lib/api", () => ({
   buscarComercialSdr: vi.fn(async (params: ParametrosComercial) => {
     chamadasSdr.push(params);
-    return resposta([
-      {
-        id_user: "9",
-        email: "nathan@x.com",
-        nome: "Nathan",
-        imagem_url: "https://exemplo/foto.png",
-        metas_atingidas: { atingidas: 0, total: 6 },
-        metricas: METRICAS_SDR,
-        pontuacao_total: 10,
-        posicao: 1,
-        contas_origem: [],
-      },
-    ]);
+    return resposta(pessoasSdr);
   }),
-  buscarComercialCloser: vi.fn(async () => resposta([])),
+  buscarComercialCloser: vi.fn(async () => resposta(pessoasCloser)),
 }));
+
+function Destino() {
+  const { pathname, search, hash } = useLocation();
+  return <p data-testid="destino">{`${pathname}${search}${hash}`}</p>;
+}
+
+function DiasNoCabecalho() {
+  const { diasUteis } = useAtualizacao().valor;
+  return <p data-testid="dias-uteis">{diasUteis ? `${diasUteis.decorridos} de ${diasUteis.total}` : "nenhum"}</p>;
+}
 
 function montar(querystring: string) {
   return render(
     <MemoryRouter initialEntries={[querystring]}>
       <AtualizacaoProvider>
         <SomProvider>
-          <Comercial />
+          <DiasNoCabecalho />
+          <Routes>
+            <Route path="/" element={<Comercial />} />
+            <Route path="/time" element={<Destino />} />
+          </Routes>
         </SomProvider>
       </AtualizacaoProvider>
     </MemoryRouter>,
   );
 }
+
+async function carregada(querystring = "/?granularidade=mes") {
+  const r = montar(querystring);
+  await screen.findByRole("heading", { name: "Time comercial" });
+  return r;
+}
+
+/** Nomes das linhas do corpo da tabela, na ordem. */
+function nomesDasLinhas(tabela: HTMLElement): string[] {
+  return within(tabela)
+    .getAllByRole("row")
+    .slice(1)
+    // Último span da célula: o primeiro é a inicial do avatar sem foto.
+    .map((linha) => within(linha).getAllByRole("cell")[0].querySelector("span:last-child")?.textContent ?? "");
+}
+
+beforeEach(() => {
+  pessoasSdr = sdrsPadrao();
+  pessoasCloser = closersPadrao();
+});
 
 afterEach(() => {
   chamadasSdr.length = 0;
@@ -83,26 +148,139 @@ afterEach(() => {
 });
 
 describe("página Comercial", () => {
-  it("não mostra as métricas de prospecção do LinkedIn em lugar nenhum", async () => {
-    montar("/?granularidade=mes");
-    await waitFor(() => expect(screen.getAllByText("Follow-ups").length).toBeGreaterThan(0));
-
-    for (const oculta of ["Conexões Enviadas", "Conexões Aceitas", "Abordagens", "InMails Enviados"]) {
-      expect(screen.queryAllByText(oculta)).toEqual([]);
-    }
-    // O que sobrou continua na tela, com o "x/y metas batidas" recontado só
-    // em cima das métricas visíveis (2 de 6 sobraram).
-    expect(screen.getAllByText("Números Captados").length).toBeGreaterThan(0);
-    expect(screen.getByText(/0\/2 metas batidas/)).toBeTruthy();
+  it("título com a nota sobre a linha vertical da barra", async () => {
+    await carregada();
+    expect(screen.getByRole("heading", { level: 1, name: "Comercial" })).toBeTruthy();
+    expect(screen.getByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeTruthy();
   });
 
-  it("cards de cima não repetem a tag SDR/CLOSER", async () => {
-    montar("/?granularidade=mes");
-    await waitFor(() => expect(screen.getAllByText("Follow-ups").length).toBeGreaterThan(0));
+  it("não mostra as métricas de prospecção do LinkedIn em lugar nenhum", async () => {
+    await carregada();
+    for (const oculta of ["Conexões Enviadas", "Conexões Aceitas", "Abordagens", "InMails Enviados"]) {
+      expect(screen.queryAllByText(oculta, { exact: false })).toEqual([]);
+    }
+  });
 
-    expect(screen.queryAllByText("CLOSER")).toEqual([]);
-    // "SDR ·" da lista do time continua — o que sai é a tag dos cards de KPI.
-    expect(screen.queryAllByText("SDR")).toEqual([]);
+  it("um bloco de 6 cards para SDRs e outro para Closers, somando o time", async () => {
+    await carregada();
+    const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
+    const closers = screen.getByRole("region", { name: "Fechamento · Closers" });
+
+    expect(within(sdrs).getAllByRole("article")).toHaveLength(6);
+    expect(within(closers).getAllByRole("article")).toHaveLength(6);
+    // Follow-ups do time SDR: 5 + 10 + 10 + 10 + 3 = 38, contra a soma das metas 10 × 4 = 40.
+    const fups = within(sdrs).getAllByRole("article")[0];
+    expect(fups.textContent).toContain("Follow-ups");
+    expect(fups.textContent).toContain("38");
+    expect(fups.textContent).toContain("/ 40");
+    expect(within(fups).getByRole("progressbar")).toBeTruthy();
+  });
+
+  it("card sem meta em ninguém diz que não há meta", async () => {
+    pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
+    await carregada();
+    const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
+    expect(within(sdrs).getAllByText("Nenhuma meta definida no período")).toHaveLength(6);
+  });
+
+  it("filtro de função SDR esconde o bloco e a tabela de Closers", async () => {
+    await carregada("/?granularidade=mes&squad=sdr");
+    expect(screen.getByRole("region", { name: "Prospecção · SDRs" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Fechamento · Closers" })).toBeNull();
+    expect(screen.getByRole("article", { name: "SDRs" })).toBeTruthy();
+    expect(screen.queryByRole("article", { name: "Closers" })).toBeNull();
+  });
+
+  it("filtro de função Closer esconde o bloco e a tabela de SDRs", async () => {
+    await carregada("/?granularidade=mes&squad=closer");
+    expect(screen.queryByRole("region", { name: "Prospecção · SDRs" })).toBeNull();
+    expect(screen.getByRole("region", { name: "Fechamento · Closers" })).toBeTruthy();
+    expect(screen.queryByRole("article", { name: "SDRs" })).toBeNull();
+    expect(screen.getByRole("article", { name: "Closers" })).toBeTruthy();
+  });
+
+  it("não tem mais o gauge de atingimento", async () => {
+    await carregada();
+    expect(screen.queryByText(/atingimento da meta/i)).toBeNull();
+  });
+
+  it("publica os dias úteis do período pro cabeçalho", async () => {
+    await carregada();
+    await waitFor(() => expect(screen.getByTestId("dias-uteis").textContent).toBe("10 de 20"));
+  });
+
+  describe("tabelas do time", () => {
+    it("ordena pela fração de metas no ritmo, com o nome no empate", async () => {
+      await carregada();
+      const tabela = within(screen.getByRole("article", { name: "SDRs" })).getByRole("table");
+      expect(nomesDasLinhas(tabela)).toEqual(["Ana", "Carla", "Bia", "Nathan"]);
+    });
+
+    it("coluna Metas mostra quantas estão no ritmo e quantas foram batidas", async () => {
+      await carregada();
+      const tabela = within(screen.getByRole("article", { name: "SDRs" })).getByRole("table");
+      const bia = within(tabela).getAllByRole("row")[3];
+      expect(bia.textContent).toContain("2/3 no ritmo");
+      expect(bia.textContent).toContain("2 batidas");
+      // Métrica sem meta vira chip "Sem meta", não "0 / —".
+      expect(within(bia).getAllByText("Sem meta")).toHaveLength(3);
+    });
+
+    it("quem não tem meta nenhuma vai pro rodapé, sem linha", async () => {
+      await carregada();
+      const cartao = screen.getByRole("article", { name: "SDRs" });
+      expect(within(cartao).getByText("Sem meta em setembro: Zé")).toBeTruthy();
+      expect(nomesDasLinhas(within(cartao).getByRole("table"))).not.toContain("Zé");
+    });
+
+    it("dupla função aparece nas duas tabelas, cada uma com as métricas do cargo", async () => {
+      await carregada();
+      const closers = within(screen.getByRole("article", { name: "Closers" })).getByRole("table");
+      expect(nomesDasLinhas(closers)).toContain("Carla");
+      expect(within(closers).getByText("Reuniões Realizadas")).toBeTruthy();
+      expect(within(closers).queryByText("Follow-ups")).toBeNull();
+    });
+
+    it("Enter na linha leva pra Time, no card da pessoa, mantendo a querystring", async () => {
+      await carregada("/?granularidade=mes&squad=sdr");
+      const tabela = within(screen.getByRole("article", { name: "SDRs" })).getByRole("table");
+      const ana = within(tabela).getAllByRole("row")[1];
+      expect(ana.getAttribute("tabindex")).toBe("0");
+
+      fireEvent.keyDown(ana, { key: "Enter" });
+
+      expect(screen.getByTestId("destino").textContent).toBe("/time?granularidade=mes&squad=sdr#pessoa-ana.silva@x.com");
+    });
+  });
+
+  describe("Para bater a meta", () => {
+    function painel() {
+      return screen.getByRole("article", { name: "Para bater a meta" });
+    }
+
+    it("com a média acima do necessário, diz que a meta fecha", async () => {
+      // Meta 100, 60 em 10 dias úteis: média 6; faltam 40 em 10 dias = 4 por dia.
+      pessoasSdr = [pessoa("1", "Ana", "ana@x.com", CHAVES_SDR, [[60, 100]])];
+      await carregada();
+      expect(painel().textContent).toContain("4por dia útil");
+      expect(painel().textContent).toContain("Média atual: 6 por dia útil. Mantendo esse ritmo, a meta fecha.");
+      expect(within(painel()).getByText("Faltam").nextElementSibling?.textContent).toBe("40");
+      expect(within(painel()).getByText("Dias úteis restantes").nextElementSibling?.textContent).toBe("10");
+      expect(within(painel()).getByText("Projeção").nextElementSibling?.textContent).toBe("120 (120%)");
+    });
+
+    it("com a média abaixo do necessário, diz quanto acelerar", async () => {
+      // Meta 100, 20 em 10 dias úteis: média 2; faltam 80 em 10 dias = 8 por dia (+300%).
+      pessoasSdr = [pessoa("1", "Ana", "ana@x.com", CHAVES_SDR, [[20, 100]])];
+      await carregada();
+      expect(painel().textContent).toContain("Média atual: 2 por dia útil. É preciso acelerar 300% para fechar a meta.");
+    });
+
+    it("sem meta na métrica selecionada", async () => {
+      pessoasSdr = [pessoa("1", "Ana", "ana@x.com", CHAVES_SDR, [[20, null]])];
+      await carregada();
+      expect(within(painel()).getByText("Nenhuma meta definida no período")).toBeTruthy();
+    });
   });
 
   it("gráfico pede a série do mês corrente mesmo com a pill em Dia", async () => {

@@ -1,11 +1,15 @@
 import { formatarMoeda, formatarNumero, METRICAS_EM_MOEDA } from "../lib/formato";
+import { calcularRitmo } from "../lib/ritmo";
 import { Avatar } from "./Avatar";
-import type { PessoaGeral } from "../lib/tipos-api";
+import { ProgressBar } from "./ProgressBar";
+import type { DiasUteis, PessoaGeral } from "../lib/tipos-api";
 
 interface Props {
   pessoas: PessoaGeral[];
   /** Chaves `"id_user:metrica"` de células que acabaram de subir — ver lib/som.tsx. */
   destaques?: Set<string>;
+  /** `dias_uteis` de /geral — dá o status de ritmo e o marcador das barrinhas. */
+  dias: DiasUteis;
 }
 
 /** Avatar da linha: menor item que ainda identifica a pessoa — é ele que dita a altura da linha. */
@@ -39,11 +43,13 @@ function CardCargo({
   pessoas,
   painel,
   destaques,
+  dias,
 }: {
   titulo: string;
   pessoas: PessoaGeral[];
   painel: string;
   destaques: Set<string>;
+  dias: DiasUteis;
 }) {
   if (pessoas.length === 0) return null;
   const colunas = pessoas[0].metricas;
@@ -51,10 +57,10 @@ function CardCargo({
 
   return (
     <article
-      className={`${painel} flex w-full min-w-0 flex-col gap-[clamp(2px,0.45vh,6px)] rounded-2xl px-[clamp(12px,1.1vw,20px)] py-[clamp(8px,1.2vh,14px)]`}
+      className={`${painel} flex w-full min-w-0 flex-col gap-[clamp(2px,0.45vh,6px)] rounded-[18px] px-[clamp(12px,1.1vw,20px)] py-[clamp(8px,1.2vh,14px)]`}
       style={{ flexGrow: pessoas.length }}
     >
-      <span className="text-[clamp(13px,1.55vh,18px)] font-semibold uppercase leading-none tracking-[0.13em] text-fg/56">{titulo}</span>
+      <span className="text-[clamp(13px,1.55vh,18px)] font-semibold uppercase leading-none tracking-[0.13em] text-muted">{titulo}</span>
       {/* `flex-1`: a sobra de altura da coluna vira respiro entre as linhas, em vez de um vão morto no pé do card. */}
       <table className="w-full flex-1 table-fixed border-collapse">
         <colgroup>
@@ -64,7 +70,7 @@ function CardCargo({
           ))}
         </colgroup>
         <thead>
-          <tr className="border-b border-border-2">
+          <tr className="border-b border-line">
             {/* A coluna da pessoa se explica pela foto + nome — o rótulo só existe pra leitor de tela. */}
             <th className="py-[clamp(3px,0.5vh,6px)] pr-3 text-left">
               <span className="sr-only">Pessoa</span>
@@ -72,7 +78,7 @@ function CardCargo({
             {colunas.map((c) => (
               <th
                 key={c.metrica}
-                className="px-3 py-[clamp(3px,0.5vh,6px)] text-left text-[clamp(12px,1.4vh,16px)] font-semibold uppercase leading-none tracking-[0.08em] text-fg/50"
+                className="px-3 py-[clamp(3px,0.5vh,6px)] text-left text-[clamp(12px,1.4vh,16px)] font-semibold uppercase leading-none tracking-[0.08em] text-muted"
               >
                 {c.nome_exibicao}
               </th>
@@ -81,7 +87,7 @@ function CardCargo({
         </thead>
         <tbody>
           {pessoas.map((p) => (
-            <tr key={p.id_user} className="border-b border-border-2 last:border-0">
+            <tr key={p.id_user} className="border-b border-line last:border-0">
               <td className="py-[clamp(2px,0.42vh,5px)]">
                 <div className="flex min-w-0 items-center gap-2">
                   <Avatar nome={p.rotulo} imagemUrl={p.imagem_url} tamanho={AVATAR_LINHA} />
@@ -89,19 +95,29 @@ function CardCargo({
                   <span className="truncate text-[clamp(15px,1.95vh,23px)] font-semibold leading-none tracking-tight">{p.rotulo}</span>
                 </div>
               </td>
-              {p.metricas.map((m) => (
-                <td
-                  key={m.metrica}
-                  className={`whitespace-nowrap px-3 py-[clamp(2px,0.42vh,5px)] font-display text-[clamp(15px,1.95vh,23px)] font-bold leading-none tracking-tight ${
-                    destaques.has(`${p.id_user}:${m.metrica}`) ? "celula-subiu" : ""
-                  }`}
-                >
-                  {valorTexto(m.realizado, m.metrica)}
-                  {!METRICAS_SEM_META.has(m.metrica) && (
-                    <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-fg/45">/ {valorTexto(m.meta, m.metrica)}</span>
-                  )}
-                </td>
-              ))}
+              {p.metricas.map((m) => {
+                const comMeta = !METRICAS_SEM_META.has(m.metrica);
+                // Barrinha só onde há meta de verdade (> 0) e o realizado é número de contagem.
+                const r = comMeta && m.meta && m.realizado !== null ? calcularRitmo(m.realizado, m.meta, dias) : null;
+                return (
+                  <td
+                    key={m.metrica}
+                    className={`whitespace-nowrap px-3 py-[clamp(2px,0.42vh,5px)] font-display text-[clamp(15px,1.95vh,23px)] font-bold leading-none tracking-tight ${
+                      destaques.has(`${p.id_user}:${m.metrica}`) ? "celula-subiu" : ""
+                    }`}
+                  >
+                    {valorTexto(m.realizado, m.metrica)}
+                    {comMeta && (
+                      <span className="ml-1 text-[clamp(13px,1.7vh,20px)] font-semibold text-muted">/ {valorTexto(m.meta, m.metrica)}</span>
+                    )}
+                    {r && m.meta && (
+                      <div className="mt-[clamp(3px,0.45vh,6px)]">
+                        <ProgressBar valor={m.realizado ?? 0} meta={m.meta} status={r.status} esperadoFrac={r.esperadoFrac} altura="h-1" />
+                      </div>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -116,15 +132,15 @@ function CardCargo({
  * conteúdo, no mínimo possível (paddings e entrelinhas colados no texto): o
  * espaço que sobra na tela é dos 8 cards de KPI acima.
  */
-export function TabelaPessoas({ pessoas, destaques }: Props) {
+export function TabelaPessoas({ pessoas, destaques, dias }: Props) {
   const sdrs = pessoas.filter((p) => p.cargo === "sdr");
   const closers = pessoas.filter((p) => p.cargo === "closer");
   const destaquesEfetivos = destaques ?? new Set<string>();
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col gap-2">
-      <CardCargo titulo="SDRs" pessoas={sdrs} painel="glass-panel-sdr" destaques={destaquesEfetivos} />
-      <CardCargo titulo="Closers" pessoas={closers} painel="glass-panel-closer" destaques={destaquesEfetivos} />
+      <CardCargo titulo="SDRs" pessoas={sdrs} painel="glass-panel-sdr" destaques={destaquesEfetivos} dias={dias} />
+      <CardCargo titulo="Closers" pessoas={closers} painel="glass-panel-closer" destaques={destaquesEfetivos} dias={dias} />
     </div>
   );
 }
