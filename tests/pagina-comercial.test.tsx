@@ -162,18 +162,30 @@ describe("página Comercial", () => {
   });
 
   it("um bloco de 6 cards para SDRs e outro para Closers, somando o time", async () => {
+    // Sem o Zé (sem meta nenhuma): com ele, a meta do time não fecha — ver o teste seguinte.
+    pessoasSdr = sdrsPadrao().filter((p) => p.nome !== "Zé");
     await carregada();
     const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
     const closers = screen.getByRole("region", { name: "Fechamento · Closers" });
 
     expect(within(sdrs).getAllByRole("article")).toHaveLength(6);
     expect(within(closers).getAllByRole("article")).toHaveLength(6);
-    // Follow-ups do time SDR: 5 + 10 + 10 + 10 + 3 = 38, contra a soma das metas 10 × 4 = 40.
+    // Follow-ups do time SDR: 5 + 10 + 10 + 10 = 35, contra a soma das metas 10 × 4 = 40.
     const fups = within(sdrs).getAllByRole("article")[0];
     expect(fups.textContent).toContain("Follow-ups");
-    expect(fups.textContent).toContain("38");
+    expect(fups.textContent).toContain("35");
     expect(fups.textContent).toContain("/ 40");
     expect(within(fups).getByRole("progressbar")).toBeTruthy();
+  });
+
+  it("card com meta em só parte do time não compara o realizado de todos contra a meta de alguns", async () => {
+    // Padrão: o Zé lança 3 follow-ups e não tem meta. Somar 38 de realizado
+    // contra 40 de meta (só 4 pessoas) inflaria o ritmo do time.
+    await carregada();
+    const fups = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(fups.textContent).toContain("38");
+    expect(fups.textContent).not.toContain("/ 40");
+    expect(fups.textContent).toContain("Nenhuma meta definida no período");
   });
 
   it("card sem meta em ninguém diz que não há meta", async () => {

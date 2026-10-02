@@ -245,6 +245,25 @@ describe("página Time — grade", () => {
     expect(screen.getByRole("region", { name: "Pessoas sem meta" }).textContent).toContain("Davi está sem meta em setembro.");
   });
 
+  it("no filtro Ano o aviso cita o ano, não o mês de início do período", async () => {
+    const api = await import("../src/lib/api");
+    const comoAno = (fn: typeof api.buscarComercialSdr) => {
+      const original = vi.mocked(fn).getMockImplementation()!;
+      vi.mocked(fn).mockImplementationOnce(async (params) => ({
+        ...(await original(params)),
+        periodo: { granularidade: "ano", inicio: "2026-01-01", fim: "2026-12-31" },
+      }));
+    };
+    comoAno(api.buscarComercialSdr);
+    comoAno(api.buscarComercialCloser);
+
+    montar("/time?granularidade=ano");
+    await screen.findByText("Nathan");
+    const aviso = screen.getByRole("region", { name: "Pessoas sem meta" }).textContent;
+    expect(aviso).toContain("sem meta em 2026.");
+    expect(aviso).not.toContain("janeiro");
+  });
+
   it("filtro de função mostra só o cargo escolhido", async () => {
     montar("/time?squad=sdr");
     await screen.findByText("Nathan");
@@ -297,10 +316,15 @@ describe("página Time — chegada pela Comercial (#pessoa-…)", () => {
     montar("/time?squad=todos#pessoa-carla@x.com");
     await screen.findByText("Carla");
 
-    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+    // O destaque é conferido no mesmo ciclo do scroll: com shouldAdvanceTime o
+    // relógio falso anda junto com o real, e um intervalo longo entre as duas
+    // checagens (máquina carregada) deixava os 2,4s vencerem antes da asserção.
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(card("carla@x.com").className).toContain("destaque-temporario");
+    });
     expect(scrollIntoView.mock.contexts[0]).toBe(card("carla@x.com"));
     expect(scrollIntoView).toHaveBeenCalledWith({ block: "center", behavior: "smooth" });
-    expect(card("carla@x.com").className).toContain("destaque-temporario");
     expect(card("nathan@x.com").className).not.toContain("destaque-temporario");
 
     act(() => {

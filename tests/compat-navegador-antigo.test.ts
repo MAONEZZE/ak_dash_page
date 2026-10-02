@@ -178,3 +178,29 @@ function removerBlocos(css: string, prefixo: string): string {
     saida = saida.slice(0, inicio) + saida.slice(fim + 1);
   }
 }
+
+describe("utilitárias com opacidade em fundo", () => {
+  /**
+   * `bg-<token>/NN` compila para `color-mix()` dentro de `@supports`, com a cor
+   * OPACA como fallback. No Chromium 94 o trilho translúcido vira barra sólida
+   * (era o que acontecia nas barrinhas dos cards de evento da Geral). Fundo
+   * translúcido vai por `rgb(var(--x-rgb) / N%)`.
+   */
+  it("nenhum componente usa bg-*/NN", () => {
+    const dirSrc = join(RAIZ, "src");
+    const arquivos: string[] = [];
+    const visitar = (dir: string) => {
+      for (const entrada of readdirSync(dir, { withFileTypes: true })) {
+        const caminho = join(dir, entrada.name);
+        if (entrada.isDirectory()) visitar(caminho);
+        else if (/\.tsx?$/.test(entrada.name)) arquivos.push(caminho);
+      }
+    };
+    visitar(dirSrc);
+
+    const usos = arquivos.flatMap((arquivo) =>
+      [...readFileSync(arquivo, "utf-8").matchAll(/\bbg-[a-z][\w-]*\/\d+\b/g)].map((m) => `${arquivo.slice(RAIZ.length + 1)}: ${m[0]}`),
+    );
+    expect(usos).toEqual([]);
+  });
+});

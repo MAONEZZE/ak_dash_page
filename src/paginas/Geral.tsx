@@ -13,9 +13,13 @@ import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
-const GRADE_CARDS = "grid min-h-0 flex-1 auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
-/** 5 cards claros numa linha só no desktop. */
-const GRADE_CARDS_CLAROS = "grid min-h-0 flex-1 auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5";
+const GRADE_CARDS = "grid min-h-0 flex-auto auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
+/**
+ * 5 cards claros numa linha só no desktop. As duas faixas usam `flex-auto`
+ * (base = conteúdo) e não `flex-1`: meio a meio, a faixa clara (rótulo em duas
+ * linhas + chip + barra + legenda) não cabia em 1920×1080 — ver tests/geral-tv.test.tsx.
+ */
+const GRADE_CARDS_CLAROS = "grid min-h-0 flex-auto auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5";
 const GRADE_RODAPE =
   "grid shrink-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4";
 

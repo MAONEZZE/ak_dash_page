@@ -87,13 +87,15 @@ export function CardKpi({
       </div>
       <div
         className={`flex flex-wrap items-baseline gap-1.5 ${
-          destaque ? CARD_COMPACTO_NUMERO_NA_BASE : compacto ? CARD_COMPACTO_VAO : "mt-auto"
+          // Com ritmo, o StatusChip divide a linha do rótulo e ele quebra em duas:
+          // o vão fixo fazia o card claro da Geral passar da altura na TV.
+          destaque ? CARD_COMPACTO_NUMERO_NA_BASE : compacto ? (r ? "" : CARD_COMPACTO_VAO) : "mt-auto"
         }`}
       >
         <span
           className={`font-display font-extrabold leading-none tracking-tight ${
             compacto ? (destaque ? escalaValorCompactoDestaque(value) : escalaValorCompacto(value)) : "text-[50px]"
-          } ${escuro ? "text-offwhite" : ""} ${semMeta ? "text-muted opacity-60" : ""}`}
+          } ${escuro ? "text-offwhite" : ""} ${semMeta ? "text-muted" : ""}`}
         >
           {value}
         </span>
@@ -140,7 +142,7 @@ export function CardKpi({
         </span>
       ) : (
         <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(3px,min(0.36vw,0.65vh),12px)]` : "gap-1.5"}`}>
-          <div className={`overflow-hidden rounded-full ${compacto ? CARD_COMPACTO_BARRA : "h-[5px]"} ${escuro ? "bg-offwhite/18" : "bg-progress-track"}`}>
+          <div className={`overflow-hidden rounded-full ${compacto ? CARD_COMPACTO_BARRA : "h-[5px]"} ${escuro ? "bg-[rgb(var(--color-offwhite-rgb)/18%)]" : "bg-progress-track"}`}>
             <div className={`h-full rounded-full ${escuro ? "bg-accent" : "bg-accent-fg"}`} style={{ width: `${largura}%` }} />
           </div>
           <span className={`font-semibold ${compacto ? CARD_COMPACTO_LEGENDA : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}>

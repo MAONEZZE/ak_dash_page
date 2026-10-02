@@ -416,7 +416,10 @@ export function Time() {
     return <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>;
   }
 
-  const inicioPeriodo = (sdr.dado ?? closer.dado)?.periodo.inicio ?? `${periodo.slice(0, 7)}-01`;
+  const periodoResposta = (sdr.dado ?? closer.dado)?.periodo;
+  const inicioPeriodo = periodoResposta?.inicio ?? `${periodo.slice(0, 7)}-01`;
+  // Sob Ano o início é 1º de janeiro: o aviso cita o ano, como na Comercial.
+  const referencia = periodoResposta?.granularidade === "ano" ? inicioPeriodo.slice(0, 4) : mesPorExtenso(inicioPeriodo);
 
   return (
     <div
@@ -440,7 +443,7 @@ export function Time() {
           ))}
         </section>
       )}
-      {semMeta.length > 0 && <AvisoSemMeta grupos={semMeta} mes={mesPorExtenso(inicioPeriodo)} />}
+      {semMeta.length > 0 && <AvisoSemMeta grupos={semMeta} mes={referencia} />}
     </div>
   );
 }

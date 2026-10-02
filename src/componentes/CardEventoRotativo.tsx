@@ -62,7 +62,7 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
   const valorTexto = formatarNumero(valor);
 
   return (
-    <article className={`flex flex-col overflow-hidden rounded-2xl glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
+    <article className={`flex flex-col overflow-hidden rounded-[18px] glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
       <div className="flex items-start justify-between gap-2">
         <span className={`font-semibold uppercase tracking-[0.13em] text-offwhite/74 ${CARD_COMPACTO_LABEL}`}>{label}</span>
         <span className={`whitespace-nowrap font-bold leading-none text-accent ${CARD_COMPACTO_MIUDO}`}>{formatarDataHoraEvento(evento.data)}</span>
@@ -86,7 +86,7 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
 
       <div className={`flex gap-1.5 ${CARD_COMPACTO_RODAPE_FIXO}`} aria-hidden="true">
         {eventos.map((e, i) => (
-          <div key={e.id} className={`flex-1 overflow-hidden rounded-full bg-offwhite/18 ${CARD_COMPACTO_BARRA}`}>
+          <div key={e.id} className={`flex-1 overflow-hidden rounded-full bg-[rgb(var(--color-offwhite-rgb)/18%)] ${CARD_COMPACTO_BARRA}`}>
             {i === atual ? (
               // `key` muda a cada volta: remonta a div e reinicia a animação do zero.
               <div key={`${indice}-${e.id}`} className="h-full rounded-full bg-accent barra-evento-preenchendo" />

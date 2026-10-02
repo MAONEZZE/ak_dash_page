@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { formatarNumero } from "../lib/formato";
+import { paraPeriodo } from "../lib/periodo";
 import { calcularRitmo } from "../lib/ritmo";
 import type { DiasUteis } from "../lib/tipos-api";
 
@@ -85,7 +86,8 @@ export function GraficoAreaMeta({ opcoes, selecionada, aoSelecionar, serie, meta
   }
 
   const n = serie.length;
-  const hojeIso = new Date().toISOString().slice(0, 10);
+  // Dia local (São Paulo na TV), não UTC: `toISOString()` virava o dia às 21h.
+  const hojeIso = paraPeriodo("dia", new Date());
   const desenhados = serie.filter((d) => d.dia <= hojeIso).length;
   const metaMes = meta ?? 0;
   const temMeta = metaMes > 0;

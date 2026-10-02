@@ -57,7 +57,7 @@ describe("CardEventoRotativo", () => {
     vi.useFakeTimers();
     const { container } = render(<CardEventoRotativo label="Inscritos" campo="inscritos" eventos={EVENTOS} />);
 
-    const barras = () => Array.from(container.querySelectorAll<HTMLElement>(".bg-offwhite\\/18 > div"));
+    const barras = () => Array.from(container.querySelectorAll<HTMLElement>("[aria-hidden=\"true\"] > div > div"));
     expect(barras()).toHaveLength(3);
     expect(barras()[0].className).toContain("barra-evento-preenchendo");
     expect(barras()[1].className).toContain("w-0");

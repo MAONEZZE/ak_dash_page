@@ -67,6 +67,20 @@ describe("agregarPorMetrica", () => {
     expect(x.pct).toBeNull();
   });
 
+  it("meta do time fica null quando só parte do time tem meta — nunca o realizado de todos contra a meta de alguns", () => {
+    // Mesma regra do BFF (`Metas.somar`, cards da Geral): somar 100 de meta
+    // contra 160 de realizado de duas pessoas diria "meta batida" quando só uma
+    // delas é cobrada.
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "x", status: "abaixo_da_meta", meta_periodo: 100, realizado: 60 })] }),
+      pessoa({ metricas: [metrica({ metrica: "x", status: "sem_meta", meta_periodo: null, realizado: 100 })] }),
+    ];
+    const [x] = agregarPorMetrica(pessoas);
+    expect(x.realizado).toBe(160);
+    expect(x.meta).toBeNull();
+    expect(x.pct).toBeNull();
+  });
+
   it("mistura SDR+Closer produz união sem duplicar entradas por métrica", () => {
     const pessoas = [
       pessoa({

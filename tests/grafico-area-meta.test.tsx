@@ -156,6 +156,23 @@ describe("GraficoAreaMeta", () => {
     expect(screen.getByRole("tooltip").textContent).toContain("Dia 10");
   });
 
+  it("hoje é o dia de São Paulo, não o de UTC: às 23h30 do dia 10 o marcador continua no dia 10", () => {
+    // 23h30 em São Paulo (UTC−3) já é dia 11 em UTC. A TV fica ligada à noite.
+    const fusoAntes = process.env.TZ;
+    process.env.TZ = "America/Sao_Paulo";
+    try {
+      vi.setSystemTime(new Date("2026-09-11T02:30:00Z"));
+      const { container } = montar();
+
+      expect(pontos(container, "realizado")).toHaveLength(10);
+      // Dia 10 = índice 9 de 29 intervalos.
+      expect(Number(container.querySelector('[data-serie="hoje"]')?.getAttribute("x1"))).toBeCloseTo((9 / 29) * 900, 1);
+      expect(screen.getByRole("img").textContent).toContain("Esperado hoje pelo ritmo da meta: 80.");
+    } finally {
+      process.env.TZ = fusoAntes;
+    }
+  });
+
   it("trocar a métrica no select avisa quem controla a seleção", () => {
     const aoSelecionar = vi.fn();
     montar({ aoSelecionar });

@@ -1,3 +1,4 @@
+import { formatarNumero } from "../lib/formato";
 import { Avatar } from "./Avatar";
 import type { PessoaGeral } from "../lib/tipos-api";
 
@@ -21,7 +22,7 @@ function Degrau({ pessoa, posicao }: { pessoa: PessoaGeral; posicao: number }) {
       <span className="font-display text-[clamp(13px,1.6vh,24px)] font-extrabold leading-none text-brand">{posicao}º</span>
       <Avatar nome={pessoa.rotulo} imagemUrl={pessoa.imagem_url} tamanho={TAMANHO_AVATAR[posicao]} />
       <span className="line-clamp-1 text-[clamp(14px,1.8vh,27px)] font-bold leading-tight tracking-tight">{pessoa.rotulo}</span>
-      <span className="text-[clamp(14px,1.95vh,28px)] font-bold leading-none text-muted">{pessoa.pontuacao?.toFixed(0)} pts</span>
+      <span className="text-[clamp(14px,1.95vh,28px)] font-bold leading-none text-muted">{pessoa.pontuacao === null ? "—" : formatarNumero(Math.round(pessoa.pontuacao))} pts</span>
     </div>
   );
 }
