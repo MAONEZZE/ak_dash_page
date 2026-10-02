@@ -11,17 +11,28 @@ import {
   escalaValorCompacto,
   escalaValorCompactoDestaque,
 } from "../lib/card-compacto";
+import { formatarNumero } from "../lib/formato";
+import { calcularRitmo } from "../lib/ritmo";
+import type { DiasUteis } from "../lib/tipos-api";
+import { ProgressBar } from "./ProgressBar";
+import { StatusChip } from "./StatusChip";
 
 interface CardKpiProps {
   label: string;
   value: string;
   /** Denominador do card ("/ meta"). Omitido = card sem denominador (ex. Aprovados, que é número absoluto). */
   meta?: string;
-  /** 0-100+ (sem cap na leitura, só a barra visual satura em 100). `null` = sem meta cadastrada, sem barra. Ignorado quando `indisponivel`. */
-  pct: number | null;
+  /** 0-100+ (sem cap na leitura, só a barra visual satura em 100). `null` = sem meta cadastrada, sem barra. Ignorado quando `indisponivel` ou com `ritmo`. */
+  pct?: number | null;
   /** Métrica sem dado algum pro período/escopo (placeholder de página inteira) — sem barra, só a legenda. */
   indisponivel?: boolean;
-  legenda: string;
+  legenda?: string;
+  /**
+   * Card com ritmo da meta (Comercial e cards claros da Geral): chip de status,
+   * barra com o marcador de "onde deveria estar hoje" e rodapé
+   * "Esperado hoje N · Projeção N (P%)". Substitui `pct`/`legenda`.
+   */
+  ritmo?: { realizado: number; meta: number | null; dias: DiasUteis };
   /** Variante escura (fundo `--color-bg-dark-2`) — linha de faturamento da Geral. */
   variante?: "claro" | "escuro";
   /**
@@ -47,9 +58,10 @@ export function CardKpi({
   label,
   value,
   meta,
-  pct,
+  pct = null,
   indisponivel,
-  legenda,
+  legenda = "",
+  ritmo,
   variante = "claro",
   tamanho = "normal",
   destaque = false,
@@ -57,17 +69,21 @@ export function CardKpi({
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
   const compacto = tamanho === "compacto";
+  const r = ritmo ? calcularRitmo(ritmo.realizado, ritmo.meta, ritmo.dias) : null;
+  const semMeta = r?.status === "sem_meta";
+  const textoRodape = compacto ? CARD_COMPACTO_LEGENDA : "text-[14px]";
 
   return (
     <article
-      className={`flex flex-col overflow-hidden rounded-2xl ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${escuro ? "glass-panel-escuro" : "glass-panel"}`}
+      className={`flex flex-col overflow-hidden rounded-[18px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${escuro ? "glass-panel-escuro" : "glass-panel"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
-          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/74" : "text-fg/56"}`}
+          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/74" : "text-muted"}`}
         >
           {label}
         </span>
+        {r && <StatusChip status={r.status} />}
       </div>
       <div
         className={`flex flex-wrap items-baseline gap-1.5 ${
@@ -77,23 +93,45 @@ export function CardKpi({
         <span
           className={`font-display font-extrabold leading-none tracking-tight ${
             compacto ? (destaque ? escalaValorCompactoDestaque(value) : escalaValorCompacto(value)) : "text-[50px]"
-          } ${escuro ? "text-offwhite" : ""}`}
+          } ${escuro ? "text-offwhite" : ""} ${semMeta ? "text-muted opacity-60" : ""}`}
         >
           {value}
         </span>
-        {meta !== undefined && (
+        {meta !== undefined && !semMeta && (
           <span
-            className={`whitespace-nowrap font-semibold leading-none ${compacto ? CARD_COMPACTO_META : "text-[19px]"} ${escuro ? "text-offwhite/60" : "text-fg/45"}`}
+            className={`whitespace-nowrap font-semibold leading-none ${compacto ? CARD_COMPACTO_META : "text-[19px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}
           >
             / {meta}
           </span>
         )}
       </div>
-      {destaque ? (
+      {r && ritmo ? (
+        semMeta ? (
+          <span className={`font-semibold text-muted ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "mt-auto text-[14px]"}`}>
+            Nenhuma meta definida no período
+          </span>
+        ) : (
+          <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(4px,min(0.45vw,0.8vh),14px)]` : "gap-2"}`}>
+            <ProgressBar
+              valor={ritmo.realizado}
+              meta={ritmo.meta ?? 0}
+              status={r.status}
+              esperadoFrac={r.esperadoFrac}
+              altura={compacto ? CARD_COMPACTO_BARRA : "h-2"}
+            />
+            <span className={`font-semibold text-muted ${textoRodape}`}>
+              Esperado hoje {formatarNumero(Math.round(r.esperadoHoje))} · Projeção{" "}
+              {r.projecao === null
+                ? "—"
+                : `${formatarNumero(Math.round(r.projecao))} (${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%)`}
+            </span>
+          </div>
+        )
+      ) : destaque ? (
         <div className={`${CARD_COMPACTO_RODAPE_FIXO} ${CARD_COMPACTO_BARRA}`} aria-hidden="true" />
       ) : indisponivel || pct === null ? (
         <span
-          className={`font-semibold ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}
+          className={`font-semibold ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}
         >
           {legenda}
         </span>
@@ -102,7 +140,7 @@ export function CardKpi({
           <div className={`overflow-hidden rounded-full ${compacto ? CARD_COMPACTO_BARRA : "h-[5px]"} ${escuro ? "bg-offwhite/18" : "bg-progress-track"}`}>
             <div className={`h-full rounded-full ${escuro ? "bg-accent" : "bg-accent-fg"}`} style={{ width: `${largura}%` }} />
           </div>
-          <span className={`font-semibold ${compacto ? CARD_COMPACTO_LEGENDA : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-fg/50"}`}>
+          <span className={`font-semibold ${compacto ? CARD_COMPACTO_LEGENDA : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}>
             {legenda}
           </span>
         </div>

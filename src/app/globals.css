@@ -2,120 +2,142 @@
 
 /*
  * Tokens de marca — únicos hexes crus permitidos no projeto inteiro.
- * Ver docs/plans/dashboard-akeel.md § Identidade visual.
- * tests/brand.test.ts falha se aparecer hex fora daqui, os hexes banidos do
- * blog, ou os pares proibidos de contraste.
+ * tests/brand.test.ts falha se aparecer hex fora daqui ou um dos hexes banidos
+ * do blog.
  *
- * status-bad (azul) é hex novo, validado com a skill de dataviz
- * (scripts/validate_palette.js): verde-da-marca vs vermelho falha CVD
- * (ΔE ~4-5, bem abaixo do piso de 6-8) pra daltonismo vermelho-verde —
- * nenhum tom de vermelho resolve isso contra este verde. Azul passa limpo
- * (light #2f6b0f×#1d4ed8 ΔE 29.4 protan; dark #8edd65×#3987e5 ΔE 34.0 protan).
+ * Redesign 2026-10 (ak_dash_page/prompt.md): paleta verde da akeel com
+ * superfícies sólidas e status de ritmo (no ritmo / atrás / muito atrás).
+ * Status nunca depende só de cor — StatusChip sempre leva ícone + texto, o que
+ * resolve o par verde×vermelho para daltonismo.
+ *
+ * Os hexes crus têm nome em português (--color-superficie, --color-tinta…);
+ * os semânticos que os componentes usam seguem os nomes do prompt (--surface,
+ * --ink, --muted, --brand, --ok…). O fundo de página do prompt (--bg) aqui se
+ * chama --page-bg, porque --bg já é o fundo de superfície do projeto.
+ *
+ * Contraste (WCAG 4.5:1, medido sobre --surface e sobre o fundo do chip):
+ * os tons de --ok e --warn do prompt davam 4.1 e 3.8 dentro do chip, então
+ * --color-ok-claro e --color-warn-claro são um pouco mais escuros. --faint
+ * (2.9:1) é só para traço de eixo/linha, nunca texto.
  */
 :root {
   /* Largura máxima do container do dashboard (header + filtros + conteúdo) — ajuste aqui, os três acompanham. */
   --dashboard-max-width: 5120px;
 
   --color-accent: #8edd65;
-  --color-accent-ink: #2f6b0f;
+  --color-accent-ink: #2f6b1f;
   --color-bg-dark-2: #0c1b1f;
   --color-offwhite: #f4f4f4;
   --color-ink: #0f1a1c;
-  --color-status-bad-light: #1d4ed8;
-  --color-status-bad-dark: #3987e5;
+
+  /* claro */
+  --color-pagina: #ebf0e6;
+  --color-superficie: #f7f8f5;
+  --color-superficie-2: #eef1ea;
+  --color-tinta: #16201a;
+  --color-tinta-suave: #56635a;
+  --color-tinta-fraca: #8a968e;
+  --color-ok-claro: #2a6f1e;
+  --color-warn-claro: #855b00;
+  --color-warn-barra: #d49a1c;
+  --color-bad-claro: #b23a26;
+  --color-closer-claro: #3f5d8a;
+
+  /* escuro */
+  --color-pagina-escura: #0d1611;
+  --color-superficie-escura: #152019;
+  --color-superficie-2-escura: #1c2a21;
+  --color-tinta-escura: #e6ece4;
+  --color-tinta-suave-escura: #a6b2a9;
+  --color-tinta-fraca-escura: #7d8a81;
+  --color-closer-escuro: #9db5dc;
 
   /*
-   * Vermelho de ação destrutiva ("Sair" do menu do header) e faixa baixa das
-   * barras da página Time. Fora dessas duas, não entra em gráfico nem em status
-   * de métrica — lá o par verde×vermelho falha CVD e quem marca "ruim" é
-   * --status-bad (azul). Na Time o vermelho/amarelo/verde foi pedido
-   * explicitamente; a leitura não depende só da cor porque o traço da meta
-   * mostra a posição. Dois tons porque um só não passa 4.5:1 nos dois temas:
-   * #b3261e dá 5.9:1 sobre o claro, #f28b82 dá 7.4:1 sobre o escuro.
+   * Vermelho de ação destrutiva ("Sair" do menu) e muito atrás no escuro;
+   * amarelo de atrás no escuro.
    */
   --color-perigo-light: #b3261e;
   --color-perigo-dark: #f28b82;
-
-  /* Amarelo da faixa média das barras da Time. Claro: #b8860b passa 3:1 (WCAG 1.4.11) sobre o offwhite; escuro: #f2c94c. */
-  --color-atencao-light: #b8860b;
   --color-atencao-dark: #f2c94c;
 
   /*
    * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
    * translucidez como rgb(var(--x-rgb) / N%) em vez de color-mix().
-   * color-mix() só existe a partir do Chrome 111; o browser da TV Samsung 2023
-   * (Chromium 94) caía no fallback opaco que o Tailwind emite, e um token como
-   * --progress-track (trilho da barra de progresso) virava sólido, fazendo
-   * toda barra parecer 100% cheia. rgb(R G B / N%) funciona desde o Chrome 65.
-   * Mixar com transparent é exatamente multiplicar o alfa, então a cor
-   * renderizada é idêntica à de antes nos browsers modernos.
-   * Ver docs/plans/compat-navegador-antigo.md.
+   * color-mix() só existe a partir do Chrome 111; o browser da TV Samsung
+   * (Chromium 94) caía no fallback opaco. rgb(R G B / N%) funciona desde o
+   * Chrome 65. Ver docs/plans/compat-navegador-antigo.md.
    * Se mudar um hex acima, mude o trio correspondente aqui —
    * tests/compat-navegador-antigo.test.ts falha se os dois divergirem.
    */
   --color-accent-rgb: 142 221 101;
-  --color-status-bad-light-rgb: 29 78 216;
-  --color-status-bad-dark-rgb: 57 135 229;
-  --color-accent-ink-rgb: 47 107 15;
+  --color-accent-ink-rgb: 47 107 31;
   --color-bg-dark-2-rgb: 12 27 31;
   --color-offwhite-rgb: 244 244 244;
   --color-ink-rgb: 15 26 28;
+  --color-pagina-rgb: 235 240 230;
+  --color-pagina-escura-rgb: 13 22 17;
+  --color-superficie-rgb: 247 248 245;
+  --color-superficie-escura-rgb: 21 32 25;
+  --color-tinta-rgb: 22 32 26;
+  --color-tinta-escura-rgb: 230 236 228;
+  --color-ok-claro-rgb: 42 111 30;
+  --color-warn-barra-rgb: 212 154 28;
+  --color-bad-claro-rgb: 178 58 38;
+  --color-closer-claro-rgb: 63 93 138;
+  --color-closer-escuro-rgb: 157 181 220;
+  --color-perigo-dark-rgb: 242 139 130;
+  --color-atencao-dark-rgb: 242 201 76;
 
-  /* semânticos — tema claro (default): accent-ink é o par de texto/UI */
-  --bg: var(--color-offwhite);
-  --bg-2: var(--color-offwhite);
-  --bg-2-rgb: var(--color-offwhite-rgb);
-  --fg: var(--color-ink);
-  --fg-rgb: var(--color-ink-rgb);
-  --accent-fg: var(--color-accent-ink);
-  --border-2: rgb(var(--color-ink-rgb) / 12%);
-  /*
-   * Redesenho novo_template (docs/plans/novo-layout-template.md) — fundo de
-   * página em vidro (glassmorphism). Só tema claro: no escuro reaproveita
-   * --color-ink (já é o --bg do tema escuro), sem hex novo. Nome distinto de
-   * --color-page-bg (exposto abaixo em @theme) — mesmo nome nos dois criaria
-   * referência circular entre a variável crua e a que o Tailwind gera.
-   */
-  --page-bg: #eaeee9;
+  /* semânticos do redesign — tema claro (default) */
+  --page-bg: var(--color-pagina);
+  --page-bg-rgb: var(--color-pagina-rgb);
+  --surface: var(--color-superficie);
+  --surface-2: var(--color-superficie-2);
+  --ink: var(--color-tinta);
+  --muted: var(--color-tinta-suave);
+  --faint: var(--color-tinta-fraca);
+  --line: rgb(var(--color-tinta-rgb) / 10%);
+  --brand: var(--color-accent-ink);
+  --ok: var(--color-ok-claro);
+  --ok-bg: rgb(var(--color-ok-claro-rgb) / 12%);
+  --warn: var(--color-warn-claro);
+  --warn-bg: rgb(var(--color-warn-barra-rgb) / 16%);
+  --warn-bar: var(--color-warn-barra);
+  --bad: var(--color-bad-claro);
+  --bad-bg: rgb(var(--color-bad-claro-rgb) / 13%);
+  --track: rgb(var(--color-tinta-rgb) / 9%);
+  --sdr: var(--color-accent-ink);
+  --closer: var(--color-closer-claro);
+  --closer-bg: rgb(var(--color-closer-claro-rgb) / 12%);
 
-  /* superfícies de vidro do redesenho — misturadas sobre tokens já existentes, sem hex novo */
-  --glass-bg: rgb(var(--bg-2-rgb) / 55%);
-  --glass-border: rgb(var(--fg-rgb) / 14%);
+  /* semânticos legados — mesmos nomes que as páginas já usam, agora apontando pra paleta nova */
+  --bg: var(--surface);
+  --bg-2: var(--surface);
+  --bg-2-rgb: var(--color-superficie-rgb);
+  --fg: var(--ink);
+  --fg-rgb: var(--color-tinta-rgb);
+  --accent-fg: var(--brand);
+  --border-2: var(--line);
 
-  /*
-   * Variante escura de CardKpi (linha de faturamento da Geral) — igual em
-   * claro e escuro por design (é o tratamento "hero" do template, não um
-   * tema). Cores misturadas de --color-bg-dark-2/--color-accent, já
-   * cadastrados acima — sem hex novo.
-   */
-  --glass-dark-bg: rgb(var(--color-bg-dark-2-rgb) / 74%);
+  /* "glass-*" virou superfície sólida: o blur custava caro na TV e o redesign não usa vidro */
+  --glass-bg: var(--surface);
+  --glass-border: var(--line);
+  --glass-dark-bg: var(--color-bg-dark-2);
   --glass-dark-border: rgb(var(--color-accent-rgb) / 28%);
 
-  /*
-   * Os dois painéis da tabela de pessoas da Geral: verde pastel pros SDRs,
-   * azul pastel pros closers. Só separam visualmente os dois times — não são
-   * status de métrica (o azul de status continua sendo --status-bad, e por isso
-   * nenhum texto dentro dos cards herda essas cores). Derivados dos tokens de
-   * marca por translucidez, sem hex novo.
-   */
-  --painel-sdr-bg: rgb(var(--color-accent-rgb) / 24%);
-  --painel-sdr-border: rgb(var(--color-accent-rgb) / 42%);
-  --painel-closer-bg: rgb(var(--color-status-bad-light-rgb) / 14%);
-  --painel-closer-border: rgb(var(--color-status-bad-light-rgb) / 28%);
+  /* painéis SDR/Closer da tabela da Geral — identificação de função, não status */
+  --painel-sdr-bg: rgb(var(--color-accent-ink-rgb) / 9%);
+  --painel-sdr-border: rgb(var(--color-accent-ink-rgb) / 22%);
+  --painel-closer-bg: rgb(var(--color-closer-claro-rgb) / 9%);
+  --painel-closer-border: rgb(var(--color-closer-claro-rgb) / 24%);
 
-  /* status de métrica/gráfico — sempre com ícone+texto, nunca só cor */
-  --status-good: var(--color-accent-ink);
-  --status-bad: var(--color-status-bad-light);
-  --status-neutro: rgb(var(--fg-rgb) / 40%);
+  --status-good: var(--ok);
+  --status-bad: var(--bad);
+  --status-neutro: var(--muted);
   --perigo: var(--color-perigo-light);
-  --atencao: var(--color-atencao-light);
+  --atencao: var(--warn);
 
-  /*
-   * Redesenho Comercial — derivados de --fg, que já inverte por tema
-   * (ver bloco [data-theme="dark"] abaixo), então não precisam de
-   * equivalente próprio no dark: a mistura já resolve certo nos dois temas.
-   */
-  --progress-track: rgb(var(--fg-rgb) / 10%);
+  --progress-track: var(--track);
   --border-forte: rgb(var(--fg-rgb) / 32%);
   --hachura-a: rgb(var(--fg-rgb) / 22%);
   --hachura-b: transparent;
@@ -125,26 +147,35 @@
 }
 
 [data-theme="dark"] {
-  /* tema escuro: accent (não accent-ink) é o par de texto/UI */
-  --bg: var(--color-ink);
-  --bg-2: var(--color-bg-dark-2);
-  --bg-2-rgb: var(--color-bg-dark-2-rgb);
-  --fg: var(--color-offwhite);
-  --fg-rgb: var(--color-offwhite-rgb);
-  --accent-fg: var(--color-accent);
-  --border-2: rgb(var(--color-offwhite-rgb) / 20%);
-  --page-bg: var(--color-ink);
+  --page-bg: var(--color-pagina-escura);
+  --page-bg-rgb: var(--color-pagina-escura-rgb);
+  --surface: var(--color-superficie-escura);
+  --surface-2: var(--color-superficie-2-escura);
+  --ink: var(--color-tinta-escura);
+  --muted: var(--color-tinta-suave-escura);
+  --faint: var(--color-tinta-fraca-escura);
+  --line: rgb(var(--color-tinta-escura-rgb) / 12%);
+  --brand: var(--color-accent);
+  --ok: var(--color-accent);
+  --ok-bg: rgb(var(--color-accent-rgb) / 14%);
+  --warn: var(--color-atencao-dark);
+  --warn-bg: rgb(var(--color-atencao-dark-rgb) / 14%);
+  --bad: var(--color-perigo-dark);
+  --bad-bg: rgb(var(--color-perigo-dark-rgb) / 14%);
+  --track: rgb(var(--color-tinta-escura-rgb) / 12%);
+  --sdr: var(--color-accent);
+  --closer: var(--color-closer-escuro);
+  --closer-bg: rgb(var(--color-closer-escuro-rgb) / 14%);
 
-  --status-good: var(--color-accent);
-  --status-bad: var(--color-status-bad-dark);
+  --bg-2-rgb: var(--color-superficie-escura-rgb);
+  --fg-rgb: var(--color-tinta-escura-rgb);
+
+  --painel-sdr-bg: rgb(var(--color-accent-rgb) / 9%);
+  --painel-sdr-border: rgb(var(--color-accent-rgb) / 24%);
+  --painel-closer-bg: rgb(var(--color-closer-escuro-rgb) / 10%);
+  --painel-closer-border: rgb(var(--color-closer-escuro-rgb) / 26%);
+
   --perigo: var(--color-perigo-dark);
-  --atencao: var(--color-atencao-dark);
-
-  /* mesma leitura dos painéis pastel sobre fundo escuro: menos alfa, mais borda */
-  --painel-sdr-bg: rgb(var(--color-accent-rgb) / 13%);
-  --painel-sdr-border: rgb(var(--color-accent-rgb) / 30%);
-  --painel-closer-bg: rgb(var(--color-status-bad-dark-rgb) / 17%);
-  --painel-closer-border: rgb(var(--color-status-bad-dark-rgb) / 34%);
 }
 
 @theme {
@@ -169,14 +200,39 @@
   --color-border-forte: var(--border-forte);
   --color-hachura-a: var(--hachura-a);
   --color-hachura-b: var(--hachura-b);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-bar: var(--warn-bar);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+  --color-track: var(--track);
+  --color-sdr: var(--sdr);
+  --color-closer: var(--closer);
+  --color-closer-bg: var(--closer-bg);
+  --radius-card: 18px;
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 }
 
 body {
-  background: var(--color-bg);
+  background: var(--page-bg);
   color: var(--color-fg);
   font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visível em tudo que é clicável — contorno da marca, 3px. */
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
 }
 
 /*
@@ -215,10 +271,8 @@ body {
 }
 
 /*
- * Casca do dashboard (redesenho novo_template) — fundo em glassmorphism com
- * glow radial da marca por trás dos painéis de vidro. overflow-x (não full
- * overflow) porque o gradiente decorativo pode sangrar nas bordas em telas
- * muito largas, mas o conteúdo real tem que poder rolar verticalmente.
+ * Casca do dashboard: ocupa a tela inteira e quem rola é o <main> — é o que
+ * deixa Geral e Time caberem na TV sem scroll e o cabeçalho sempre visível.
  */
 .dashboard-shell {
   position: relative;
@@ -227,42 +281,26 @@ body {
   background: var(--page-bg);
 }
 
-.dashboard-shell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(680px 420px at 12% -8%, rgb(var(--color-accent-rgb) / 42%), transparent 70%),
-    radial-gradient(620px 480px at 88% 4%, rgb(var(--color-accent-ink-rgb) / 22%), transparent 72%),
-    radial-gradient(700px 520px at 60% 100%, rgb(var(--color-bg-dark-2-rgb) / 16%), transparent 70%);
-}
 
+
+/* Card/painel do redesign: superfície sólida com borda fina (o nome ficou do template de vidro). */
 .glass-panel {
-  background: var(--color-glass-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--color-glass-border);
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 
 .glass-panel-escuro {
   background: var(--glass-dark-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--glass-dark-border);
 }
 
 .glass-panel-sdr {
   background: var(--painel-sdr-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--painel-sdr-border);
 }
 
 .glass-panel-closer {
   background: var(--painel-closer-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--painel-closer-border);
 }
 
@@ -326,12 +364,19 @@ body {
   }
 }
 
+/* Segmentado do cabeçalho (abas, período, mês, função). */
 .glass-pill {
-  background: var(--color-glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--color-glass-border);
-  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+/* Cabeçalho: fundo semitransparente com blur (backdrop-filter existe desde o Chrome 76, ok na TV). */
+.cabecalho {
+  background: rgb(var(--page-bg-rgb) / 82%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
 }
 
 .pill {
@@ -339,22 +384,51 @@ body {
   border: 0;
   cursor: pointer;
   font-family: var(--font-body);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 999px;
-  color: rgb(var(--fg-rgb) / 60%);
+  /* alvo de toque mínimo de 44px (o segmentado tem 4px de respiro em volta) */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  color: var(--muted);
   background: transparent;
   transition:
     background 200ms,
     color 200ms;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pill:hover {
+  background: var(--surface-2);
 }
 
 .pill.pill-ativo {
-  background: var(--color-accent-fg);
-  color: var(--color-bg-2);
+  background: var(--brand);
+  color: var(--surface);
+}
+
+/* Destaque temporário do card da pessoa ao chegar da tabela da Comercial (/time#pessoa-…). */
+.destaque-temporario {
+  animation: destaque-card 2.4s ease-out;
+}
+
+@keyframes destaque-card {
+  0%,
+  40% {
+    box-shadow: 0 0 0 3px var(--brand);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+/* Preenchimento das barras de progresso — sem transição com reduced-motion (bloco global no fim). */
+.barra-preenchimento {
+  transition: width 400ms ease-out;
 }
 
 /*

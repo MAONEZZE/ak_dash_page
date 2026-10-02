@@ -12,25 +12,37 @@ const SRC_DIR = join(__dirname, "..", "src");
 const EXTENSOES_FONTE = [".ts", ".tsx", ".css"];
 const IGNORAR_DIRS = new Set(["fixtures", "node_modules"]);
 
-// status-bad (azul) é a exceção deliberada: verde-da-marca falha CVD contra
-// qualquer vermelho (daltonismo vermelho-verde), validado com a skill de
-// dataviz — ver comentário em src/app/globals.css.
-// #eaeee9 (page-bg) é o fundo de página do redesign novo_template — ver
-// docs/plans/novo-layout-template.md.
+// Paleta do redesign 2026-10 (ak_dash_page/prompt.md) — ver comentário em
+// src/app/globals.css. Status nunca depende só de cor (StatusChip leva ícone).
 const TOKENS_PERMITIDOS = new Set([
   "#8edd65",
-  "#2f6b0f",
+  "#2f6b1f",
   "#0c1b1f",
   "#f4f4f4",
   "#0f1a1c",
-  "#1d4ed8",
-  "#3987e5",
-  "#eaeee9",
-  // vermelho do "Sair" (claro/escuro) — ver comentário em src/app/globals.css
+  // claro
+  "#ebf0e6",
+  "#f7f8f5",
+  "#eef1ea",
+  "#16201a",
+  "#56635a",
+  "#8a968e",
+  "#2a6f1e",
+  "#855b00",
+  "#d49a1c",
+  "#b23a26",
+  "#3f5d8a",
+  // escuro
+  "#0d1611",
+  "#152019",
+  "#1c2a21",
+  "#e6ece4",
+  "#a6b2a9",
+  "#7d8a81",
+  "#9db5dc",
+  // vermelho do "Sair" (claro) e muito atrás/Sair (escuro), atrás (escuro)
   "#b3261e",
   "#f28b82",
-  // amarelo da faixa média das barras da Time (claro/escuro)
-  "#b8860b",
   "#f2c94c",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);

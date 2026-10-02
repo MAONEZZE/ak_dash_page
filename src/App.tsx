@@ -1,9 +1,9 @@
-import { LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
-import { formatarHora } from "./lib/formato";
+import { formatarHora, formatarNumero } from "./lib/formato";
 import { useDefinirGranularidade, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
 import { SQUADS, useDefinirSquad, useSquadAtual } from "./lib/squad";
@@ -48,7 +48,7 @@ function PillNav() {
   const location = useLocation();
 
   return (
-    <nav className="glass-pill flex gap-1 p-1" aria-label="Navegação">
+    <nav className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1" aria-label="Navegação">
       {NAV_ITENS.map((item) => (
         <NavLink
           key={item.rota}
@@ -85,7 +85,7 @@ function PillPeriodo() {
 
 const MES_ROTULO = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
 
-/** Navegação de mês passado da Financeiro (`‹ Setembro 2026 ›`) — só aparece sob granularidade Mês. */
+/** Seletor de mês com setas (`‹ Setembro 2026 ›`) — só aparece sob granularidade Mês. */
 function PillPeriodoNavegavel() {
   const { mes, podeVoltar, podeAvancar, voltar, avancar } = useNavegarMes();
   const [ano, mesNum] = mes.split("-").map(Number);
@@ -98,31 +98,33 @@ function PillPeriodoNavegavel() {
         onClick={voltar}
         disabled={!podeVoltar}
         aria-label="Mês anterior"
-        className="pill disabled:pointer-events-none disabled:opacity-40"
+        className="pill !px-0 disabled:pointer-events-none disabled:opacity-40"
       >
-        ‹
+        <ChevronLeft className="size-5" aria-hidden />
       </button>
-      <span className="px-2 text-[15px] font-semibold capitalize">{rotulo}</span>
+      <span className="min-w-[9.5rem] px-1 text-center text-[14px] font-semibold capitalize" aria-live="polite">
+        {rotulo}
+      </span>
       <button
         type="button"
         onClick={avancar}
         disabled={!podeAvancar}
         aria-label="Próximo mês"
-        className="pill disabled:pointer-events-none disabled:opacity-40"
+        className="pill !px-0 disabled:pointer-events-none disabled:opacity-40"
       >
-        ›
+        <ChevronRight className="size-5" aria-hidden />
       </button>
     </div>
   );
 }
 
-/** Filtro de squad da Comercial — vive aqui, à direita do período, e conversa com a página pela querystring. */
+/** Filtro de função (Todos/SDR/Closers) da Comercial e da Time — conversa com a página pela querystring. */
 function PillSquad() {
   const squad = useSquadAtual();
   const definirSquad = useDefinirSquad();
 
   return (
-    <div className="glass-pill flex gap-1 p-1" role="group" aria-label="Squad">
+    <div className="glass-pill flex gap-1 p-1" role="group" aria-label="Função">
       {SQUADS.map((s) => (
         <button
           key={s.id}
@@ -138,8 +140,22 @@ function PillSquad() {
   );
 }
 
+/** "Dia útil X de Y · meta esperada hoje: Z%" — dias úteis publicados pela página (Comercial/Time). */
+function RitmoDoPeriodo() {
+  const { diasUteis } = useAtualizacao().valor;
+  if (!diasUteis || diasUteis.total === 0) return null;
+  const pct = Math.round((Math.min(diasUteis.decorridos, diasUteis.total) / diasUteis.total) * 100);
+
+  return (
+    <p className="ml-auto text-[14px] font-semibold text-muted">
+      Dia útil {formatarNumero(diasUteis.decorridos)} de {formatarNumero(diasUteis.total)} · meta esperada hoje:{" "}
+      <span className="text-fg">{pct}%</span>
+    </p>
+  );
+}
+
 const ITEM_MENU =
-  "flex w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-semibold transition-colors hover:bg-glass-border disabled:pointer-events-none disabled:opacity-45";
+  "flex min-h-11 w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-semibold transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-45";
 
 /**
  * Ícone solto no header (não some no menu — precisa estar visível o tempo
@@ -157,7 +173,7 @@ function BotaoSom() {
       onClick={() => void alternar()}
       aria-label={rotulo}
       title={rotulo}
-      className={`glass-panel rounded-full p-2.5 hover:opacity-80 ${precisaAtivar ? "animate-pulse" : ""}`}
+      className={`glass-panel inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface-2 ${precisaAtivar ? "animate-pulse" : ""}`}
     >
       {ligado ? <Volume2 className="size-5" aria-hidden /> : <VolumeX className="size-5" aria-hidden />}
     </button>
@@ -208,7 +224,7 @@ function MenuAcoes({
         aria-label="Menu de ações"
         aria-haspopup="menu"
         aria-expanded={aberto}
-        className="glass-panel rounded-full p-2.5 hover:opacity-80"
+        className="glass-panel inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface-2"
       >
         <Menu className="size-5" aria-hidden />
       </button>
@@ -216,7 +232,7 @@ function MenuAcoes({
       {aberto && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl border border-glass-border bg-bg-2 py-1 shadow-2xl"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-2xl"
         >
           <button
             type="button"
@@ -230,7 +246,7 @@ function MenuAcoes({
           >
             <RefreshCw className={`size-[18px] shrink-0 ${valor.atualizando ? "animate-spin" : ""}`} aria-hidden />
             Atualizar
-            {valor.atualizadoEm && <span className="ml-auto text-[13px] font-medium text-fg/55">{formatarHora(valor.atualizadoEm)}</span>}
+            {valor.atualizadoEm && <span className="ml-auto text-[13px] font-medium text-muted">{formatarHora(valor.atualizadoEm)}</span>}
           </button>
 
           <button
@@ -262,6 +278,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { granularidade } = useFiltrosAtuais();
+  const comFuncao = location.pathname === "/comercial" || location.pathname === "/time";
 
   if (carregando) {
     return (
@@ -291,25 +308,28 @@ export default function App() {
     <AtualizacaoProvider>
       <SomProvider>
         <div className="dashboard-shell font-body text-fg">
-          <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col gap-5 px-6 py-6 sm:py-7">
-            <header className="flex shrink-0 flex-wrap items-start justify-between gap-5">
-              <div className="flex flex-col gap-1">
+          <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col">
+            <header className="cabecalho sticky top-0 z-20 flex shrink-0 flex-col gap-3 px-4 py-3 sm:px-6">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-[29px] font-extrabold tracking-tight">akeel</span>
-                  <span className="inline-block size-[7px] rounded-full bg-accent-ink" />
+                  <span className="font-display text-[26px] font-extrabold tracking-tight">akeel</span>
+                  <span className="inline-block size-[7px] rounded-full bg-brand" />
+                </div>
+                <PillNav />
+                <div className="ml-auto flex items-center gap-2">
+                  <BotaoSom />
+                  <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <PillNav />
                 <PillPeriodo />
                 {granularidade === "mes" && <PillPeriodoNavegavel />}
-                {(location.pathname === "/comercial" || location.pathname === "/time") && <PillSquad />}
-                <BotaoSom />
-                <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
+                {comFuncao && <PillSquad />}
+                {comFuncao && <RitmoDoPeriodo />}
               </div>
             </header>
 
-            <main className="min-h-0 flex-1 overflow-y-auto">
+            <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5 sm:px-6">
               <Routes>
                 <Route path="/login" element={<Navigate to="/comercial" replace />} />
                 <Route path="/" element={<Navigate to="/comercial" replace />} />
