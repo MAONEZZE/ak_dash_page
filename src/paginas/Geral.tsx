@@ -3,6 +3,7 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { RankingPodio } from "../componentes/RankingPodio";
+import { TabelaDripify } from "../componentes/TabelaDripify";
 import { EVENTOS_POR_TABELA, TabelaEventos } from "../componentes/TabelaEventos";
 import { Termometro } from "../componentes/Termometro";
 import { buscarGeral } from "../lib/api";
@@ -18,7 +19,7 @@ const INTERVALO_AUTO_REFRESH_MS = 60_000;
  * Uma grade de 4 colunas × 4 linhas (decisão do usuário, 2026-10-05):
  *
  *   Faturamento  | Reuniões Agendadas  | Inscrições Realizadas | Oportunidade
- *   Liquidado    | Ligações Realizadas | Confrarias (1–10)     | Confrarias (11–20)
+ *   Liquidado    | Ligações Realizadas | Confrarias do mês     | Contas Dripify
  *   Termômetro   | Ranking SDR         |        ↓              |        ↓
  *        ↓       | Ranking Closer      |        ↓              |        ↓
  *
@@ -40,14 +41,21 @@ const POSICAO = {
   inscricoes_realizadas: "xl:col-start-3 xl:row-start-1",
   eventos_1: "xl:col-start-3 xl:row-start-2 xl:row-span-3",
   oportunidade: "xl:col-start-4 xl:row-start-1",
-  eventos_2: "xl:col-start-4 xl:row-start-2 xl:row-span-3",
+  dripify: "xl:col-start-4 xl:row-start-2 xl:row-span-3",
 } as const;
 /** Abaixo de xl a página rola: tabela, ranking e termômetro ganham altura mínima própria. */
 const ALTURA_MOBILE = "min-h-[480px] xl:min-h-0";
 const ALTURA_MOBILE_RANKING = "min-h-[300px] xl:min-h-0";
 
-/** KPIs com meta que também usam o fundo escuro do Faturamento (decisão do usuário, 2026-10-05). */
-const CARDS_ESCUROS_COM_META = new Set(["reunioes_agendadas", "ligacoes_realizadas", "inscricoes_realizadas", "oportunidade"]);
+/** Tom pastel de cada KPI (decisão do usuário, 2026-10-05) — ver .card-pastel em globals.css. */
+const PASTEL: Partial<Record<keyof typeof POSICAO, string>> = {
+  faturamento: "pastel-verde-escuro",
+  liquidado: "pastel-verde-escuro",
+  reunioes_agendadas: "pastel-verde",
+  ligacoes_realizadas: "pastel-verde",
+  inscricoes_realizadas: "pastel-verde",
+  oportunidade: "pastel-verde",
+};
 
 interface EstadoGeral {
   dado: RespostaGeral | null;
@@ -127,6 +135,7 @@ export function Geral() {
 
   const cards = estado.dado?.cards ?? [];
   const eventos = estado.dado?.eventos ?? [];
+  const contasDripify = estado.dado?.contas_dripify ?? [];
   const pessoas = estado.dado?.pessoas ?? [];
   const diasUteis = estado.dado?.dias_uteis ?? { decorridos: 0, total: 0 };
 
@@ -136,10 +145,10 @@ export function Geral() {
     return (
       <Celula key={metrica} posicao={POSICAO[metrica]}>
         {c.escuro ? (
-          <CardKpi variante="escuro" tamanho="compacto" destaque label={c.nome_exibicao} value={valorCard(c)} pct={null} legenda="" />
+          <CardKpi variante="escuro" pastel={PASTEL[metrica]} tamanho="compacto" destaque label={c.nome_exibicao} value={valorCard(c)} pct={null} legenda="" />
         ) : (
           <CardKpi
-            variante={CARDS_ESCUROS_COM_META.has(metrica) ? "escuro" : "claro"}
+            pastel={PASTEL[metrica]}
             tamanho="compacto"
             label={c.nome_exibicao}
             value={valorCard(c)}
@@ -188,12 +197,8 @@ export function Geral() {
             </Celula>
 
             {card("oportunidade")}
-            <Celula posicao={POSICAO.eventos_2} className={ALTURA_MOBILE}>
-              <TabelaEventos
-                titulo="Confrarias do mês (cont.)"
-                eventos={eventos.slice(EVENTOS_POR_TABELA, EVENTOS_POR_TABELA * 2)}
-                vazio="Sem mais Confrarias."
-              />
+            <Celula posicao={POSICAO.dripify} className={ALTURA_MOBILE}>
+              <TabelaDripify titulo="Contas Dripify" contas={contasDripify} vazio="Sem dados do Dripify no período." />
             </Celula>
           </section>
         </>

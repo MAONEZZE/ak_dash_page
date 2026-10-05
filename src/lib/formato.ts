@@ -71,6 +71,11 @@ export function formatarDataHoraEvento(iso: string): string {
   return `${partes.day}/${partes.month} · ${partes.hour}:${partes.minute}`;
 }
 
+/** Só "DD/MM" do evento, no mesmo fuso de `formatarDataHoraEvento` — tabela de Confrarias da Geral. */
+export function formatarDiaMesEvento(iso: string): string {
+  return formatarDataHoraEvento(iso).split(" · ")[0];
+}
+
 export function formatarHora(data: Date): string {
   return data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }

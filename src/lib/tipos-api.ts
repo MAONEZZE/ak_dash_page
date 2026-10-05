@@ -185,7 +185,14 @@ export interface EventoGeral {
   aprovados: number;
 }
 
-/** Acumulado da semana corrente (seg–sáb) do time inteiro — ignora o período da página. */
+/** Uma conta do LinkedIn (`dash.metricas_dripify`) com a soma do período pedido. */
+export interface ContaDripify {
+  /** `users.nome` do dono da conta — inclui closers e pessoas inativas. */
+  conta: string;
+  conexoes_aceitas: number;
+  numeros_captados: number;
+}
+
 /** Faturamento do mês corrente (fora do filtro de data) contra a meta fixa de faturamento. */
 export interface Termometro {
   realizado: number;
@@ -200,8 +207,10 @@ export interface RespostaGeral {
    * ligacoes_realizadas, inscricoes_realizadas, oportunidade.
    */
   cards: CardGeral[];
-  /** Confrarias do mês corrente (até 20), em data crescente. Ignora o período da página. */
+  /** Confrarias do mês corrente (até 10), em data crescente. Ignora o período da página. */
   eventos: EventoGeral[];
+  /** Contas do Dripify, da maior pra menor em conexões aceitas. SEGUE o período da página. */
+  contas_dripify: ContaDripify[];
   pessoas: PessoaGeral[];
   termometro: Termometro | null;
   /** Inclui `fonte_indisponivel:<tabela>` quando uma consulta ao banco falhou. */

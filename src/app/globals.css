@@ -28,13 +28,13 @@
   --color-accent-ink: #2f6b1f;
   --color-bg-dark-2: #0c1b1f;
   --color-offwhite: #f4f4f4;
-  --color-ink: #0f1a1c;
+  --color-ink: #0b3320;
 
   /* claro */
   --color-pagina: #ebf0e6;
   --color-superficie: #f7f8f5;
   --color-superficie-2: #eef1ea;
-  --color-tinta: #16201a;
+  --color-tinta: #0b3320; /* verde muito escuro no lugar do preto (pedido do usuário, 2026-10-05) */
   --color-tinta-suave: #56635a;
   --color-tinta-fraca: #8a968e;
   --color-ok-claro: #2a6f1e;
@@ -42,6 +42,8 @@
   --color-warn-barra: #d49a1c;
   --color-bad-claro: #b23a26;
   --color-closer-claro: #3f5d8a;
+  /* Fundo dos cards claros (pedido do usuário, 2026-10-05) — substitui o branco do vidro. */
+  --color-creme: #f5f5eb;
 
   /* escuro */
   --color-pagina-escura: #0d1611;
@@ -63,6 +65,13 @@
   /* Termômetro de faturamento da Geral: frio (gelo) e quente (fogo). O médio usa --color-warn-barra. */
   --color-gelo: #3b8fd6;
   --color-fogo: #ef6c1a;
+  /* Partículas do termômetro: quase brancas, só puxadas pro azul / laranja. */
+  --color-gelo-claro: #e6f2fc;
+  --color-fogo-claro: #fde6d6;
+
+  /* Fundos pastel dos cards da Geral (pedido do usuário, 2026-10-05) — ver .card-pastel. */
+  --color-pastel-verde: #d7ecc9;
+  --color-pastel-verde-escuro: #34503c;
 
   /*
    * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
@@ -77,22 +86,27 @@
   --color-accent-ink-rgb: 47 107 31;
   --color-bg-dark-2-rgb: 12 27 31;
   --color-offwhite-rgb: 244 244 244;
-  --color-ink-rgb: 15 26 28;
+  --color-ink-rgb: 11 51 32;
   --color-pagina-rgb: 235 240 230;
   --color-pagina-escura-rgb: 13 22 17;
   --color-superficie-rgb: 247 248 245;
   --color-superficie-escura-rgb: 21 32 25;
-  --color-tinta-rgb: 22 32 26;
+  --color-tinta-rgb: 11 51 32;
   --color-tinta-escura-rgb: 230 236 228;
   --color-ok-claro-rgb: 42 111 30;
   --color-warn-barra-rgb: 212 154 28;
   --color-bad-claro-rgb: 178 58 38;
   --color-closer-claro-rgb: 63 93 138;
+  --color-creme-rgb: 245 245 235;
   --color-closer-escuro-rgb: 157 181 220;
   --color-perigo-dark-rgb: 242 139 130;
   --color-atencao-dark-rgb: 242 201 76;
   --color-gelo-rgb: 59 143 214;
   --color-fogo-rgb: 239 108 26;
+  --color-gelo-claro-rgb: 230 242 252;
+  --color-fogo-claro-rgb: 253 230 214;
+  --color-pastel-verde-rgb: 215 236 201;
+  --color-pastel-verde-escuro-rgb: 52 80 60;
 
   /* semânticos do redesign — tema claro (default) */
   --page-bg: var(--color-pagina);
@@ -132,8 +146,9 @@
    * translúcido + reflexo na borda de cima + sombra difusa, SEM blur: o
    * backdrop-filter em dezenas de cards é o que pesava na TV.
    */
-  --glass-bg: rgb(var(--surface-rgb) / 66%);
-  --glass-bg-2: rgb(var(--surface-rgb) / 46%);
+  /* Sólido: translúcido, o fundo esverdeado da página mudava o tom pedido. */
+  --glass-bg: var(--color-creme);
+  --glass-bg-2: var(--color-creme);
   --glass-border: rgb(var(--color-offwhite-rgb) / 70%);
   --glass-brilho: rgb(var(--color-offwhite-rgb) / 85%);
   --glass-sombra: 0 10px 34px -14px rgb(var(--color-tinta-rgb) / 22%), 0 2px 6px -2px rgb(var(--color-tinta-rgb) / 8%);
@@ -244,6 +259,8 @@
   --color-closer-bg: var(--closer-bg);
   --color-gelo: var(--gelo);
   --color-fogo: var(--fogo);
+  --color-gelo-claro: var(--color-gelo-claro);
+  --color-fogo-claro: var(--color-fogo-claro);
   /* Meta 0/sem cadastro = métrica "aberta" pra pessoa: barra cheia em azul. */
   --color-aberta: var(--closer);
   --radius-card: 24px;
@@ -337,6 +354,7 @@ body {
   box-shadow:
     inset 0 1px 0 rgb(var(--color-offwhite-rgb) / 14%),
     var(--glass-sombra);
+  color: var(--color-tinta-escura);
 
   /*
    * Card escuro com ritmo (os KPIs da Geral): o fundo é escuro nos dois temas,
@@ -355,6 +373,63 @@ body {
   --color-bad-bg: rgb(var(--color-perigo-dark-rgb) / 14%);
   --color-closer: var(--color-closer-escuro);
   --color-closer-bg: rgb(var(--color-closer-escuro-rgb) / 14%);
+  --color-aberta: var(--color-closer-escuro);
+}
+
+/*
+ * Card pastel da Geral (pedido do usuário, 2026-10-05): o tom vem do
+ * modificador (.pastel-*). O fundo é o mesmo nos dois temas, então texto e
+ * status usam sempre a mesma paleta: a do claro no pastel claro, com chip
+ * esbranquiçado; a do escuro no pastel escuro, com chip escurecido.
+ */
+.card-pastel {
+  background: linear-gradient(160deg, rgb(var(--pastel-rgb)), rgb(var(--pastel-rgb) / 90%));
+  border: 1px solid rgb(var(--color-offwhite-rgb) / 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--color-offwhite-rgb) / 60%),
+    var(--glass-sombra);
+  color: var(--color-tinta);
+
+  --color-fg: var(--color-tinta);
+  --color-muted: rgb(var(--color-tinta-rgb) / 75%);
+  --color-track: rgb(var(--color-tinta-rgb) / 12%);
+  --color-sdr: var(--color-accent-ink);
+  --color-ok: var(--color-ok-claro);
+  --color-ok-bg: rgb(var(--color-offwhite-rgb) / 65%);
+  --color-warn: var(--color-warn-claro);
+  --color-warn-bg: rgb(var(--color-offwhite-rgb) / 65%);
+  --color-bad: var(--color-bad-claro);
+  --color-bad-bg: rgb(var(--color-offwhite-rgb) / 65%);
+  --color-closer: var(--color-closer-claro);
+  --color-closer-bg: rgb(var(--color-offwhite-rgb) / 65%);
+  --color-aberta: var(--color-closer-claro);
+}
+
+.pastel-verde {
+  --pastel-rgb: var(--color-pastel-verde-rgb);
+}
+
+/*
+ * Faturamento, Liquidado e Termômetro. Contraste sobre #34503c: o
+ * --color-tinta-suave-escura dava 3.4:1, offwhite translúcido passa de 4.5; o
+ * vermelho de "muito atrás" só passa com o chip escurecido.
+ */
+.pastel-verde-escuro {
+  --pastel-rgb: var(--color-pastel-verde-escuro-rgb);
+  border-color: rgb(var(--color-accent-rgb) / 22%);
+  color: var(--color-tinta-escura);
+
+  --color-fg: var(--color-tinta-escura);
+  --color-muted: rgb(var(--color-offwhite-rgb) / 85%);
+  --color-track: rgb(var(--color-tinta-escura-rgb) / 18%);
+  --color-ok: var(--color-accent);
+  --color-ok-bg: rgb(var(--color-ink-rgb) / 35%);
+  --color-warn: var(--color-atencao-dark);
+  --color-warn-bg: rgb(var(--color-ink-rgb) / 35%);
+  --color-bad: var(--color-perigo-dark);
+  --color-bad-bg: rgb(var(--color-ink-rgb) / 35%);
+  --color-closer: var(--color-closer-escuro);
+  --color-closer-bg: rgb(var(--color-ink-rgb) / 35%);
   --color-aberta: var(--color-closer-escuro);
 }
 
@@ -571,6 +646,8 @@ body {
 .termometro-particula {
   position: absolute;
   pointer-events: none;
+  /* Partícula quase branca: o halo na cor da temperatura é o que a destaca do pastel. */
+  filter: drop-shadow(0 0 3px rgb(var(--halo-rgb, var(--color-gelo-rgb)) / 55%));
 }
 
 @keyframes cair-neve {

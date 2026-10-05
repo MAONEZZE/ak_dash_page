@@ -12,11 +12,15 @@ export function temperatura(pct: number): Temperatura {
   return "quente";
 }
 
-const VISUAL: Record<Temperatura, { rotulo: string; preenchimento: string; texto: string; rgb: string }> = {
-  frio: { rotulo: "Frio", preenchimento: "bg-gelo", texto: "text-gelo", rgb: "var(--color-gelo-rgb)" },
-  medio: { rotulo: "Esquentando", preenchimento: "bg-warn-bar", texto: "text-warn", rgb: "var(--color-warn-barra-rgb)" },
-  quente: { rotulo: "Pegando fogo", preenchimento: "bg-fogo", texto: "text-fogo", rgb: "var(--color-fogo-rgb)" },
+const VISUAL: Record<Temperatura, { rotulo: string; preenchimento: string; rgb: string }> = {
+  frio: { rotulo: "Frio", preenchimento: "bg-gelo", rgb: "var(--color-gelo-rgb)" },
+  medio: { rotulo: "Esquentando", preenchimento: "bg-warn-bar", rgb: "var(--color-warn-barra-rgb)" },
+  quente: { rotulo: "Pegando fogo", preenchimento: "bg-fogo", rgb: "var(--color-fogo-rgb)" },
 };
+
+/** Partículas quase brancas; o halo (--halo-rgb, ver .termometro-particula) carrega a cor. */
+const HALO_GELO = { ["--halo-rgb" as string]: "var(--color-gelo-rgb)" };
+const HALO_FOGO = { ["--halo-rgb" as string]: "var(--color-fogo-rgb)" };
 
 const MARCAS = [100, 75, 50, 25, 0];
 
@@ -57,20 +61,20 @@ function estiloParticula([esquerda, atraso, duracao, tamanho]: [number, number, 
 function Cena({ temp }: { temp: Temperatura }) {
   if (temp === "frio") {
     return PARTICULAS.map((p, i) => (
-      <Snowflake key={i} className="termometro-particula neve-caindo top-0 text-gelo" style={estiloParticula(p, "60vh")} aria-hidden />
+      <Snowflake key={i} className="termometro-particula neve-caindo top-0 text-gelo-claro" style={{ ...estiloParticula(p, "60vh"), ...HALO_GELO }} aria-hidden />
     ));
   }
   if (temp === "medio") {
     return PARTICULAS.map((p, i) =>
       i % 2 === 0 ? (
-        <Snowflake key={i} className="termometro-particula neve-derretendo top-0 text-gelo" style={estiloParticula(p, "50vh")} aria-hidden />
+        <Snowflake key={i} className="termometro-particula neve-derretendo top-0 text-gelo-claro" style={{ ...estiloParticula(p, "50vh"), ...HALO_GELO }} aria-hidden />
       ) : (
-        <Droplet key={i} className="termometro-particula gota-pingando top-[20%] text-gelo" style={estiloParticula(p, "45vh")} aria-hidden />
+        <Droplet key={i} className="termometro-particula gota-pingando top-[20%] text-gelo-claro" style={{ ...estiloParticula(p, "45vh"), ...HALO_GELO }} aria-hidden />
       ),
     );
   }
   return PARTICULAS.map((p, i) => (
-    <Flame key={i} className="termometro-particula chama-subindo bottom-0 text-fogo" style={estiloParticula([p[0], p[1] / 2, p[2] / 2, p[3] + 6], "40vh")} aria-hidden />
+    <Flame key={i} className="termometro-particula chama-subindo bottom-0 text-fogo-claro" style={{ ...estiloParticula([p[0], p[1] / 2, p[2] / 2, p[3] + 6], "40vh"), ...HALO_FOGO }} aria-hidden />
   ));
 }
 
@@ -85,7 +89,7 @@ const ICONE_BULBO: Record<Temperatura, typeof Flame> = { frio: Snowflake, medio:
 export function Termometro({ dado }: { dado: DadoTermometro | null }) {
   if (!dado || dado.meta <= 0) {
     return (
-      <article className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col rounded-[24px] p-[clamp(10px,1.4vh,18px)]" aria-label="Termômetro de faturamento">
+      <article className="card-pastel pastel-verde-escuro flex min-h-0 min-w-0 flex-1 flex-col rounded-[24px] p-[clamp(10px,1.4vh,18px)]" aria-label="Termômetro de faturamento">
         <span className="text-[clamp(13px,1.55vh,22px)] font-semibold uppercase leading-none tracking-[0.13em] text-muted">Termômetro</span>
         <p className="mt-2 text-[clamp(13px,1.6vh,24px)] text-muted">Sem dado de faturamento.</p>
       </article>
@@ -100,14 +104,16 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
 
   return (
     <article
-      className="glass-panel relative flex min-h-0 min-w-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] overflow-hidden rounded-[24px] p-[clamp(10px,1.4vh,18px)]"
+      className="card-pastel pastel-verde-escuro relative flex min-h-0 min-w-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] overflow-hidden rounded-[24px] p-[clamp(10px,1.4vh,18px)]"
       aria-label="Termômetro de faturamento"
       data-temperatura={temp}
     >
-      {/* Brilho da temperatura: vem de baixo, onde fica o bulbo. */}
+      {/* Brilho da temperatura no meio do card: quase branco, puxado pra cor da temperatura. */}
       <div
         className={`pointer-events-none absolute inset-0 transition-[background] duration-700 ${temp === "quente" ? "brilho-pulsando" : ""}`}
-        style={{ background: `radial-gradient(120% 70% at 50% 110%, rgb(${visual.rgb} / 30%), transparent 70%)` }}
+        style={{
+          background: `radial-gradient(60% 45% at 50% 50%, rgb(${visual.rgb} / 18%), transparent 100%), radial-gradient(60% 45% at 50% 50%, rgb(var(--color-offwhite-rgb) / 20%), transparent 100%)`,
+        }}
         aria-hidden
       />
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -117,8 +123,7 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
       <div className="relative flex items-center justify-between gap-2">
         <span className="text-[clamp(13px,1.55vh,22px)] font-semibold uppercase leading-none tracking-[0.13em] text-muted">Termômetro</span>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[clamp(11px,1.3vh,18px)] font-bold uppercase leading-none tracking-[0.06em] ${visual.texto}`}
-          style={{ background: `rgb(${visual.rgb} / 16%)` }}
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[clamp(11px,1.3vh,18px)] font-bold uppercase leading-none tracking-[0.06em] text-ink ${visual.preenchimento}`}
         >
           <IconeBulbo className="size-[1.1em]" aria-hidden />
           {visual.rotulo}
@@ -156,7 +161,7 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
           {/* Teto em vw por grade da Geral (1, 2 ou 4 colunas): em 2 colunas estreitas a moeda passava do card. */}
           <span className="font-display text-[clamp(18px,min(3vh,6.5vw),48px)] font-extrabold sm:text-[clamp(18px,min(3vh,3.4vw),48px)] xl:text-[clamp(18px,min(3vh,1.7vw),48px)] leading-none tracking-tight">{formatarMoeda(dado.realizado)}</span>
           <span className="text-[clamp(13px,1.6vh,24px)] font-semibold leading-tight text-muted">de {formatarMoeda(dado.meta)}</span>
-          <span className={`text-[clamp(13px,1.6vh,24px)] font-bold leading-tight ${visual.texto}`}>{Math.round(pct)}% da meta</span>
+          <span className={`text-[clamp(13px,1.6vh,24px)] font-bold leading-tight text-offwhite`}>{Math.round(pct)}% da meta</span>
         </div>
       </div>
     </article>

@@ -144,30 +144,23 @@
       "capacidade": 120,
       "inscritos": 50,
       "aprovados": 30
+    }
+  ],
+  "contas_dripify": [
+    {
+      "conta": "Jacob",
+      "conexoes_aceitas": 40,
+      "numeros_captados": 30
     },
     {
-      "id": "00000000-0000-4000-8000-000000000011",
-      "titulo": "Confraria Akeel 11",
-      "data": "2026-09-23T19:00:00",
-      "capacidade": 120,
-      "inscritos": 47,
-      "aprovados": 28
+      "conta": "Jonathan",
+      "conexoes_aceitas": 36,
+      "numeros_captados": 12
     },
     {
-      "id": "00000000-0000-4000-8000-000000000012",
-      "titulo": "Confraria Akeel 12",
-      "data": "2026-09-24T19:00:00",
-      "capacidade": 120,
-      "inscritos": 44,
-      "aprovados": 26
-    },
-    {
-      "id": "00000000-0000-4000-8000-000000000013",
-      "titulo": "Confraria Akeel 13",
-      "data": "2026-09-24T19:00:00",
-      "capacidade": 120,
-      "inscritos": 41,
-      "aprovados": 24
+      "conta": "Alex",
+      "conexoes_aceitas": 28,
+      "numeros_captados": 9
     }
   ],
   "pessoas": [
@@ -461,7 +454,7 @@
   ],
   "avisos": [],
   "termometro": {
-    "realizado": 1234520.5,
+    "realizado": 199999.5,
     "meta": 380000
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatarDataHoraEvento } from "../src/lib/formato";
+import { formatarDataHoraEvento, formatarDiaMesEvento } from "../src/lib/formato";
 
 // `SED.events.event_date` viaja em UTC. A versão anterior fatiava a string e
 // exibia os dígitos crus, adiantando o horário do card em 3h.
@@ -29,5 +29,11 @@ describe("formatarDataHoraEvento", () => {
 
   it("devolve vazio para valor inválido em vez de quebrar o card", () => {
     expect(formatarDataHoraEvento("nao-e-data")).toBe("");
+  });
+});
+
+describe("formatarDiaMesEvento", () => {
+  it("mostra só dia e mês, no mesmo fuso da data com hora", () => {
+    expect(formatarDiaMesEvento("2026-09-20T19:00:00")).toBe("20/09");
   });
 });

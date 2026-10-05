@@ -59,18 +59,24 @@ describe("Geral — layout da TV", () => {
       ["Inscrições Realizadas", "xl:col-start-3 xl:row-start-1"],
       ["Confrarias do mês", "xl:col-start-3 xl:row-start-2"],
       ["Oportunidade", "xl:col-start-4 xl:row-start-1"],
-      ["Confrarias do mês (cont.)", "xl:col-start-4 xl:row-start-2"],
+      ["Contas Dripify", "xl:col-start-4 xl:row-start-2"],
     ]);
   });
 
-  it("Confrarias em duas tabelas de 10: a 11ª em diante vai pra segunda", async () => {
+  it("Confrarias numa tabela só, de até 10 linhas", async () => {
     montar();
-    const primeira = await screen.findByRole("table", { name: "Confrarias do mês" });
-    const segunda = screen.getByRole("table", { name: "Confrarias do mês (cont.)" });
-    // fixture tem 13 Confrarias (+1 linha de cabeçalho em cada tabela)
-    expect(within(primeira).getAllByRole("row")).toHaveLength(11);
-    expect(within(segunda).getAllByRole("row")).toHaveLength(4);
-    expect(within(primeira).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Data", "Inscritos", "Aprovados"]);
+    const tabela = await screen.findByRole("table", { name: "Confrarias do mês" });
+    // fixture tem 10 Confrarias (+1 linha de cabeçalho)
+    expect(within(tabela).getAllByRole("row")).toHaveLength(11);
+    expect(screen.queryByRole("table", { name: "Confrarias do mês (cont.)" })).toBeNull();
+  });
+
+  it("Contas Dripify: uma linha por conta com conexões aceitas e números captados", async () => {
+    montar();
+    const tabela = await screen.findByRole("table", { name: "Contas Dripify" });
+    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Conta", "Conexões Aceitas", "Números Captados"]);
+    const [, jacob] = within(tabela).getAllByRole("row");
+    expect(within(jacob).getAllByRole("cell").map((c) => c.textContent)).toEqual(["Jacob", "40", "30"]);
   });
 
   it("um ranking por cargo, sem botão de troca", async () => {

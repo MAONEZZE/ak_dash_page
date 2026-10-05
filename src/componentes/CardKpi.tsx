@@ -33,8 +33,10 @@ interface CardKpiProps {
    * "Esperado hoje N · Projeção N (P%)". Substitui `pct`/`legenda`.
    */
   ritmo?: { realizado: number; meta: number | null; dias: DiasUteis };
-  /** Variante escura (fundo `--color-bg-dark-2`) — linha de faturamento da Geral. */
+  /** Variante escura (fundo `--color-bg-dark-2`). */
   variante?: "claro" | "escuro";
+  /** Classe de tom pastel (`pastel-verde`, `pastel-verde-escuro`) — card pastel da Geral. O fundo é o do pastel; `variante` só decide se o texto é claro. */
+  pastel?: string;
   /**
    * "compacto" — card fluido dos 8 KPIs da Geral. O número fica logo abaixo do
    * título (vão curto e limitado) e a barra+legenda descem pro pé do card; a
@@ -75,6 +77,7 @@ export function CardKpi({
   variante = "claro",
   tamanho = "normal",
   destaque = false,
+  pastel,
 }: CardKpiProps) {
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
@@ -85,11 +88,11 @@ export function CardKpi({
 
   return (
     <article
-      className={`flex flex-col overflow-hidden rounded-[24px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${escuro ? "glass-panel-escuro" : "glass-panel"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${pastel ? `card-pastel ${pastel}` : escuro ? "glass-panel-escuro" : "glass-panel"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
-          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/74" : "text-muted"}`}
+          className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/85" : "text-muted"}`}
         >
           {label}
         </span>
@@ -111,7 +114,7 @@ export function CardKpi({
         </span>
         {(meta !== undefined || semMeta) && (
           <span
-            className={`whitespace-nowrap font-semibold leading-none ${compacto ? CARD_COMPACTO_META : "text-[19px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}
+            className={`whitespace-nowrap font-semibold leading-none ${compacto ? CARD_COMPACTO_META : "text-[19px]"} ${escuro ? "text-offwhite/80" : "text-muted"}`}
           >
             / {semMeta ? "0" : meta}
           </span>
@@ -148,7 +151,7 @@ export function CardKpi({
         <div className={`${CARD_COMPACTO_RODAPE_FIXO} ${CARD_COMPACTO_BARRA}`} aria-hidden="true" />
       ) : indisponivel || pct === null ? (
         <span
-          className={`font-semibold ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}
+          className={`font-semibold ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "text-[17px]"} ${escuro ? "text-offwhite/80" : "text-muted"}`}
         >
           {legenda}
         </span>
@@ -157,7 +160,7 @@ export function CardKpi({
           <div className={`overflow-hidden rounded-full ${compacto ? CARD_COMPACTO_BARRA : "h-[5px]"} ${escuro ? "bg-[rgb(var(--color-offwhite-rgb)/18%)]" : "bg-progress-track"}`}>
             <div className={`h-full rounded-full ${escuro ? "bg-accent" : "bg-accent-fg"}`} style={{ width: `${largura}%` }} />
           </div>
-          <span className={`font-semibold ${compacto ? CARD_COMPACTO_LEGENDA : "text-[17px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}>
+          <span className={`font-semibold ${compacto ? CARD_COMPACTO_LEGENDA : "text-[17px]"} ${escuro ? "text-offwhite/80" : "text-muted"}`}>
             {legenda}
           </span>
         </div>

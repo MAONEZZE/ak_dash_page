@@ -19,12 +19,11 @@ const TOKENS_PERMITIDOS = new Set([
   "#2f6b1f",
   "#0c1b1f",
   "#f4f4f4",
-  "#0f1a1c",
+  "#0b3320",
   // claro
   "#ebf0e6",
   "#f7f8f5",
   "#eef1ea",
-  "#16201a",
   "#56635a",
   "#8a968e",
   "#2a6f1e",
@@ -32,6 +31,7 @@ const TOKENS_PERMITIDOS = new Set([
   "#d49a1c",
   "#b23a26",
   "#3f5d8a",
+  "#f5f5eb",
   // escuro
   "#0d1611",
   "#152019",
@@ -47,6 +47,11 @@ const TOKENS_PERMITIDOS = new Set([
   // termômetro de faturamento da Geral: frio e quente
   "#3b8fd6",
   "#ef6c1a",
+  "#e6f2fc",
+  "#fde6d6",
+  // fundos pastel da Geral
+  "#d7ecc9",
+  "#34503c",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 
