@@ -67,16 +67,25 @@ describe("agregarPorMetrica", () => {
     expect(x.pct).toBeNull();
   });
 
-  it("meta do time fica null quando só parte do time tem meta — nunca o realizado de todos contra a meta de alguns", () => {
-    // Mesma regra do BFF (`Metas.somar`, cards da Geral): somar 100 de meta
-    // contra 160 de realizado de duas pessoas diria "meta batida" quando só uma
-    // delas é cobrada.
+  it("meta do time soma só quem tem meta; o realizado soma todo mundo", () => {
+    // Decisão do usuário (2026-10-05): quem está sem meta continua aparecendo
+    // no realizado do time; o card só fica sem meta se ninguém tiver meta.
     const pessoas = [
       pessoa({ metricas: [metrica({ metrica: "x", status: "abaixo_da_meta", meta_periodo: 100, realizado: 60 })] }),
       pessoa({ metricas: [metrica({ metrica: "x", status: "sem_meta", meta_periodo: null, realizado: 100 })] }),
+      pessoa({ metricas: [metrica({ metrica: "x", status: "sem_meta", meta_periodo: 0, realizado: 5 })] }),
     ];
     const [x] = agregarPorMetrica(pessoas);
-    expect(x.realizado).toBe(160);
+    expect(x.realizado).toBe(165);
+    expect(x.meta).toBe(100);
+  });
+
+  it("meta do time fica null quando ninguém tem meta (null ou 0)", () => {
+    const pessoas = [
+      pessoa({ metricas: [metrica({ metrica: "x", status: "sem_meta", meta_periodo: null, realizado: 10 })] }),
+      pessoa({ metricas: [metrica({ metrica: "x", status: "sem_meta", meta_periodo: 0, realizado: 5 })] }),
+    ];
+    const [x] = agregarPorMetrica(pessoas);
     expect(x.meta).toBeNull();
     expect(x.pct).toBeNull();
   });

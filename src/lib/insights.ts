@@ -9,9 +9,9 @@ export interface MetricaAgregada {
   metrica: string;
   nomeExibicao: string;
   /**
-   * null quando QUALQUER pessoa está sem meta cadastrada pra essa métrica —
-   * nunca 0, nunca a meta de parte do time contra o realizado do time inteiro
-   * (mesma regra de `Metas.somar` no BFF, que monta os cards da Geral).
+   * Soma das metas de quem TEM meta (> 0); o realizado soma o time inteiro.
+   * null só quando ninguém tem meta. Mesma regra de `Metas.somar` no BFF, que
+   * monta os cards da Geral (decisão do usuário, 2026-10-05).
    */
   meta: number | null;
   realizado: number;
@@ -29,7 +29,7 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
     {
       nomeExibicao: string;
       meta: number;
-      faltaMeta: boolean;
+      temMeta: boolean;
       realizado: number;
       lancadas: number;
       total: number;
@@ -42,7 +42,7 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
       const atual = acumulado.get(metrica.metrica) ?? {
         nomeExibicao: metrica.nome_exibicao,
         meta: 0,
-        faltaMeta: false,
+        temMeta: false,
         realizado: 0,
         lancadas: 0,
         total: 0,
@@ -54,8 +54,10 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
         atual.realizado += metrica.realizado;
         atual.lancadas += 1;
       }
-      if (metrica.meta_periodo === null) atual.faltaMeta = true;
-      else atual.meta += metrica.meta_periodo;
+      if (metrica.meta_periodo !== null && metrica.meta_periodo > 0) {
+        atual.meta += metrica.meta_periodo;
+        atual.temMeta = true;
+      }
       acumulado.set(metrica.metrica, atual);
     }
   }
@@ -63,12 +65,12 @@ export function agregarPorMetrica(pessoas: PessoaComercial[]): MetricaAgregada[]
   return Array.from(acumulado.entries()).map(([metrica, v]) => ({
     metrica,
     nomeExibicao: v.nomeExibicao,
-    meta: v.faltaMeta ? null : v.meta,
+    meta: v.temMeta ? v.meta : null,
     realizado: v.realizado,
     lancadas: v.lancadas,
     total: v.total,
     diasComLacuna: v.diasComLacuna,
-    pct: !v.faltaMeta && v.lancadas > 0 && v.meta > 0 ? v.realizado / v.meta : null,
+    pct: v.temMeta && v.lancadas > 0 ? v.realizado / v.meta : null,
   }));
 }
 

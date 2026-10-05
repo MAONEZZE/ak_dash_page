@@ -178,14 +178,14 @@ describe("página Comercial", () => {
     expect(within(fups).getByRole("progressbar")).toBeTruthy();
   });
 
-  it("card com meta em só parte do time não compara o realizado de todos contra a meta de alguns", async () => {
-    // Padrão: o Zé lança 3 follow-ups e não tem meta. Somar 38 de realizado
-    // contra 40 de meta (só 4 pessoas) inflaria o ritmo do time.
+  it("card do time soma a meta de quem tem meta e o realizado de todo mundo", async () => {
+    // Padrão: o Zé lança 3 follow-ups e não tem meta — os 3 entram no realizado
+    // (38) e a meta é a dos outros 4 (40). Decisão do usuário, 2026-10-05.
     await carregada();
     const fups = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
     expect(fups.textContent).toContain("38");
-    expect(fups.textContent).not.toContain("/ 40");
-    expect(fups.textContent).toContain("Nenhuma meta definida no período");
+    expect(fups.textContent).toContain("/ 40");
+    expect(fups.textContent).not.toContain("Nenhuma meta definida no período");
   });
 
   it("card sem meta em ninguém diz que não há meta", async () => {
