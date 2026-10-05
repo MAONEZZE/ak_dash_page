@@ -1,3 +1,4 @@
+import { AvisoFontes } from "../componentes/AvisoFontes";
 import { useCallback, useEffect, useState } from "react";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
@@ -73,7 +74,7 @@ function tabelaComTotal(linhas: LinhaAgrupada[]): { linhas: LinhaAgrupada[]; tot
 function Esqueleto() {
   return (
     <div className="flex flex-col gap-5">
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <CardEsqueleto key={i} className="min-h-[168px]" />
         ))}
@@ -102,7 +103,8 @@ export function Financeiro() {
   // recorte pra dia/semana/mês/ano acontece em memória (ver `limitesPeriodo`
   // e as agregações abaixo). Isso é o que sustenta o card 4 (YTD) e a série
   // mensal sem uma segunda requisição.
-  const anoAlvo = granularidade === "ano" ? periodo : periodo.slice(0, 4);
+  // No Customizado (`inicio..fim`) vale o ano do fim — é ele que fecha o YTD.
+  const anoAlvo = granularidade === "ano" ? periodo : granularidade === "custom" ? limitesPeriodo(granularidade, periodo).fim.slice(0, 4) : periodo.slice(0, 4);
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
@@ -175,7 +177,8 @@ export function Financeiro() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <AvisoFontes avisos={estado.dado.avisos} />
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CardKpi label="Contrato bruto vendido" value={formatarMoeda(totais.vendido)} pct={null} legenda={LEGENDA_SEM_META} />
         <CardKpi label="Recebimento bruto" value={formatarMoeda(totais.pago)} pct={null} legenda={LEGENDA_SEM_META} />
         <CardKpi label="Liquidou na conta" value={formatarMoeda(totais.liquido)} pct={null} legenda={LEGENDA_SEM_META} />
@@ -190,7 +193,7 @@ export function Financeiro() {
         * batia com a linha de baixo.
         */}
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-        <article className="glass-panel flex min-w-0 flex-col gap-4 rounded-[18px] px-[21px] pb-3 pt-[19px] lg:col-span-2">
+        <article className="glass-panel flex min-w-0 flex-col gap-4 rounded-[24px] px-[21px] pb-3 pt-[19px] lg:col-span-2">
           <GraficoLinhasFinanceiro
             titulo="Vendido"
             series={[{ rotulo: "Vendido", valores: serie.map((p) => p.vendido), cor: "brand" }]}

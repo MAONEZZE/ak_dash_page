@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { CardEventoRotativo } from "../componentes/CardEventoRotativo";
 import { CardKpi } from "../componentes/CardKpi";
 import { RankingPodio } from "../componentes/RankingPodio";
-import { TabelaPessoas } from "../componentes/TabelaPessoas";
+import { EVENTOS_POR_TABELA, TabelaEventos } from "../componentes/TabelaEventos";
+import { Termometro } from "../componentes/Termometro";
 import { buscarGeral } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarMoeda, formatarNumero, METRICAS_EM_MOEDA } from "../lib/formato";
@@ -13,15 +14,40 @@ import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
-const GRADE_CARDS = "grid min-h-0 flex-auto auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
 /**
- * 5 cards claros numa linha só no desktop. As duas faixas usam `flex-auto`
- * (base = conteúdo) e não `flex-1`: meio a meio, a faixa clara (rótulo em duas
- * linhas + chip + barra + legenda) não cabia em 1920×1080 — ver tests/geral-tv.test.tsx.
+ * Uma grade de 4 colunas × 4 linhas (decisão do usuário, 2026-10-05):
+ *
+ *   Faturamento  | Reuniões Agendadas  | Inscrições Realizadas | Oportunidade
+ *   Liquidado    | Ligações Realizadas | Confrarias (1–10)     | Confrarias (11–20)
+ *   Termômetro   | Ranking SDR         |        ↓              |        ↓
+ *        ↓       | Ranking Closer      |        ↓              |        ↓
+ *
+ * As duas primeiras linhas têm a altura dos cards (tipografia em vh) e as duas
+ * últimas dividem o resto da tela — é o que alinha os cards entre colunas e
+ * deixa cada ranking com metade do que sobra. Na TV (1920×1080) a página
+ * inteira cabe sem rolagem. Abaixo de xl a posição explícita some e os itens
+ * empilham na ordem do DOM: coluna 1, 2, 3, 4.
  */
-const GRADE_CARDS_CLAROS = "grid min-h-0 flex-auto auto-rows-[minmax(0,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5";
-const GRADE_RODAPE =
-  "grid shrink-0 grid-cols-1 items-stretch gap-2 sm:grid-cols-3 lg:grid-cols-4";
+const GRADE = "grid grid-cols-1 gap-2 sm:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-4 xl:grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)]";
+const POSICAO = {
+  faturamento: "xl:col-start-1 xl:row-start-1",
+  liquidado: "xl:col-start-1 xl:row-start-2",
+  termometro: "xl:col-start-1 xl:row-start-3 xl:row-span-2",
+  reunioes_agendadas: "xl:col-start-2 xl:row-start-1",
+  ligacoes_realizadas: "xl:col-start-2 xl:row-start-2",
+  ranking_sdr: "xl:col-start-2 xl:row-start-3",
+  ranking_closer: "xl:col-start-2 xl:row-start-4",
+  inscricoes_realizadas: "xl:col-start-3 xl:row-start-1",
+  eventos_1: "xl:col-start-3 xl:row-start-2 xl:row-span-3",
+  oportunidade: "xl:col-start-4 xl:row-start-1",
+  eventos_2: "xl:col-start-4 xl:row-start-2 xl:row-span-3",
+} as const;
+/** Abaixo de xl a página rola: tabela, ranking e termômetro ganham altura mínima própria. */
+const ALTURA_MOBILE = "min-h-[480px] xl:min-h-0";
+const ALTURA_MOBILE_RANKING = "min-h-[300px] xl:min-h-0";
+
+/** KPIs com meta que também usam o fundo escuro do Faturamento (decisão do usuário, 2026-10-05). */
+const CARDS_ESCUROS_COM_META = new Set(["reunioes_agendadas", "ligacoes_realizadas", "inscricoes_realizadas", "oportunidade"]);
 
 interface EstadoGeral {
   dado: RespostaGeral | null;
@@ -37,43 +63,24 @@ function valorCard(c: CardGeral): string {
 }
 
 function metaCard(c: CardGeral): string {
-  if (c.meta === null) return "—";
+  if (c.meta === null) return "0";
   return METRICAS_EM_MOEDA.has(c.metrica) ? formatarMoeda(c.meta) : formatarNumero(c.meta);
 }
 
-/**
- * Reconstrução da página Geral: 9 cards (2 escuros de faturamento + 2 escuros
- * dos próximos eventos + 5 claros de métricas), tabela de 7 pessoas e dois
- * pódios (SDR/Closer). Cabe numa tela só, sem rolagem: a linha de baixo
- * (tabela + pódios) fica na altura mínima do conteúdo e as duas linhas de card
- * dividem entre si todo o resto da tela — por isso a tipografia dos cards é em
- * vh, pra crescer junto.
- */
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
 function Esqueleto() {
   return (
-    <>
-      <section className={GRADE_CARDS}>
-        {Array.from({ length: 4 }, (_, i) => (
-          <CardEsqueleto key={i} className="h-full min-h-[104px]" />
-        ))}
-      </section>
-      <section className={GRADE_CARDS_CLAROS}>
-        {Array.from({ length: 5 }, (_, i) => (
-          <CardEsqueleto key={i} className="h-full min-h-[104px]" />
-        ))}
-      </section>
-      <section className={GRADE_RODAPE}>
-        <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-3">
-          <CardEsqueleto className="h-full" />
-        </div>
-        <div className="flex min-h-0 min-w-0 flex-col gap-2">
-          <CardEsqueleto className="flex-1" />
-          <CardEsqueleto className="flex-1" />
-        </div>
-      </section>
-    </>
+    <section className={GRADE}>
+      {Object.entries(POSICAO).map(([chave, posicao]) => (
+        <CardEsqueleto key={chave} className={`h-full min-h-[104px] ${posicao}`} />
+      ))}
+    </section>
   );
+}
+
+/** Wrapper de posição na grade: o filho estica até a célula inteira. */
+function Celula({ posicao, className = "", children }: { posicao: string; className?: string; children: ReactNode }) {
+  return <div className={`flex min-w-0 flex-col *:flex-1 ${posicao} ${className}`}>{children}</div>;
 }
 
 export function Geral() {
@@ -108,7 +115,7 @@ export function Geral() {
     return () => clearInterval(id);
   }, [carregar]);
 
-  const { destaques } = useSomDeAumento({ pessoas: estado.dado?.pessoas, granularidade, periodo });
+  useSomDeAumento({ pessoas: estado.dado?.pessoas, granularidade, periodo });
   // Inscritos/Aprovados têm som próprio (arquivos .wav) e não dependem do período da página.
   useSomDeEvento(estado.dado?.eventos);
 
@@ -118,21 +125,37 @@ export function Geral() {
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar]);
 
-  const cardsEscuros = estado.dado?.cards.filter((c) => c.escuro) ?? [];
-  // Inscritos/Aprovados não são card de período: giram entre os próximos eventos.
+  const cards = estado.dado?.cards ?? [];
   const eventos = estado.dado?.eventos ?? [];
-  const cardsClaros = estado.dado?.cards.filter((c) => !c.escuro) ?? [];
+  const pessoas = estado.dado?.pessoas ?? [];
   const diasUteis = estado.dado?.dias_uteis ?? { decorridos: 0, total: 0 };
-  const sdrs = estado.dado?.pessoas.filter((p) => p.cargo === "sdr") ?? [];
-  const closers = estado.dado?.pessoas.filter((p) => p.cargo === "closer") ?? [];
+
+  function card(metrica: keyof typeof POSICAO) {
+    const c = cards.find((x) => x.metrica === metrica);
+    if (!c) return null;
+    return (
+      <Celula key={metrica} posicao={POSICAO[metrica]}>
+        {c.escuro ? (
+          <CardKpi variante="escuro" tamanho="compacto" destaque label={c.nome_exibicao} value={valorCard(c)} pct={null} legenda="" />
+        ) : (
+          <CardKpi
+            variante={CARDS_ESCUROS_COM_META.has(metrica) ? "escuro" : "claro"}
+            tamanho="compacto"
+            label={c.nome_exibicao}
+            value={valorCard(c)}
+            meta={metaCard(c)}
+            ritmo={{ realizado: c.realizado ?? 0, meta: c.meta, dias: diasUteis }}
+          />
+        )}
+      </Celula>
+    );
+  }
 
   // Esqueleto/erro só tomam a tela inteira enquanto não há `dado` nenhum
-  // (primeira carga) — mesmo guard da Financeiro e da Comercial. Depois disso a
-  // tela continua mostrando os últimos dados bons até os novos chegarem: uma
-  // troca de filtro ou um refresh de 60s que falhou não troca o dashboard por
-  // uma linha de texto de erro.
+  // (primeira carga). Depois disso a tela continua mostrando os últimos dados
+  // bons até os novos chegarem.
   return (
-    <div className="flex h-full flex-col gap-2 overflow-hidden">
+    <div className="flex flex-col gap-2 xl:h-full xl:overflow-hidden">
       {estado.carregando && !estado.dado ? (
         <Esqueleto />
       ) : estado.erro && !estado.dado ? (
@@ -141,49 +164,37 @@ export function Geral() {
         </p>
       ) : (
         <>
-          <section className={GRADE_CARDS}>
-            {cardsEscuros.map((c) => (
-              <CardKpi
-                key={c.metrica}
-                variante="escuro"
-                tamanho="compacto"
-                destaque
-                label={c.nome_exibicao}
-                value={valorCard(c)}
-                pct={null}
-                legenda=""
-              />
-            ))}
-            <CardEventoRotativo label="Inscritos" campo="inscritos" eventos={eventos} />
-            <CardEventoRotativo label="Aprovados" campo="aprovados" eventos={eventos} />
-          </section>
+          <AvisoFontes avisos={estado.dado?.avisos} />
+          {/* Ordem do DOM = ordem no celular: coluna 1, 2, 3, 4. */}
+          <section className={GRADE} aria-label="Visão geral">
+            {card("faturamento")}
+            {card("liquidado")}
+            <Celula posicao={POSICAO.termometro} className={ALTURA_MOBILE}>
+              <Termometro dado={estado.dado?.termometro ?? null} />
+            </Celula>
 
-          <section className={GRADE_CARDS_CLAROS}>
-            {cardsClaros.map((c) => (
-              <CardKpi
-                key={c.metrica}
-                tamanho="compacto"
-                label={c.nome_exibicao}
-                value={valorCard(c)}
-                meta={metaCard(c)}
-                ritmo={{ realizado: c.realizado ?? 0, meta: c.meta, dias: diasUteis }}
-              />
-            ))}
-          </section>
+            {card("reunioes_agendadas")}
+            {card("ligacoes_realizadas")}
+            <Celula posicao={POSICAO.ranking_sdr} className={ALTURA_MOBILE_RANKING}>
+              <RankingPodio cargo="sdr" pessoas={pessoas} />
+            </Celula>
+            <Celula posicao={POSICAO.ranking_closer} className={ALTURA_MOBILE_RANKING}>
+              <RankingPodio cargo="closer" pessoas={pessoas} />
+            </Celula>
 
-          {/*
-            * Rodapé com a altura exata do conteúdo (shrink-0): tabela sem
-            * scroll e pódio sem cortar a linha de pts. Quem cede altura em
-            * tela baixa são as grades de cards acima (min-h-0 + linhas 1fr).
-            */}
-          <section className={GRADE_RODAPE}>
-            <div className="min-h-0 min-w-0 sm:col-span-2 lg:col-span-3">
-              <TabelaPessoas pessoas={estado.dado?.pessoas ?? []} destaques={destaques} dias={diasUteis} />
-            </div>
-            <div className="flex min-h-0 min-w-0 flex-col gap-2">
-              <RankingPodio titulo="Ranking SDR" pessoas={sdrs} />
-              <RankingPodio titulo="Ranking Closer" pessoas={closers} />
-            </div>
+            {card("inscricoes_realizadas")}
+            <Celula posicao={POSICAO.eventos_1} className={ALTURA_MOBILE}>
+              <TabelaEventos titulo="Confrarias do mês" eventos={eventos.slice(0, EVENTOS_POR_TABELA)} vazio="Nenhuma Confraria neste mês." />
+            </Celula>
+
+            {card("oportunidade")}
+            <Celula posicao={POSICAO.eventos_2} className={ALTURA_MOBILE}>
+              <TabelaEventos
+                titulo="Confrarias do mês (cont.)"
+                eventos={eventos.slice(EVENTOS_POR_TABELA, EVENTOS_POR_TABELA * 2)}
+                vazio="Sem mais Confrarias."
+              />
+            </Celula>
           </section>
         </>
       )}

@@ -15,7 +15,7 @@ function pessoa(id: number, rotulo: string, pontuacao: number, posicao: number):
 
 describe("RankingPodio", () => {
   it("mostra a pontuação com separador de milhar pt-BR", () => {
-    render(<RankingPodio titulo="Ranking SDR" pessoas={[pessoa(1, "Nathan", 1230, 1), pessoa(2, "Jennifer", 980, 2)]} />);
+    render(<RankingPodio cargo="sdr" pessoas={[pessoa(1, "Nathan", 1230, 1), pessoa(2, "Jennifer", 980, 2)]} />);
 
     expect(screen.getByText("1.230 pts")).toBeTruthy();
     expect(screen.getByText("980 pts")).toBeTruthy();

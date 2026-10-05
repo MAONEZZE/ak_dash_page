@@ -54,7 +54,7 @@ export function TabelaAgrupada({ titulo, colunaRotulo, linhas, colunas, total, t
   const e = ESCALA[tamanho];
 
   return (
-    <article className={`glass-panel flex min-h-0 w-full min-w-0 flex-col gap-2 rounded-[18px] ${e.painel}`}>
+    <article className={`glass-panel flex min-h-0 w-full min-w-0 flex-col gap-2 rounded-[24px] ${e.painel}`}>
       <span className={`font-semibold uppercase leading-none tracking-[0.13em] text-muted ${e.titulo}`}>{titulo}</span>
       {/* Tabela larga em tela estreita rola na horizontal dentro do card, sem empurrar a página. */}
       <div className="flex min-w-0 flex-1 flex-col overflow-x-auto">

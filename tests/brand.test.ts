@@ -44,6 +44,9 @@ const TOKENS_PERMITIDOS = new Set([
   "#b3261e",
   "#f28b82",
   "#f2c94c",
+  // termômetro de faturamento da Geral: frio e quente
+  "#3b8fd6",
+  "#ef6c1a",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 

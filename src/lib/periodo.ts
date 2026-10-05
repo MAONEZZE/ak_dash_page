@@ -42,8 +42,11 @@ export function paraPeriodo(granularidade: Granularidade, data: Date): string {
   if (granularidade === "dia") return `${ano}-${mes}-${dia}`;
   if (granularidade === "semana") return semanaIso(data);
   if (granularidade === "mes") return `${ano}-${mes}`;
+  if (granularidade === "custom") return `${ano}-${mes}-01..${ano}-${mes}-${dia}`;
   return `${ano}`;
 }
+
+const INTERVALO_VALIDO = /^\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/;
 
 function dataDoDia(dia: string): Date {
   const [ano, mes, d] = dia.split("-").map(Number);
@@ -94,13 +97,18 @@ function usePeriodoCorrente(granularidade: Granularidade): string {
  * Em MÊS a regra se inverte: a Financeiro ganhou navegação de mês passado
  * (pill `‹ Setembro 2026 ›`, ver `useNavegarMes`), então um `periodo` na URL
  * agora É respeitado — com fallback pro mês corrente quando ausente.
+ *
+ * CUSTOM é um intervalo escolhido no calendário (`AAAA-MM-DD..AAAA-MM-DD`) e
+ * também vem da URL; sem ele (ou mal formado), cai no mês corrente até hoje.
  */
 export function useFiltrosAtuais(): { granularidade: Granularidade; periodo: string } {
   const [params] = useSearchParams();
   const granularidade = (params.get("granularidade") as Granularidade | null) ?? "mes";
   const periodoCorrente = usePeriodoCorrente(granularidade);
   const periodoUrl = params.get("periodo");
-  const periodo = granularidade === "mes" && periodoUrl ? periodoUrl : periodoCorrente;
+  let periodo = periodoCorrente;
+  if (granularidade === "mes" && periodoUrl) periodo = periodoUrl;
+  if (granularidade === "custom" && periodoUrl && INTERVALO_VALIDO.test(periodoUrl)) periodo = periodoUrl;
   return { granularidade, periodo };
 }
 
@@ -143,6 +151,11 @@ export function useNavegarMes(): {
  */
 export function limitesPeriodo(granularidade: Granularidade, periodo: string): { inicio: string; fim: string } {
   if (granularidade === "dia") return { inicio: periodo, fim: periodo };
+
+  if (granularidade === "custom") {
+    const [inicio, fim] = periodo.split("..");
+    return { inicio, fim };
+  }
 
   if (granularidade === "mes") {
     const [anoStr, mesStr] = periodo.split("-");
@@ -189,6 +202,18 @@ export function useDefinirGranularidade(): (granularidade: Granularidade) => voi
     // o que prendia a página no dia do clique. Também limpa a sujeira que
     // versões anteriores deixaram em URLs salvas.
     novo.delete("periodo");
+    setParams(novo, { replace: true });
+  };
+}
+
+/** Aplica um intervalo do calendário customizado: granularidade `custom` + `periodo=inicio..fim` na URL. */
+export function useDefinirIntervalo(): (inicio: string, fim: string) => void {
+  const [params, setParams] = useSearchParams();
+
+  return (inicio: string, fim: string) => {
+    const novo = new URLSearchParams(params);
+    novo.set("granularidade", "custom");
+    novo.set("periodo", inicio <= fim ? `${inicio}..${fim}` : `${fim}..${inicio}`);
     setParams(novo, { replace: true });
   };
 }

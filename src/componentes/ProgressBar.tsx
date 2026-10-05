@@ -5,7 +5,7 @@ const COR_PREENCHIMENTO: Record<StatusRitmo, string> = {
   no_ritmo: "bg-ok",
   atras: "bg-warn-bar",
   muito_atras: "bg-bad",
-  sem_meta: "bg-faint",
+  sem_meta: "bg-aberta",
 };
 
 interface ProgressBarProps {
@@ -18,9 +18,12 @@ interface ProgressBarProps {
   altura?: string;
 }
 
-/** Barra de progresso da meta com o marcador de ritmo. */
+/**
+ * Barra de progresso da meta com o marcador de ritmo. Meta 0 (ou sem meta) é
+ * métrica "aberta" pra pessoa: barra cheia em azul, sem marcador.
+ */
 export function ProgressBar({ valor, meta, status, esperadoFrac, altura = "h-2" }: ProgressBarProps) {
-  const largura = meta > 0 ? Math.min(Math.max(valor / meta, 0), 1) * 100 : 0;
+  const largura = meta > 0 ? Math.min(Math.max(valor / meta, 0), 1) * 100 : 100;
   const marcador = Math.min(Math.max(esperadoFrac, 0), 1) * 100;
 
   return (

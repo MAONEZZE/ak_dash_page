@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
+import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
-import { StatusChip } from "../componentes/StatusChip";
 import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
@@ -37,8 +38,6 @@ interface EstadoBloco {
 }
 
 const ESTADO_INICIAL: EstadoBloco = { dado: null, carregando: true, erro: null };
-
-const mesPorExtenso = new Intl.DateTimeFormat("pt-BR", { month: "long", timeZone: "UTC" });
 
 /** Agregado do time por métrica, só as 6 do cargo e na ordem delas. */
 function agregadoDoCargo(dado: RespostaComercial | null, cargo: Cargo): MetricaAgregada[] {
@@ -97,7 +96,7 @@ function PainelMeta({ metrica, dias }: { metrica: MetricaAgregada | undefined; d
   const r = metrica && dias ? calcularRitmo(metrica.realizado, metrica.meta, dias) : null;
 
   return (
-    <article className="glass-panel flex flex-col gap-4 rounded-[18px] p-5" aria-label="Para bater a meta">
+    <article className="glass-panel flex flex-col gap-4 rounded-[24px] p-5" aria-label="Para bater a meta">
       <div className="flex flex-col gap-1">
         <h3 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">Para bater a meta</h3>
         {metrica && <span className="text-[17px] font-bold">{metrica.nomeExibicao}</span>}
@@ -152,8 +151,8 @@ interface TabelaCargoProps {
 /**
  * Uma tabela por cargo: as 6 métricas + "Metas". Linhas ordenadas pela fração
  * de metas no ritmo; clicar (ou Enter/Espaço) leva pra Time, no card da pessoa
- * (`#pessoa-<email>` — contrato com a página Time). Quem não tem meta nenhuma
- * no período não vira linha: vai pro rodapé.
+ * (`#pessoa-<email>` — contrato com a página Time). Todo mundo do cargo vira
+ * linha: meta 0/sem meta é métrica aberta (valor + barra azul), nunca some.
  */
 function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
   const navigate = useNavigate();
@@ -164,13 +163,10 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
   }));
   const dias = dado.dias_uteis;
 
-  const linhas = dado.pessoas.map((pessoa) => ({ pessoa, nome: nomeExibicao(pessoa.nome, pessoa.email), resumo: resumoMetas(pessoa.metricas, COLUNAS[cargo], dias) }));
-  const comMeta = linhas
-    .filter((l) => l.resumo.comMeta > 0)
-    .sort((a, b) => b.resumo.noRitmo / b.resumo.comMeta - a.resumo.noRitmo / a.resumo.comMeta || a.nome.localeCompare(b.nome, "pt-BR"));
-  const semMeta = linhas.filter((l) => l.resumo.comMeta === 0).map((l) => l.nome);
-  const referencia =
-    dado.periodo.granularidade === "ano" ? dado.periodo.inicio.slice(0, 4) : mesPorExtenso.format(new Date(`${dado.periodo.inicio}T12:00:00Z`));
+  const proporcao = (r: { comMeta: number; noRitmo: number }) => (r.comMeta > 0 ? r.noRitmo / r.comMeta : -1);
+  const linhas = dado.pessoas
+    .map((pessoa) => ({ pessoa, nome: nomeExibicao(pessoa.nome, pessoa.email), resumo: resumoMetas(pessoa.metricas, COLUNAS[cargo], dias) }))
+    .sort((a, b) => proporcao(b.resumo) - proporcao(a.resumo) || a.nome.localeCompare(b.nome, "pt-BR"));
 
   function abrir(pessoa: PessoaComercial) {
     navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.email.toLowerCase()}` });
@@ -179,12 +175,11 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
   const titulo = cargo === "sdr" ? "SDRs" : "Closers";
 
   return (
-    <article className="glass-panel flex min-w-0 flex-col gap-3 rounded-[18px] p-5" aria-label={titulo}>
+    <article className="glass-panel flex min-w-0 flex-col gap-3 rounded-[24px] p-5" aria-label={titulo}>
       <h3 className={`text-[15px] font-bold uppercase tracking-[0.13em] ${cargo === "sdr" ? "text-sdr" : "text-closer"}`}>{titulo}</h3>
-      {comMeta.length === 0 && semMeta.length === 0 ? (
+      {linhas.length === 0 ? (
         <p className="text-[15px] text-muted">Nenhuma pessoa ativa neste cargo.</p>
       ) : (
-        comMeta.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] border-collapse text-left">
               <thead>
@@ -203,7 +198,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                 </tr>
               </thead>
               <tbody>
-                {comMeta.map(({ pessoa, nome, resumo }) => (
+                {linhas.map(({ pessoa, nome, resumo }) => (
                   <tr
                     key={pessoa.id_user}
                     tabIndex={0}
@@ -239,9 +234,13 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                               <ProgressBar valor={m.realizado} meta={m.meta_periodo} status={r.status} esperadoFrac={r.esperadoFrac} altura="h-1.5" />
                             </div>
                           ) : (
-                            <div className="flex flex-col items-start gap-1">
-                              <span className="font-display text-[17px] font-bold leading-none">{formatarNumero(m.realizado)}</span>
-                              <StatusChip status="sem_meta" />
+                            // Meta 0/sem meta: métrica aberta — valor / 0 e barra cheia azul.
+                            <div className="flex flex-col gap-1.5">
+                              <span className="whitespace-nowrap font-display text-[17px] font-bold leading-none">
+                                {formatarNumero(m.realizado)}
+                                <span className="text-[14px] font-semibold text-muted"> / 0</span>
+                              </span>
+                              <ProgressBar valor={m.realizado} meta={0} status="sem_meta" esperadoFrac={0} altura="h-1.5" />
                             </div>
                           )}
                         </td>
@@ -260,12 +259,6 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
               </tbody>
             </table>
           </div>
-        )
-      )}
-      {semMeta.length > 0 && (
-        <p className="text-[14px] text-muted">
-          Sem meta em {referencia}: {semMeta.join(", ")}
-        </p>
       )}
     </article>
   );
@@ -278,7 +271,7 @@ export function Comercial() {
   // Gráfico e "Para bater a meta": sempre o mês corrente, nunca o período da pill.
   const [mes, setMes] = useState<{ sdr: RespostaComercial | null; closer: RespostaComercial | null }>({ sdr: null, closer: null });
   const [metricaGrafico, setMetricaGrafico] = useState("");
-  // O filtro de função vive no header — a página só lê.
+  // O filtro de função fica na linha do título (querystring `squad`).
   const squad = useSquadAtual();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
@@ -370,10 +363,14 @@ export function Comercial() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Comercial</h1>
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Comercial</h1>
+          <PillSquad />
+        </div>
         <p className="text-[14px] font-semibold text-muted">Linha vertical na barra = onde o time deveria estar hoje</p>
       </div>
+      <AvisoFontes avisos={[...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
 
       {carregando ? (
         <Esqueleto />

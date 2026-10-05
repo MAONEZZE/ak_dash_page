@@ -78,7 +78,7 @@ export function GraficoAreaMeta({ opcoes, selecionada, aoSelecionar, serie, meta
 
   if (!atual || serie.length < 2) {
     return (
-      <article className="glass-panel flex flex-col gap-3 rounded-[18px] p-5">
+      <article className="glass-panel flex flex-col gap-3 rounded-[24px] p-5">
         <span className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">Realizado acumulado</span>
         <p className="text-lg text-muted">Sem evolução diária lançada no mês corrente.</p>
       </article>
@@ -149,7 +149,7 @@ export function GraficoAreaMeta({ opcoes, selecionada, aoSelecionar, serie, meta
   const hoverPctX = hover === null ? 0 : fracaoX(hover) * 100;
 
   return (
-    <article className="glass-panel flex min-w-0 flex-col gap-4 rounded-[18px] p-5">
+    <article className="glass-panel flex min-w-0 flex-col gap-4 rounded-[24px] p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">Realizado acumulado</span>
         <label className="flex items-center gap-2 text-[15px] font-semibold text-muted">

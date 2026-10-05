@@ -5,7 +5,7 @@ const VISUAL: Record<StatusRitmo, { texto: string; Icone: typeof CircleCheck; cl
   no_ritmo: { texto: "No ritmo", Icone: CircleCheck, classe: "bg-ok-bg text-ok" },
   atras: { texto: "Atrás", Icone: TriangleAlert, classe: "bg-warn-bg text-warn" },
   muito_atras: { texto: "Muito atrás", Icone: CircleAlert, classe: "bg-bad-bg text-bad" },
-  sem_meta: { texto: "Sem meta", Icone: CircleDashed, classe: "bg-surface-2 text-muted" },
+  sem_meta: { texto: "Meta aberta", Icone: CircleDashed, classe: "bg-closer-bg text-closer" },
 };
 
 /** Status de ritmo da meta — sempre ícone + texto, nunca só cor. */

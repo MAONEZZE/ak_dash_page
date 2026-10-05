@@ -57,7 +57,7 @@ function CardCargo({
 
   return (
     <article
-      className={`${painel} flex w-full min-w-0 flex-col gap-[clamp(2px,0.45vh,6px)] rounded-[18px] px-[clamp(12px,1.1vw,20px)] py-[clamp(8px,1.2vh,14px)]`}
+      className={`${painel} flex w-full min-w-0 flex-col gap-[clamp(2px,0.45vh,6px)] rounded-[24px] px-[clamp(12px,1.1vw,20px)] py-[clamp(8px,1.2vh,14px)]`}
       style={{ flexGrow: pessoas.length }}
     >
       <span className="text-[clamp(13px,1.55vh,18px)] font-semibold uppercase leading-none tracking-[0.13em] text-muted">{titulo}</span>

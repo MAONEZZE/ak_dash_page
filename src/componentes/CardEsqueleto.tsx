@@ -12,5 +12,5 @@
  * aquele tom era quase invisível e a piscada não se via.
  */
 export function CardEsqueleto({ className = "" }: { className?: string }) {
-  return <div className={`card-esqueleto rounded-[18px] ${className}`} aria-hidden />;
+  return <div className={`card-esqueleto rounded-[24px] ${className}`} aria-hidden />;
 }

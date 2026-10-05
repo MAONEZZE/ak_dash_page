@@ -62,7 +62,7 @@ export function CardEventoRotativo({ label, eventos, campo }: CardEventoRotativo
   const valorTexto = formatarNumero(valor);
 
   return (
-    <article className={`flex flex-col overflow-hidden rounded-[18px] glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
+    <article className={`flex flex-col overflow-hidden rounded-[24px] glass-panel-escuro ${CARD_COMPACTO_CAIXA}`}>
       <div className="flex items-start justify-between gap-2">
         <span className={`font-semibold uppercase tracking-[0.13em] text-offwhite/74 ${CARD_COMPACTO_LABEL}`}>{label}</span>
         <span className={`whitespace-nowrap font-bold leading-none text-accent ${CARD_COMPACTO_MIUDO}`}>{formatarDataHoraEvento(evento.data)}</span>

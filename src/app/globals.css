@@ -60,6 +60,10 @@
   --color-perigo-dark: #f28b82;
   --color-atencao-dark: #f2c94c;
 
+  /* Termômetro de faturamento da Geral: frio (gelo) e quente (fogo). O médio usa --color-warn-barra. */
+  --color-gelo: #3b8fd6;
+  --color-fogo: #ef6c1a;
+
   /*
    * Canais RGB dos hexes acima — mesma cor, outra notação, pra poder escrever
    * translucidez como rgb(var(--x-rgb) / N%) em vez de color-mix().
@@ -87,11 +91,14 @@
   --color-closer-escuro-rgb: 157 181 220;
   --color-perigo-dark-rgb: 242 139 130;
   --color-atencao-dark-rgb: 242 201 76;
+  --color-gelo-rgb: 59 143 214;
+  --color-fogo-rgb: 239 108 26;
 
   /* semânticos do redesign — tema claro (default) */
   --page-bg: var(--color-pagina);
   --page-bg-rgb: var(--color-pagina-rgb);
   --surface: var(--color-superficie);
+  --surface-rgb: var(--color-superficie-rgb);
   --surface-2: var(--color-superficie-2);
   --ink: var(--color-tinta);
   --muted: var(--color-tinta-suave);
@@ -119,11 +126,22 @@
   --accent-fg: var(--brand);
   --border-2: var(--line);
 
-  /* "glass-*" virou superfície sólida: o blur custava caro na TV e o redesign não usa vidro */
-  --glass-bg: var(--surface);
-  --glass-border: var(--line);
-  --glass-dark-bg: var(--color-bg-dark-2);
+  /*
+   * Liquid glass (2026-10). Blur de verdade só no que é pouco e flutua
+   * (navbar, segmentados, menus) — nos cards, que são muitos, o vidro é
+   * translúcido + reflexo na borda de cima + sombra difusa, SEM blur: o
+   * backdrop-filter em dezenas de cards é o que pesava na TV.
+   */
+  --glass-bg: rgb(var(--surface-rgb) / 66%);
+  --glass-bg-2: rgb(var(--surface-rgb) / 46%);
+  --glass-border: rgb(var(--color-offwhite-rgb) / 70%);
+  --glass-brilho: rgb(var(--color-offwhite-rgb) / 85%);
+  --glass-sombra: 0 10px 34px -14px rgb(var(--color-tinta-rgb) / 22%), 0 2px 6px -2px rgb(var(--color-tinta-rgb) / 8%);
+  --glass-dark-bg: rgb(var(--color-bg-dark-2-rgb) / 92%);
+  --glass-dark-bg-2: rgb(var(--color-bg-dark-2-rgb) / 78%);
   --glass-dark-border: rgb(var(--color-accent-rgb) / 28%);
+  --gelo: var(--color-gelo);
+  --fogo: var(--color-fogo);
 
   /* painéis SDR/Closer da tabela da Geral — identificação de função, não status */
   --painel-sdr-bg: rgb(var(--color-accent-ink-rgb) / 9%);
@@ -150,6 +168,7 @@
   --page-bg: var(--color-pagina-escura);
   --page-bg-rgb: var(--color-pagina-escura-rgb);
   --surface: var(--color-superficie-escura);
+  --surface-rgb: var(--color-superficie-escura-rgb);
   --surface-2: var(--color-superficie-2-escura);
   --ink: var(--color-tinta-escura);
   --muted: var(--color-tinta-suave-escura);
@@ -169,6 +188,12 @@
 
   --bg-2-rgb: var(--color-superficie-escura-rgb);
   --fg-rgb: var(--color-tinta-escura-rgb);
+
+  --glass-bg: rgb(var(--surface-rgb) / 62%);
+  --glass-bg-2: rgb(var(--surface-rgb) / 40%);
+  --glass-border: rgb(var(--color-tinta-escura-rgb) / 14%);
+  --glass-brilho: rgb(var(--color-tinta-escura-rgb) / 22%);
+  --glass-sombra: 0 12px 38px -14px rgb(0 0 0 / 55%), 0 2px 6px -2px rgb(0 0 0 / 30%);
 
   --painel-sdr-bg: rgb(var(--color-accent-rgb) / 9%);
   --painel-sdr-border: rgb(var(--color-accent-rgb) / 24%);
@@ -217,7 +242,11 @@
   --color-sdr: var(--sdr);
   --color-closer: var(--closer);
   --color-closer-bg: var(--closer-bg);
-  --radius-card: 18px;
+  --color-gelo: var(--gelo);
+  --color-fogo: var(--fogo);
+  /* Meta 0/sem cadastro = métrica "aberta" pra pessoa: barra cheia em azul. */
+  --color-aberta: var(--closer);
+  --radius-card: 24px;
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 }
@@ -278,20 +307,66 @@ body {
   position: relative;
   height: 100vh;
   overflow: hidden;
-  background: var(--page-bg);
+  /* Manchas de cor atrás do vidro — sem elas o translúcido não tem o que refratar. */
+  background:
+    radial-gradient(60vw 50vh at 8% 0%, rgb(var(--color-accent-rgb) / 22%), transparent 70%),
+    radial-gradient(50vw 60vh at 100% 30%, rgb(var(--color-closer-claro-rgb) / 14%), transparent 70%),
+    radial-gradient(70vw 50vh at 40% 110%, rgb(var(--color-accent-ink-rgb) / 12%), transparent 70%),
+    var(--page-bg);
 }
 
-
-
-/* Card/painel do redesign: superfície sólida com borda fina (o nome ficou do template de vidro). */
+/*
+ * Card/painel: vidro sem blur (ver --glass-* no :root). O reflexo é o
+ * inset de 1px no topo; a borda clara faz o contorno "molhado".
+ */
 .glass-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: linear-gradient(160deg, var(--glass-bg), var(--glass-bg-2));
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-brilho),
+    var(--glass-sombra);
+  transition:
+    background 300ms ease,
+    box-shadow 300ms ease,
+    transform 300ms ease;
 }
 
 .glass-panel-escuro {
-  background: var(--glass-dark-bg);
+  background: linear-gradient(160deg, var(--glass-dark-bg), var(--glass-dark-bg-2));
   border: 1px solid var(--glass-dark-border);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--color-offwhite-rgb) / 14%),
+    var(--glass-sombra);
+
+  /*
+   * Card escuro com ritmo (os KPIs da Geral): o fundo é escuro nos dois temas,
+   * então chip, barra, marcador e legenda usam sempre a paleta do tema escuro.
+   * Redefine os --color-* (e não --muted/--ok…) porque o Tailwind resolve
+   * esses no :root e os filhos herdam o valor já calculado.
+   */
+  --color-fg: var(--color-tinta-escura);
+  --color-muted: var(--color-tinta-suave-escura);
+  --color-track: rgb(var(--color-tinta-escura-rgb) / 14%);
+  --color-ok: var(--color-accent);
+  --color-ok-bg: rgb(var(--color-accent-rgb) / 14%);
+  --color-warn: var(--color-atencao-dark);
+  --color-warn-bg: rgb(var(--color-atencao-dark-rgb) / 14%);
+  --color-bad: var(--color-perigo-dark);
+  --color-bad-bg: rgb(var(--color-perigo-dark-rgb) / 14%);
+  --color-closer: var(--color-closer-escuro);
+  --color-closer-bg: rgb(var(--color-closer-escuro-rgb) / 14%);
+  --color-aberta: var(--color-closer-escuro);
+}
+
+/* Vidro com blur de verdade — só pra peças flutuantes (menu, calendário). */
+.glass-flutuante {
+  background: rgb(var(--surface-rgb) / 78%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-brilho),
+    0 24px 60px -18px rgb(var(--color-tinta-rgb) / 35%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 
 .glass-panel-sdr {
@@ -364,19 +439,24 @@ body {
   }
 }
 
-/* Segmentado do cabeçalho (abas, período, mês, função). */
+/* Segmentado do cabeçalho (abas, período, mês, função): vidro com blur. */
 .glass-pill {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  background: rgb(var(--surface-rgb) / 55%);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 var(--glass-brilho),
+    0 6px 20px -10px rgb(var(--color-tinta-rgb) / 25%);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 
 /* Cabeçalho: fundo semitransparente com blur (backdrop-filter existe desde o Chrome 76, ok na TV). */
 .cabecalho {
-  background: rgb(var(--page-bg-rgb) / 82%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line);
+  background: rgb(var(--page-bg-rgb) / 45%);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .pill {
@@ -390,25 +470,37 @@ body {
   min-height: 44px;
   min-width: 44px;
   padding: 0 16px;
-  border-radius: 8px;
+  border-radius: 999px;
   color: var(--muted);
   background: transparent;
   transition:
-    background 200ms,
-    color 200ms;
+    background 250ms ease,
+    color 250ms ease,
+    box-shadow 250ms ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
+/* Celular: segmentados mais enxutos pra caber mais abas antes de rolar. */
+@media (max-width: 639px) {
+  .pill {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
 .pill:hover {
-  background: var(--surface-2);
+  background: rgb(var(--surface-rgb) / 70%);
 }
 
 .pill.pill-ativo {
   background: var(--brand);
   color: var(--surface);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--color-offwhite-rgb) / 35%),
+    0 4px 14px -4px rgb(var(--color-accent-ink-rgb) / 55%);
 }
 
 /* Destaque temporário do card da pessoa ao chegar da tabela da Comercial (/time#pessoa-…). */
@@ -459,3 +551,135 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Calendário do filtro Customizado: a faixa do intervalo passa por trás de
+ * metade do círculo das pontas, pra o destaque ficar contínuo. */
+.faixa-intervalo-inicio {
+  background: linear-gradient(to right, transparent 50%, var(--closer-bg) 50%);
+}
+
+.faixa-intervalo-fim {
+  background: linear-gradient(to left, transparent 50%, var(--closer-bg) 50%);
+}
+
+/*
+ * Termômetro de faturamento da Geral (Termometro.tsx): neve caindo no frio,
+ * neve derretendo em gotas no médio, chamas subindo no quente. Só transform e
+ * opacity — barato na TV. Com reduced-motion o bloco global zera a duração e
+ * os ícones ficam parados onde estão.
+ */
+.termometro-particula {
+  position: absolute;
+  pointer-events: none;
+}
+
+@keyframes cair-neve {
+  0% {
+    transform: translateY(-20%) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(var(--queda, 420px)) rotate(240deg);
+    opacity: 0.2;
+  }
+}
+
+.neve-caindo {
+  animation: cair-neve var(--dur, 7s) linear infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+@keyframes derreter-neve {
+  0% {
+    transform: translateY(-20%) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  70% {
+    transform: translateY(calc(var(--queda, 420px) * 0.55)) scale(0.55);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(calc(var(--queda, 420px) * 0.65)) scale(0.1);
+    opacity: 0;
+  }
+}
+
+.neve-derretendo {
+  animation: derreter-neve var(--dur, 8s) ease-in infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+@keyframes pingar {
+  0%,
+  55% {
+    transform: translateY(0) scaleY(0.6);
+    opacity: 0;
+  }
+  65% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(var(--queda, 420px)) scaleY(1.15);
+    opacity: 0;
+  }
+}
+
+.gota-pingando {
+  animation: pingar var(--dur, 8s) ease-in infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+@keyframes subir-chama {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(calc(var(--queda, 420px) * -1)) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.chama-subindo {
+  animation: subir-chama var(--dur, 4s) ease-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+@keyframes tremular {
+  0%,
+  100% {
+    transform: scale(1, 1) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.06, 1.12) rotate(2deg);
+  }
+}
+
+.chama-tremulando {
+  animation: tremular 0.9s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes pulsar-brilho {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.brilho-pulsando {
+  animation: pulsar-brilho 2.4s ease-in-out infinite;
+}
+

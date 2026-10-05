@@ -58,8 +58,12 @@ const TEM_FUSO_RE = /(?:Z|[+-]\d{2}:?\d{2})$/;
  * no fuso do navegador. Com a coluna em `timestamptz` o valor já chega com
  * offset e passa direto — por isso os dois formatos são aceitos.
  */
+export function instanteEvento(iso: string): Date {
+  return new Date(TEM_FUSO_RE.test(iso) ? iso : `${iso}Z`);
+}
+
 export function formatarDataHoraEvento(iso: string): string {
-  const instante = new Date(TEM_FUSO_RE.test(iso) ? iso : `${iso}Z`);
+  const instante = instanteEvento(iso);
   if (Number.isNaN(instante.getTime())) return "";
   const partes = Object.fromEntries(
     dataHoraEventoFormatter.formatToParts(instante).map((p) => [p.type, p.value]),

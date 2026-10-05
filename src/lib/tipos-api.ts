@@ -8,7 +8,7 @@
  * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
  */
 
-export type Granularidade = "dia" | "semana" | "mes" | "ano";
+export type Granularidade = "dia" | "semana" | "mes" | "ano" | "custom";
 export type Cargo = "sdr" | "closer";
 
 export interface Erro {
@@ -32,7 +32,7 @@ export interface Periodo {
   fim: string; // AAAA-MM-DD
 }
 
-/** Formato do parâmetro `periodo` por granularidade: dia `AAAA-MM-DD`, semana `AAAA-Wnn` (ISO, segunda a domingo), mês `AAAA-MM`, ano `AAAA`. */
+/** Formato do parâmetro `periodo` por granularidade: dia `AAAA-MM-DD`, semana `AAAA-Wnn` (ISO, segunda a domingo), mês `AAAA-MM`, ano `AAAA`, custom `AAAA-MM-DD..AAAA-MM-DD`. */
 
 export type StatusMetrica = "atingido" | "abaixo_da_meta" | "sem_preenchimento" | "sem_meta";
 
@@ -137,10 +137,10 @@ export interface DiasUteis {
 export interface CardGeral {
   metrica: string;
   nome_exibicao: string;
-  /** true pros cards de faturamento (linha 1, variante escura). Inscritos/Aprovados ficam na mesma linha mas vêm de `eventos`, não daqui. */
+  /** true pros cards de faturamento (linha 1, variante escura). */
   escuro: boolean;
   realizado: number | null;
-  /** Meta da empresa: soma das metas das pessoas ativas que compõem o card (ligações agendadas = Closers; reuniões agendadas, indicações e inscrições realizadas = SDR + Closer). `null` se faltar meta em alguma parte. */
+  /** Meta da empresa: soma das metas das pessoas ativas que compõem o card. `null` se ninguém da composição tem meta. */
   meta: number | null;
   pct: number | null;
   pct_ritmo: number | null;
@@ -171,7 +171,7 @@ export interface PessoaGeral {
   metricas: MetricaPessoaGeral[];
 }
 
-/** Um dos próximos eventos de `SED.events` — alimenta os cards de Inscritos e Aprovados, que giram entre eles. */
+/** Um dos próximos eventos de `SED.events` — linha das tabelas de eventos da Geral. */
 export interface EventoGeral {
   id: string;
   titulo: string;
@@ -185,14 +185,26 @@ export interface EventoGeral {
   aprovados: number;
 }
 
+/** Acumulado da semana corrente (seg–sáb) do time inteiro — ignora o período da página. */
+/** Faturamento do mês corrente (fora do filtro de data) contra a meta fixa de faturamento. */
+export interface Termometro {
+  realizado: number;
+  meta: number;
+}
+
 export interface RespostaGeral {
   periodo: Periodo;
   dias_uteis: DiasUteis;
-  /** Escuros (faturamento, liquidado) + claros nesta ordem: numeros_captados, ligacoes_agendadas, reunioes_agendadas, indicacoes, inscricoes_realizadas. */
+  /**
+   * Escuros: faturamento, liquidado (sempre do mês). Claros: reunioes_agendadas,
+   * ligacoes_realizadas, inscricoes_realizadas, oportunidade.
+   */
   cards: CardGeral[];
-  /** Até 2, em data crescente. Ignora o período da página (são eventos futuros). Vazio = sem evento futuro. */
+  /** Confrarias do mês corrente (até 20), em data crescente. Ignora o período da página. */
   eventos: EventoGeral[];
   pessoas: PessoaGeral[];
+  termometro: Termometro | null;
+  /** Inclui `fonte_indisponivel:<tabela>` quando uma consulta ao banco falhou. */
   avisos: string[];
 }
 
@@ -245,6 +257,7 @@ export interface VendaFinanceiro {
 
 export interface RespostaFinanceiro {
   periodo: Periodo;
+  avisos?: string[];
   cards: CardFinanceiro[];
   /** Ordenadas por data_venda decrescente (venda mais recente primeiro). */
   vendas: VendaFinanceiro[];

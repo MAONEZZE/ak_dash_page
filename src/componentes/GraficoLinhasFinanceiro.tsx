@@ -238,7 +238,8 @@ export function GraficoLinhasFinanceiro({ titulo, series, piso, multiploTeto, mo
             MESES.map((m, i) => (
               <span
                 key={i}
-                className="absolute top-0 text-[13px] font-medium leading-none text-muted"
+                // Celular: 12 rótulos não cabem em ~300px — mostra um mês sim, outro não.
+                className={`absolute top-0 text-[13px] font-medium leading-none text-muted ${i % 2 === 1 ? "max-sm:hidden" : ""}`}
                 style={{ left: `${(x(i) / W) * 100}%`, transform: ancoragemRotulo(i, MESES.length) }}
               >
                 {m}

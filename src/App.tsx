@@ -1,12 +1,12 @@
-import { ChevronLeft, ChevronRight, LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
+import { CalendarRange, ChevronLeft, ChevronRight, LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
-import { formatarHora, formatarNumero } from "./lib/formato";
-import { useDefinirGranularidade, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
+import { CalendarioIntervalo, formatarDataCurta } from "./componentes/CalendarioIntervalo";
+import { formatarHora } from "./lib/formato";
+import { useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
-import { SQUADS, useDefinirSquad, useSquadAtual } from "./lib/squad";
 import type { Granularidade } from "./lib/tipos-api";
 import { Comercial } from "./paginas/Comercial";
 import { Financeiro } from "./paginas/Financeiro";
@@ -35,8 +35,6 @@ const NAV_ITENS = [
   { rota: "/financeiro", rotulo: "Financeiro" },
 ];
 
-
-
 const GRANULARIDADES: { id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
   { id: "semana", label: "Semana" },
@@ -48,7 +46,7 @@ function PillNav() {
   const location = useLocation();
 
   return (
-    <nav className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1" aria-label="Navegação">
+    <nav className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0" aria-label="Navegação">
       {NAV_ITENS.map((item) => (
         <NavLink
           key={item.rota}
@@ -63,22 +61,67 @@ function PillNav() {
 }
 
 function PillPeriodo() {
-  const { granularidade } = useFiltrosAtuais();
+  const { granularidade, periodo } = useFiltrosAtuais();
   const definirGranularidade = useDefinirGranularidade();
+  const definirIntervalo = useDefinirIntervalo();
+  const [calendarioAberto, setCalendarioAberto] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+  const custom = granularidade === "custom";
+
+  useEffect(() => {
+    if (!calendarioAberto) return;
+    function aoClicarFora(evento: MouseEvent) {
+      if (!container.current?.contains(evento.target as Node)) setCalendarioAberto(false);
+    }
+    function aoTeclar(evento: KeyboardEvent) {
+      if (evento.key === "Escape") setCalendarioAberto(false);
+    }
+    document.addEventListener("mousedown", aoClicarFora);
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("mousedown", aoClicarFora);
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, [calendarioAberto]);
+
+  const [inicio, fim] = custom ? periodo.split("..") : [];
 
   return (
-    <div className="glass-pill flex gap-1 p-1" role="group" aria-label="Período">
-      {GRANULARIDADES.map((g) => (
+    <div className="relative max-w-full" ref={container}>
+      <div className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0" role="group" aria-label="Período">
+        {GRANULARIDADES.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => definirGranularidade(g.id)}
+            aria-pressed={granularidade === g.id}
+            className={`pill ${granularidade === g.id ? "pill-ativo" : ""}`}
+          >
+            {g.label}
+          </button>
+        ))}
         <button
-          key={g.id}
           type="button"
-          onClick={() => definirGranularidade(g.id)}
-          aria-pressed={granularidade === g.id}
-          className={`pill ${granularidade === g.id ? "pill-ativo" : ""}`}
+          onClick={() => setCalendarioAberto((a) => !a)}
+          aria-pressed={custom}
+          aria-haspopup="dialog"
+          aria-expanded={calendarioAberto}
+          className={`pill inline-flex items-center gap-1.5 ${custom ? "pill-ativo" : ""}`}
         >
-          {g.label}
+          <CalendarRange className="size-4" aria-hidden />
+          {custom ? `${formatarDataCurta(inicio)} – ${formatarDataCurta(fim)}` : "Customizado"}
         </button>
-      ))}
+      </div>
+      {calendarioAberto && (
+        <CalendarioIntervalo
+          inicial={custom ? periodo : null}
+          aoCancelar={() => setCalendarioAberto(false)}
+          aoAplicar={(i, f) => {
+            definirIntervalo(i, f);
+            setCalendarioAberto(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -118,42 +161,6 @@ function PillPeriodoNavegavel() {
   );
 }
 
-/** Filtro de função (Todos/SDR/Closers) da Comercial e da Time — conversa com a página pela querystring. */
-function PillSquad() {
-  const squad = useSquadAtual();
-  const definirSquad = useDefinirSquad();
-
-  return (
-    <div className="glass-pill flex gap-1 p-1" role="group" aria-label="Função">
-      {SQUADS.map((s) => (
-        <button
-          key={s.id}
-          type="button"
-          onClick={() => definirSquad(s.id)}
-          aria-pressed={squad === s.id}
-          className={`pill ${squad === s.id ? "pill-ativo" : ""}`}
-        >
-          {s.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/** "Dia útil X de Y · meta esperada hoje: Z%" — dias úteis publicados pela página (Comercial/Time). */
-function RitmoDoPeriodo() {
-  const { diasUteis } = useAtualizacao().valor;
-  if (!diasUteis || diasUteis.total === 0) return null;
-  const pct = Math.round((Math.min(diasUteis.decorridos, diasUteis.total) / diasUteis.total) * 100);
-
-  return (
-    <p className="ml-auto text-[14px] font-semibold text-muted">
-      Dia útil {formatarNumero(diasUteis.decorridos)} de {formatarNumero(diasUteis.total)} · meta esperada hoje:{" "}
-      <span className="text-fg">{pct}%</span>
-    </p>
-  );
-}
-
 const ITEM_MENU =
   "flex min-h-11 w-full items-center gap-2.5 px-4 py-3 text-left text-[15px] font-semibold transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-45";
 
@@ -173,7 +180,7 @@ function BotaoSom() {
       onClick={() => void alternar()}
       aria-label={rotulo}
       title={rotulo}
-      className={`glass-panel inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface-2 ${precisaAtivar ? "animate-pulse" : ""}`}
+      className={`glass-pill inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2 ${precisaAtivar ? "animate-pulse" : ""}`}
     >
       {ligado ? <Volume2 className="size-5" aria-hidden /> : <VolumeX className="size-5" aria-hidden />}
     </button>
@@ -224,7 +231,7 @@ function MenuAcoes({
         aria-label="Menu de ações"
         aria-haspopup="menu"
         aria-expanded={aberto}
-        className="glass-panel inline-flex size-11 items-center justify-center rounded-xl hover:bg-surface-2"
+        className="glass-pill inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2"
       >
         <Menu className="size-5" aria-hidden />
       </button>
@@ -232,7 +239,7 @@ function MenuAcoes({
       {aberto && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-2xl"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl glass-flutuante py-1"
         >
           <button
             type="button"
@@ -278,7 +285,6 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { granularidade } = useFiltrosAtuais();
-  const comFuncao = location.pathname === "/comercial" || location.pathname === "/time";
 
   if (carregando) {
     return (
@@ -309,23 +315,26 @@ export default function App() {
       <SomProvider>
         <div className="dashboard-shell font-body text-fg">
           <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col">
-            <header className="cabecalho sticky top-0 z-20 flex shrink-0 flex-col gap-3 px-4 py-3 sm:px-6">
-              <div className="flex flex-wrap items-center gap-3">
+            <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
+              {/*
+               * Navbar: marca à esquerda, páginas + filtro de data no centro, som + menu à direita.
+               * Abaixo de lg os filtros descem pra uma segunda linha inteira — no celular
+               * as três colunas não cabem e os segmentados se sobrepunham à marca.
+               */}
+              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2.5 lg:grid-cols-[auto_1fr_auto]">
                 <div className="flex items-baseline gap-2">
                   <span className="font-display text-[26px] font-extrabold tracking-tight">akeel</span>
                   <span className="inline-block size-[7px] rounded-full bg-brand" />
                 </div>
-                <PillNav />
-                <div className="ml-auto flex items-center gap-2">
+                <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1">
+                  <PillNav />
+                  {granularidade === "mes" && <PillPeriodoNavegavel />}
+                  <PillPeriodo />
+                </div>
+                <div className="flex items-center justify-end gap-2">
                   <BotaoSom />
                   <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <PillPeriodo />
-                {granularidade === "mes" && <PillPeriodoNavegavel />}
-                {comFuncao && <PillSquad />}
-                {comFuncao && <RitmoDoPeriodo />}
               </div>
             </header>
 

@@ -188,11 +188,13 @@ describe("página Comercial", () => {
     expect(fups.textContent).not.toContain("Nenhuma meta definida no período");
   });
 
-  it("card sem meta em ninguém diz que não há meta", async () => {
+  it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();
     const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
-    expect(within(sdrs).getAllByText("Nenhuma meta definida no período")).toHaveLength(6);
+    expect(within(sdrs).getAllByText("Métrica aberta · sem meta no período")).toHaveLength(6);
+    expect(within(sdrs).getAllByText("/ 0")).toHaveLength(6);
+    expect(within(sdrs).getAllByRole("progressbar")).toHaveLength(6);
   });
 
   it("filtro de função SDR esconde o bloco e a tabela de Closers", async () => {
@@ -225,7 +227,8 @@ describe("página Comercial", () => {
     it("ordena pela fração de metas no ritmo, com o nome no empate", async () => {
       await carregada();
       const tabela = within(screen.getByRole("article", { name: "SDRs" })).getByRole("table");
-      expect(nomesDasLinhas(tabela)).toEqual(["Ana", "Carla", "Bia", "Nathan"]);
+      // Quem não tem meta nenhuma (Zé) também vira linha, no fim.
+      expect(nomesDasLinhas(tabela)).toEqual(["Ana", "Carla", "Bia", "Nathan", "Zé"]);
     });
 
     it("coluna Metas mostra quantas estão no ritmo e quantas foram batidas", async () => {
@@ -234,15 +237,15 @@ describe("página Comercial", () => {
       const bia = within(tabela).getAllByRole("row")[3];
       expect(bia.textContent).toContain("2/3 no ritmo");
       expect(bia.textContent).toContain("2 batidas");
-      // Métrica sem meta vira chip "Sem meta", não "0 / —".
-      expect(within(bia).getAllByText("Sem meta")).toHaveLength(3);
+      // Métrica sem meta é aberta: "/ 0" e barra cheia, não some.
+      expect(within(bia).getAllByText("/ 0")).toHaveLength(3);
     });
 
-    it("quem não tem meta nenhuma vai pro rodapé, sem linha", async () => {
+    it("quem não tem meta nenhuma aparece na tabela, sem rodapé de 'sem meta'", async () => {
       await carregada();
       const cartao = screen.getByRole("article", { name: "SDRs" });
-      expect(within(cartao).getByText("Sem meta em setembro: Zé")).toBeTruthy();
-      expect(nomesDasLinhas(within(cartao).getByRole("table"))).not.toContain("Zé");
+      expect(nomesDasLinhas(within(cartao).getByRole("table"))).toContain("Zé");
+      expect(within(cartao).queryByText(/Sem meta em/)).toBeNull();
     });
 
     it("dupla função aparece nas duas tabelas, cada uma com as métricas do cargo", async () => {

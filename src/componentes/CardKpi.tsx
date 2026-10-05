@@ -54,6 +54,16 @@ interface CardKpiProps {
 }
 
 /** Card de vidro do redesenho novo_template — usado nos grids de KPI de Comercial/Geral/Financeiro. */
+/**
+ * Moeda formatada pelo Intl leva espaço inquebrável depois do "R$", então o
+ * número nunca quebra linha: valor longo encolhe com a largura do card (1, 2
+ * ou 4 colunas) em vez de ser cortado pelo overflow. Valor curto fica em 50px.
+ */
+function escalaValorPadrao(value: string): string {
+  if (value.length <= 8) return "text-[50px]";
+  return "text-[clamp(28px,11vw,50px)] sm:text-[clamp(28px,6vw,50px)] xl:text-[clamp(28px,3vw,50px)]";
+}
+
 export function CardKpi({
   label,
   value,
@@ -75,7 +85,7 @@ export function CardKpi({
 
   return (
     <article
-      className={`flex flex-col overflow-hidden rounded-[18px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${escuro ? "glass-panel-escuro" : "glass-panel"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${escuro ? "glass-panel-escuro" : "glass-panel"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
@@ -94,24 +104,26 @@ export function CardKpi({
       >
         <span
           className={`font-display font-extrabold leading-none tracking-tight ${
-            compacto ? (destaque ? escalaValorCompactoDestaque(value) : escalaValorCompacto(value)) : "text-[50px]"
-          } ${escuro ? "text-offwhite" : ""} ${semMeta ? "text-muted" : ""}`}
+            compacto ? (destaque ? escalaValorCompactoDestaque(value) : escalaValorCompacto(value)) : escalaValorPadrao(value)
+          } ${escuro ? "text-offwhite" : ""}`}
         >
           {value}
         </span>
-        {meta !== undefined && !semMeta && (
+        {(meta !== undefined || semMeta) && (
           <span
             className={`whitespace-nowrap font-semibold leading-none ${compacto ? CARD_COMPACTO_META : "text-[19px]"} ${escuro ? "text-offwhite/60" : "text-muted"}`}
           >
-            / {meta}
+            / {semMeta ? "0" : meta}
           </span>
         )}
       </div>
       {r && ritmo ? (
         semMeta ? (
-          <span className={`font-semibold text-muted ${compacto ? `${CARD_COMPACTO_RODAPE} ${CARD_COMPACTO_LEGENDA}` : "mt-auto text-[14px]"}`}>
-            Nenhuma meta definida no período
-          </span>
+          // Meta 0/sem meta = métrica aberta: barra cheia azul, sem ritmo pra projetar.
+          <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(4px,min(0.45vw,0.8vh),14px)]` : "mt-auto gap-2"}`}>
+            <ProgressBar valor={ritmo.realizado} meta={0} status="sem_meta" esperadoFrac={0} altura={compacto ? CARD_COMPACTO_BARRA : "h-2"} />
+            <span className={`font-semibold text-muted ${textoRodape}`}>Métrica aberta · sem meta no período</span>
+          </div>
         ) : (
           <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(4px,min(0.45vw,0.8vh),14px)]` : "gap-2"}`}>
             <ProgressBar

@@ -2,8 +2,9 @@
 //
 // Página Time: um card por pessoa com todas as métricas do cargo (sem as do
 // Dripify), cada uma com barra de ritmo, "Esperado hoje" e chip de status; um
-// anel "X/Y metas no ritmo" no topo, cards ordenados por essa proporção e quem
-// não tem meta nenhuma no período fica fora da grade, num aviso único.
+// anel "X/Y metas no ritmo" no topo e cards ordenados por essa proporção.
+// Quem não tem meta (0 ou sem cadastro) aparece igual: a métrica é "aberta" —
+// valor / 0 e barra cheia em azul (decisão do usuário, 2026-10-05).
 //
 // Saíram de propósito os testes da regra anterior (barra até 125% da meta com
 // traço em 80%, preenchimento vermelho/amarelo/verde por faixa de realizado e
@@ -186,12 +187,15 @@ describe("página Time — métricas do card", () => {
     expect(within(within(carla).getByRole("group", { name: "Indicações" })).getByText("Muito atrás")).toBeTruthy();
   });
 
-  it("métrica sem meta: chip 'Sem meta' e nenhuma barra", async () => {
+  it("métrica sem meta: chip 'Meta aberta', valor / 0 e barra cheia", async () => {
     montar();
     await screen.findByText("Nathan");
     const semMeta = within(card("nathan@x.com")).getByRole("group", { name: "Reuniões Agendadas" });
-    expect(within(semMeta).getByText("Sem meta")).toBeTruthy();
-    expect(within(semMeta).queryByRole("progressbar")).toBeNull();
+    expect(within(semMeta).getByText("Meta aberta")).toBeTruthy();
+    expect(semMeta.textContent).toContain("3 / 0");
+    const barra = within(semMeta).getByRole("progressbar").firstElementChild as HTMLElement;
+    expect(barra.style.width).toBe("100%");
+    expect(barra.className).toContain("bg-aberta");
     expect(semMeta.textContent).not.toContain("Esperado hoje");
   });
 
@@ -214,7 +218,13 @@ describe("página Time — métricas do card", () => {
     montar();
     await screen.findByText("Carla");
     const fotos = Array.from(document.querySelectorAll("[id^='pessoa-'] img")).map((img) => img.getAttribute("src"));
-    expect(fotos).toEqual(["https://exemplo/2.png", "https://exemplo/7.png", "https://exemplo/9.png"]);
+    expect(fotos).toEqual([
+      "https://exemplo/2.png",
+      "https://exemplo/7.png",
+      "https://exemplo/9.png",
+      "https://exemplo/3.png",
+      "https://exemplo/8.png",
+    ]);
   });
 });
 
@@ -222,54 +232,23 @@ describe("página Time — grade", () => {
   it("ordena os cards pela proporção de metas no ritmo, da maior pra menor", async () => {
     montar();
     await screen.findByText("Nathan");
-    expect(ordemDosCards()).toEqual(["jonathan@x.com", "carla@x.com", "nathan@x.com"]);
+    expect(ordemDosCards()).toEqual(["jonathan@x.com", "carla@x.com", "nathan@x.com", "elisa@x.com", "davi@x.com"]);
   });
 
-  it("quem não tem meta nenhuma no período fica fora da grade, num aviso único", async () => {
+  it("quem não tem meta nenhuma continua na grade, com as métricas abertas", async () => {
     montar();
-    await screen.findByText("Nathan");
-    expect(ordemDosCards()).not.toContain("davi@x.com");
-    expect(ordemDosCards()).not.toContain("elisa@x.com");
-
-    const aviso = screen.getByRole("region", { name: "Pessoas sem meta" });
-    expect(aviso.textContent).toContain(
-      "Elisa e Davi estão sem meta em setembro. Defina as metas para que apareçam no acompanhamento.",
-    );
-    expect(within(aviso).queryByRole("button")).toBeNull();
-    expect(within(aviso).queryByRole("link")).toBeNull();
-  });
-
-  it("aviso no singular quando é uma pessoa só", async () => {
-    montar("/time?squad=closer");
-    await screen.findByText("Carla");
-    expect(screen.getByRole("region", { name: "Pessoas sem meta" }).textContent).toContain("Davi está sem meta em setembro.");
-  });
-
-  it("no filtro Ano o aviso cita o ano, não o mês de início do período", async () => {
-    const api = await import("../src/lib/api");
-    const comoAno = (fn: typeof api.buscarComercialSdr) => {
-      const original = vi.mocked(fn).getMockImplementation()!;
-      vi.mocked(fn).mockImplementationOnce(async (params) => ({
-        ...(await original(params)),
-        periodo: { granularidade: "ano", inicio: "2026-01-01", fim: "2026-12-31" },
-      }));
-    };
-    comoAno(api.buscarComercialSdr);
-    comoAno(api.buscarComercialCloser);
-
-    montar("/time?granularidade=ano");
-    await screen.findByText("Nathan");
-    const aviso = screen.getByRole("region", { name: "Pessoas sem meta" }).textContent;
-    expect(aviso).toContain("sem meta em 2026.");
-    expect(aviso).not.toContain("janeiro");
+    await screen.findByText("Davi");
+    const davi = card("davi@x.com");
+    // meta "0.00" (numeric como string) vira 0: valor / 0, não some.
+    expect(within(davi).getByRole("group", { name: "Reuniões Realizadas" }).textContent).toContain("1 / 0");
+    expect(screen.queryByRole("region", { name: "Pessoas sem meta" })).toBeNull();
   });
 
   it("filtro de função mostra só o cargo escolhido", async () => {
     montar("/time?squad=sdr");
     await screen.findByText("Nathan");
-    expect(ordemDosCards()).toEqual(["jonathan@x.com", "nathan@x.com"]);
+    expect(ordemDosCards()).toEqual(["jonathan@x.com", "nathan@x.com", "elisa@x.com"]);
     expect(screen.queryByText("Carla")).toBeNull();
-    expect(screen.getByRole("region", { name: "Pessoas sem meta" }).textContent).toContain("Elisa está sem meta");
   });
 
   it("com filtro de função, quem tem dois cargos aparece sem toggle", async () => {
@@ -298,7 +277,7 @@ describe("página Time — grade", () => {
     expect(rotulos(jonathan)).toEqual(["Reuniões Realizadas"]);
     expect(within(jonathan).getByRole("img", { name: "0 de 1 metas no ritmo" })).toBeTruthy();
     // 0/1 no ritmo: desce pro fim da grade.
-    expect(ordemDosCards()).toEqual(["carla@x.com", "nathan@x.com", "jonathan@x.com"]);
+    expect(ordemDosCards()).toEqual(["carla@x.com", "nathan@x.com", "jonathan@x.com", "elisa@x.com", "davi@x.com"]);
     // A conta de Closer não tem foto: mantém a do SDR.
     expect(jonathan.querySelector("img")?.getAttribute("src")).toBe("https://exemplo/2.png");
   });
@@ -341,7 +320,7 @@ describe("página Time — chegada pela Comercial (#pessoa-…)", () => {
   });
 
   it("hash de alguém que não tem card não rola nada", async () => {
-    montar("/time#pessoa-davi@x.com");
+    montar("/time#pessoa-ninguem@x.com");
     await screen.findByText("Nathan");
     expect(scrollIntoView).not.toHaveBeenCalled();
   });

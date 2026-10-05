@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useLocation } from "react-router-dom";
+import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
+import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
 import { StatusChip } from "../componentes/StatusChip";
 import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
@@ -49,7 +51,7 @@ interface PessoaTime {
 
 interface MetricaRitmo {
   metrica: Metrica;
-  /** `null` = sem meta (meta nula ou 0). */
+  /** `null` = sem meta cadastrada; 0 = métrica aberta. Os dois aparecem com barra azul. */
   meta: number | null;
   ritmo: Ritmo;
 }
@@ -75,15 +77,16 @@ function metricasComRitmo({ cargo, pessoa }: CargoPessoa, dias: DiasUteis): Metr
     pessoa.metricas
       .filter((m) => m.metrica === chave)
       .map((m) => {
-        // Number(): numeric do Postgres pode chegar como string ("0.00") apesar do tipo. Meta 0 = sem meta.
-        const meta = m.meta_periodo === null ? null : Number(m.meta_periodo) || null;
+        // Number(): numeric do Postgres pode chegar como string ("0.00") apesar do tipo.
+        // Meta 0 = métrica aberta: aparece com valor / 0 e barra azul, só não conta como meta.
+        const meta = m.meta_periodo === null ? null : Number(m.meta_periodo);
         return { metrica: m, meta, ritmo: calcularRitmo(m.realizado, meta, dias) };
       }),
   );
 }
 
 function resumo(metricas: MetricaRitmo[]) {
-  const comMeta = metricas.filter((m) => m.meta !== null);
+  const comMeta = metricas.filter((m) => (m.meta ?? 0) > 0);
   return {
     comMeta: comMeta.length,
     noRitmo: comMeta.filter((m) => m.ritmo.status === "no_ritmo").length,
@@ -114,13 +117,12 @@ function u(px: number): string {
 /** Altura × largura do card com `--u` = 1px — com folga pro chip, que não escala. */
 const ALTURA_BASE_CARD = 340;
 const LARGURA_BASE_CARD = 560;
-/** Cabeçalho do app + paddings do <main> (~175px) e uma margem; é só escala, a grade `1fr` fixa o tamanho real. */
-const RESERVA_VERTICAL_PX = 190;
-const ALTURA_AVISO_SEM_META_PX = 96;
+/** Cabeçalho do app + título da página + paddings do <main> e uma margem; é só escala, a grade `1fr` fixa o tamanho real. */
+const RESERVA_VERTICAL_PX = 250;
 
-function variaveisTv(qtdCards: number, comAviso: boolean): CSSProperties {
+function variaveisTv(qtdCards: number): CSSProperties {
   const linhas = Math.max(1, Math.ceil(qtdCards / 3));
-  const reserva = RESERVA_VERTICAL_PX + (comAviso ? ALTURA_AVISO_SEM_META_PX : 0) + (linhas - 1) * 12;
+  const reserva = RESERVA_VERTICAL_PX + (linhas - 1) * 12;
   return {
     "--card-h": `calc((100vh - ${reserva}px) / ${linhas})`,
     "--card-w": "calc((100vw - 72px) / 3)",
@@ -158,7 +160,7 @@ function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
 }
 
 function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
-  const semMeta = meta === null;
+  const semMeta = !meta;
   return (
     <div role="group" aria-label={metrica.nome_exibicao} className="flex min-w-0 flex-col" style={{ gap: u(6) }}>
       <div className="flex items-baseline justify-between gap-3">
@@ -167,10 +169,10 @@ function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
         </span>
         <span className="shrink-0 font-display font-extrabold leading-none tracking-tight" style={{ fontSize: u(17) }}>
           {formatarNumero(metrica.realizado)}
-          <span className="text-muted"> / {semMeta ? "—" : formatarNumero(meta)}</span>
+          <span className="text-muted"> / {formatarNumero(meta ?? 0)}</span>
         </span>
       </div>
-      {!semMeta && <ProgressBar valor={metrica.realizado} meta={meta} status={ritmo.status} esperadoFrac={ritmo.esperadoFrac} altura="h-1.5" />}
+      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={ritmo.status} esperadoFrac={ritmo.esperadoFrac} altura="h-1.5" />
       <div className="flex items-center justify-between gap-2">
         {!semMeta && (
           <span className="truncate text-muted" style={{ fontSize: u(12) }}>
@@ -208,7 +210,7 @@ function CardPessoaTime({
     <article
       id={`pessoa-${grupo.chave}`}
       aria-label={nome}
-      className={`glass-panel flex min-w-0 flex-col rounded-[18px] min-[1201px]:min-h-0 min-[1201px]:overflow-hidden ${destacado ? "destaque-temporario" : ""}`}
+      className={`glass-panel flex min-w-0 flex-col rounded-[24px] min-[1201px]:min-h-0 min-[1201px]:overflow-hidden ${destacado ? "destaque-temporario" : ""}`}
       style={{ gap: u(16), padding: u(18) }}
     >
       <div className="flex items-center" style={{ gap: u(14) }}>
@@ -252,36 +254,6 @@ function CardPessoaTime({
         ))}
       </div>
     </article>
-  );
-}
-
-const MES_EXTENSO = new Intl.DateTimeFormat("pt-BR", { month: "long" });
-const LISTA_NOMES = new Intl.ListFormat("pt-BR", { style: "long", type: "conjunction" });
-
-function mesPorExtenso(inicioIso: string): string {
-  const [ano, mes] = inicioIso.split("-").map(Number);
-  return MES_EXTENSO.format(new Date(ano, mes - 1, 1));
-}
-
-function AvisoSemMeta({ grupos, mes }: { grupos: PessoaTime[]; mes: string }) {
-  const nomes = grupos.map((g) => nomeExibicao(g.cargos[0].pessoa.nome, g.cargos[0].pessoa.email));
-  return (
-    <section aria-label="Pessoas sem meta" className="glass-panel flex shrink-0 items-center gap-4 rounded-[18px] px-5 py-4">
-      <div className="flex shrink-0">
-        {grupos.map((g, i) => {
-          const imagemUrl = g.cargos.find((c) => c.pessoa.imagem_url)?.pessoa.imagem_url ?? null;
-          return (
-            <span key={g.chave} className={`flex rounded-full ring-2 ring-surface ${i > 0 ? "-ml-3" : ""}`}>
-              <Avatar nome={nomes[i]} imagemUrl={imagemUrl} tamanho={40} />
-            </span>
-          );
-        })}
-      </div>
-      <p className="text-[15px] text-muted">
-        <span className="font-semibold text-fg">{LISTA_NOMES.format(nomes)}</span> {nomes.length === 1 ? "está" : "estão"} sem meta em {mes}. Defina
-        as metas para que apareçam no acompanhamento.
-      </p>
-    </section>
   );
 }
 
@@ -378,9 +350,7 @@ export function Time() {
     ...(closer.dado?.pessoas.map((pessoa) => ({ cargo: "closer" as const, pessoa })) ?? []),
   ];
   const grupos = agruparPorPessoa(squad === "todos" ? unidades : unidades.filter((u) => u.cargo === squad));
-  const semMeta = grupos.filter((g) => g.cargos.every((c) => resumo(metricasComRitmo(c, dias)).comMeta === 0));
   const cards = grupos
-    .filter((g) => !semMeta.includes(g))
     .map((grupo) => {
       const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo, dias), grupo.cargos.length - 1);
       const metricas = metricasComRitmo(grupo.cargos[indiceAtivo], dias);
@@ -412,20 +382,17 @@ export function Time() {
     );
   }
 
-  if (grupos.length === 0) {
-    return <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>;
-  }
-
-  const periodoResposta = (sdr.dado ?? closer.dado)?.periodo;
-  const inicioPeriodo = periodoResposta?.inicio ?? `${periodo.slice(0, 7)}-01`;
-  // Sob Ano o início é 1º de janeiro: o aviso cita o ano, como na Comercial.
-  const referencia = periodoResposta?.granularidade === "ano" ? inicioPeriodo.slice(0, 4) : mesPorExtenso(inicioPeriodo);
-
   return (
     <div
       className="flex flex-col gap-3 [--u:1px] min-[1201px]:h-full min-[1201px]:[--u:var(--u-tv)]"
-      style={variaveisTv(cards.length, semMeta.length > 0)}
+      style={variaveisTv(cards.length)}
     >
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Time</h1>
+        <PillSquad />
+      </div>
+      <AvisoFontes avisos={[...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
+      {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
       {cards.length > 0 && (
         <section
           aria-label="Time"
@@ -443,7 +410,6 @@ export function Time() {
           ))}
         </section>
       )}
-      {semMeta.length > 0 && <AvisoSemMeta grupos={semMeta} mes={referencia} />}
     </div>
   );
 }
