@@ -24,7 +24,7 @@ const INTERVALO_AUTO_REFRESH_MS = 60_000;
  * de fora de toda a página — decisão de produto.
  */
 const COLUNAS: Record<Cargo, readonly string[]> = {
-  sdr: ["fups", "numeros_captados", "ligacoes_realizadas", "reunioes_agendadas", "indicacoes", "inscricoes_realizadas"],
+  sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
   closer: METRICAS_CLOSER,
 };
 

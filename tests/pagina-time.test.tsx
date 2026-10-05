@@ -151,10 +151,10 @@ describe("página Time — métricas do card", () => {
     expect(rotulos(card("nathan@x.com"))).toEqual([
       "Follow-ups",
       "Números Captados",
-      "Ligações Realizadas",
-      "Reuniões Agendadas",
-      "Indicações",
       "Inscrições Realizadas",
+      "Ligações Realizadas",
+      "Indicações",
+      "Reuniões Agendadas",
     ]);
   });
 

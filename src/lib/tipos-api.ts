@@ -102,10 +102,10 @@ export const METRICAS_SDR = [
   "in_mails",
   "fups",
   "numeros_captados",
-  "ligacoes_realizadas",
-  "reunioes_agendadas",
-  "indicacoes",
   "inscricoes_realizadas",
+  "ligacoes_realizadas",
+  "indicacoes",
+  "reunioes_agendadas",
 ] as const;
 export type MetricaSdr = (typeof METRICAS_SDR)[number];
 

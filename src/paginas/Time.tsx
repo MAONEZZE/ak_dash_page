@@ -18,7 +18,7 @@ const SEM_DIAS: DiasUteis = { decorridos: 0, total: 0 };
 
 /** Ordem fixa das métricas por cargo: todas as do cargo, sem as do Dripify. */
 const METRICAS_TIME: Record<Cargo, readonly string[]> = {
-  sdr: ["fups", "numeros_captados", "ligacoes_realizadas", "reunioes_agendadas", "indicacoes", "inscricoes_realizadas"],
+  sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
   closer: METRICAS_CLOSER,
 };
 
