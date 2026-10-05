@@ -183,6 +183,8 @@ export interface EventoGeral {
   inscritos: number;
   /** Subconjunto de `inscritos` — só `approved`. */
   aprovados: number;
+  /** Subconjunto de `inscritos` — só `pending`. */
+  pendentes: number;
 }
 
 /** Uma conta do LinkedIn (`dash.metricas_dripify`) com a soma do período pedido. */

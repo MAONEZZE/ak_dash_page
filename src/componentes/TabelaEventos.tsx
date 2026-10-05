@@ -12,7 +12,7 @@ const CELULA = "truncate px-[clamp(6px,0.6vw,14px)]";
  */
 
 /**
- * Confrarias do mês: data, inscritos e aprovados (até 10 na Geral).
+ * Confrarias do mês: data, inscritos, aprovados e pendentes (até 10 na Geral).
  * A grade sempre reserva as 10 linhas, então a altura de cada linha
  * não muda com a quantidade de eventos. As que já aconteceram ficam esmaecidas.
  */
@@ -30,7 +30,7 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
         {/* Cabeçalho no tamanho do título do card: em 2x os rótulos não cabem num quarto da tela. */}
         <div
           role="row"
-          className="grid mt-3 grid-cols-[1.6fr_1fr_1fr] items-center border-b border-line pb-[clamp(3px,0.5vh,8px)] text-[clamp(17px,2.03vh,30px)] font-semibold sm:text-[clamp(14px,min(2.03vh,2.25vw),30px)] xl:text-[clamp(14px,min(2.03vh,1.08vw),30px)] uppercase tracking-[0.06em] text-muted"
+          className="grid mt-3 grid-cols-[1.4fr_1fr_1fr_1fr] items-center border-b border-line pb-[clamp(3px,0.5vh,8px)] text-[clamp(17px,2.03vh,30px)] font-semibold sm:text-[clamp(14px,min(2.03vh,2.25vw),30px)] xl:text-[clamp(14px,min(2.03vh,1.08vw),30px)] uppercase tracking-[0.06em] text-muted"
         >
           <span role="columnheader" className={CELULA}>
             Data
@@ -41,6 +41,9 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
           <span role="columnheader" className={`${CELULA} text-right`}>
             Ap.
           </span>
+          <span role="columnheader" className={`${CELULA} text-right`}>
+            P.
+          </span>
         </div>
         {eventos.length === 0 ? (
           <p className="row-span-2 self-center px-2 text-[clamp(20px,2.4vh,36px)] text-muted">{vazio}</p>
@@ -50,7 +53,7 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
               role="row"
               key={e.id}
               title={e.titulo}
-              className={`grid grid-cols-[1.6fr_1fr_1fr] items-center border-b border-line last:border-0 ${instanteEvento(e.data) < agora ? "opacity-45" : ""}`}
+              className={`grid grid-cols-[1.4fr_1fr_1fr_1fr] items-center border-b border-line last:border-0 ${instanteEvento(e.data) < agora ? "opacity-45" : ""}`}
             >
               <span role="cell" className={`${CELULA} font-semibold`}>
                 {formatarDiaMesEvento(e.data)}
@@ -60,6 +63,9 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
               </span>
               <span role="cell" className={`${CELULA} text-right font-display font-bold`}>
                 {formatarNumero(e.aprovados)}
+              </span>
+              <span role="cell" className={`${CELULA} text-right font-display font-bold`}>
+                {formatarNumero(e.pendentes)}
               </span>
             </div>
           ))

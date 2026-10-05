@@ -71,7 +71,8 @@
       "data": "2026-09-20T19:00:00",
       "capacidade": 120,
       "inscritos": 77,
-      "aprovados": 48
+      "aprovados": 48,
+      "pendentes": 26
     },
     {
       "id": "00000000-0000-4000-8000-000000000002",
@@ -79,7 +80,8 @@
       "data": "2026-09-20T19:00:00",
       "capacidade": 120,
       "inscritos": 74,
-      "aprovados": 46
+      "aprovados": 46,
+      "pendentes": 25
     },
     {
       "id": "00000000-0000-4000-8000-000000000003",
@@ -87,7 +89,8 @@
       "data": "2026-09-21T19:00:00",
       "capacidade": 120,
       "inscritos": 71,
-      "aprovados": 44
+      "aprovados": 44,
+      "pendentes": 24
     },
     {
       "id": "00000000-0000-4000-8000-000000000004",
@@ -95,7 +98,8 @@
       "data": "2026-09-21T19:00:00",
       "capacidade": 120,
       "inscritos": 68,
-      "aprovados": 42
+      "aprovados": 42,
+      "pendentes": 23
     },
     {
       "id": "00000000-0000-4000-8000-000000000005",
@@ -103,7 +107,8 @@
       "data": "2026-09-21T19:00:00",
       "capacidade": 120,
       "inscritos": 65,
-      "aprovados": 40
+      "aprovados": 40,
+      "pendentes": 22
     },
     {
       "id": "00000000-0000-4000-8000-000000000006",
@@ -111,7 +116,8 @@
       "data": "2026-09-22T19:00:00",
       "capacidade": 120,
       "inscritos": 62,
-      "aprovados": 38
+      "aprovados": 38,
+      "pendentes": 21
     },
     {
       "id": "00000000-0000-4000-8000-000000000007",
@@ -119,7 +125,8 @@
       "data": "2026-09-22T19:00:00",
       "capacidade": 120,
       "inscritos": 59,
-      "aprovados": 36
+      "aprovados": 36,
+      "pendentes": 20
     },
     {
       "id": "00000000-0000-4000-8000-000000000008",
@@ -127,7 +134,8 @@
       "data": "2026-09-22T19:00:00",
       "capacidade": 120,
       "inscritos": 56,
-      "aprovados": 34
+      "aprovados": 34,
+      "pendentes": 19
     },
     {
       "id": "00000000-0000-4000-8000-000000000009",
@@ -135,7 +143,8 @@
       "data": "2026-09-23T19:00:00",
       "capacidade": 120,
       "inscritos": 53,
-      "aprovados": 32
+      "aprovados": 32,
+      "pendentes": 18
     },
     {
       "id": "00000000-0000-4000-8000-000000000010",
@@ -143,7 +152,8 @@
       "data": "2026-09-23T19:00:00",
       "capacidade": 120,
       "inscritos": 50,
-      "aprovados": 30
+      "aprovados": 30,
+      "pendentes": 17
     }
   ],
   "contas_dripify": [

@@ -69,6 +69,10 @@ describe("Geral — layout da TV", () => {
     // fixture tem 10 Confrarias (+1 linha de cabeçalho)
     expect(within(tabela).getAllByRole("row")).toHaveLength(11);
     expect(screen.queryByRole("table", { name: "Confrarias do mês (cont.)" })).toBeNull();
+    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Data", "In.", "Ap.", "P."]);
+    const [, primeira] = within(tabela).getAllByRole("row");
+    const e = geral.eventos[0];
+    expect(within(primeira).getAllByRole("cell").slice(1).map((c) => c.textContent)).toEqual([e.inscritos, e.aprovados, e.pendentes].map(String));
   });
 
   it("Contas Dripify: uma linha por conta com conexões aceitas e números captados", async () => {
