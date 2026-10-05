@@ -153,7 +153,14 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
               style={{ height: `${altura}%` }}
             />
           </div>
-          <div className={`-mt-1 flex size-[clamp(34px,4.6vh,66px)] shrink-0 items-center justify-center rounded-full text-surface transition-colors duration-1000 ${visual.preenchimento}`}>
+          {/*
+           * Bulbo sempre opaco (pedido do usuário, 2026-10-05): cor pelos canais
+           * RGB, sem a indireção --color-gelo → --gelo, e acima das partículas.
+           */}
+          <div
+            className="relative z-10 -mt-1 flex size-[clamp(34px,4.6vh,66px)] shrink-0 items-center justify-center rounded-full text-surface opacity-100 transition-colors duration-1000"
+            style={{ backgroundColor: `rgb(${visual.rgb})` }}
+          >
             <IconeBulbo className={`size-[55%] ${temp === "quente" ? "chama-tremulando" : ""}`} aria-hidden />
           </div>
         </div>
