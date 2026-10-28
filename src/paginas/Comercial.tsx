@@ -65,6 +65,23 @@ function umaCasa(valor: number): string {
   return formatarNumero(Math.round(valor * 10) / 10);
 }
 
+/** Linha de indicadores do card (aba Dashboard): % de atingimento, falta/folga, média necessária e previsão. */
+function detalheIndicadores(m: MetricaTime): string {
+  const partes: string[] = [];
+  if (m.pct_atingimento !== null) partes.push(`${formatarNumero(m.pct_atingimento)}%`);
+  if (m.falta_folga) partes.push(`${m.falta_folga.tipo === "falta" ? "Falta" : "Folga"} ${formatarNumero(m.falta_folga.valor)}`);
+  const necessaria = m.media_necessaria;
+  if (necessaria?.situacao === "pendente" && necessaria.valor !== null) {
+    partes.push(necessaria.unidade === "dia" ? `${umaCasa(necessaria.valor)}/dia útil` : `${umaCasa(necessaria.valor)}/hora`);
+  } else if (necessaria?.situacao === "meta_batida") {
+    partes.push("Meta batida");
+  } else if (necessaria?.situacao === "expediente_encerrado") {
+    partes.push("Expediente encerrado");
+  }
+  if (m.previsao !== null) partes.push(`Previsão ${formatarNumero(Math.round(m.previsao))}`);
+  return partes.join(" · ");
+}
+
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
 function Esqueleto() {
   return (
@@ -98,6 +115,7 @@ function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: Metr
               value={formatarNumero(m.realizado)}
               meta={m.meta_periodo === null ? undefined : formatarNumero(m.meta_periodo)}
               ritmo={{ realizado: m.realizado, meta: m.meta_periodo, dias }}
+              detalhe={detalheIndicadores(m)}
             />
           ))}
         </div>

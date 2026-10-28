@@ -243,6 +243,15 @@ describe("página Comercial", () => {
     expect(inscricoes.textContent).not.toContain("/ 40");
   });
 
+  it("card mostra % de atingimento, falta, média necessária e previsão vindos do BFF", async () => {
+    metricasTimeSdr = [
+      { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 40, realizado: 35, pct_atingimento: 87.5, falta_folga: { tipo: "falta", valor: 5 }, horas_restantes: null, media_necessaria: { valor: 2.5, unidade: "dia", situacao: "pendente" }, previsao: 44 },
+    ];
+    await carregada();
+    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(inscricoes.textContent).toContain("87,5% · Falta 5 · 2,5/dia útil · Previsão 44");
+  });
+
   it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();
