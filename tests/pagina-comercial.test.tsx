@@ -422,4 +422,20 @@ describe("página Comercial", () => {
     await waitFor(() => expect(chamadasSdr.length).toBeGreaterThan(0));
     expect(chamadasSdr).toHaveLength(1);
   });
+
+  it.each([
+    ["semana", /^\d{4}-W\d{2}$/],
+    ["mes", /^\d{4}-\d{2}$/],
+  ])("filtro de período pede ao BFF a granularidade escolhida e mostra o total devolvido", async (g, periodoEsperado) => {
+    metricasTimeSdr = [
+      { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 50, realizado: 47, pct_atingimento: null, falta_folga: null, horas_restantes: null, media_necessaria: null, previsao: null },
+    ];
+    await carregada(`/?granularidade=${g}`);
+
+    expect(chamadasSdr[0].granularidade).toBe(g);
+    expect(chamadasSdr[0].periodo).toMatch(periodoEsperado);
+    const primeiro = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(primeiro.textContent).toContain("47");
+    expect(primeiro.textContent).toContain("/ 50");
+  });
 });
