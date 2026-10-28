@@ -166,7 +166,7 @@ interface TabelaCargoProps {
 /**
  * Uma tabela por cargo: as métricas do cargo + "Metas". Linhas ordenadas pela fração
  * de metas no ritmo; clicar (ou Enter/Espaço) leva pra Time, no card da pessoa
- * (`#pessoa-<email>` — contrato com a página Time). Todo mundo do cargo vira
+ * (`#pessoa-<id_user>` — contrato com a página Time). Todo mundo do cargo vira
  * linha: meta 0/sem meta é métrica aberta (valor + barra azul), nunca some.
  */
 function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
@@ -184,7 +184,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
     .sort((a, b) => proporcao(b.resumo) - proporcao(a.resumo) || a.nome.localeCompare(b.nome, "pt-BR"));
 
   function abrir(pessoa: PessoaComercial) {
-    navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.email.toLowerCase()}` });
+    navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.id_user}` });
   }
 
   const titulo = TITULO_TABELA[cargo];

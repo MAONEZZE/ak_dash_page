@@ -368,7 +368,7 @@ describe("página Comercial", () => {
 
       fireEvent.keyDown(ana, { key: "Enter" });
 
-      expect(screen.getByTestId("destino").textContent).toBe("/time?granularidade=mes&squad=sdr#pessoa-ana.silva@x.com");
+      expect(screen.getByTestId("destino").textContent).toBe("/time?granularidade=mes&squad=sdr#pessoa-1");
     });
   });
 
