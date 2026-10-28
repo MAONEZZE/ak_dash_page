@@ -231,6 +231,18 @@ describe("página Comercial", () => {
     expect(inscricoes.textContent).not.toContain("Nenhuma meta definida no período");
   });
 
+  it("card do time usa realizado e meta de metricas_time do BFF", async () => {
+    metricasTimeSdr = [
+      { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 120, realizado: 99, pct_atingimento: null, falta_folga: null, horas_restantes: null, media_necessaria: null, previsao: null },
+    ];
+    await carregada();
+    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(inscricoes.textContent).toContain("Inscrições Realizadas");
+    expect(inscricoes.textContent).toContain("99");
+    expect(inscricoes.textContent).toContain("/ 120");
+    expect(inscricoes.textContent).not.toContain("/ 40");
+  });
+
   it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();

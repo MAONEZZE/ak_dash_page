@@ -15,7 +15,7 @@ import { paraPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo } from "../lib/ritmo";
 import { useSomDeAumento } from "../lib/som";
 import { useSquadAtual } from "../lib/squad";
-import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type ParametrosComercial, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type MetricaTime, type ParametrosComercial, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
@@ -55,6 +55,11 @@ function agregadoDoCargo(dado: RespostaComercial | null, cargo: Cargo): MetricaA
   return COLUNAS[cargo].flatMap((chave) => agregado.find((m) => m.metrica === chave) ?? []);
 }
 
+/** Cards do time por métrica, só as do cargo e na ordem delas: realizado e meta vêm de `metricas_time`. */
+function cardsDoCargo(dado: RespostaComercial | null, cargo: Cargo): MetricaTime[] {
+  return COLUNAS[cargo].flatMap((chave) => dado?.metricas_time.find((m) => m.metrica === chave) ?? []);
+}
+
 /** Uma casa decimal — média e necessário por dia útil quase nunca são inteiros. */
 function umaCasa(valor: number): string {
   return formatarNumero(Math.round(valor * 10) / 10);
@@ -78,7 +83,7 @@ function Esqueleto() {
   );
 }
 
-function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: MetricaAgregada[]; dias: DiasUteis }) {
+function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: MetricaTime[]; dias: DiasUteis }) {
   return (
     <section className="flex flex-col gap-3" aria-label={titulo}>
       <h2 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">{titulo}</h2>
@@ -89,10 +94,10 @@ function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: Metr
           {metricas.map((m) => (
             <CardKpi
               key={m.metrica}
-              label={m.nomeExibicao}
+              label={m.nome_exibicao}
               value={formatarNumero(m.realizado)}
-              meta={m.meta === null ? undefined : formatarNumero(m.meta)}
-              ritmo={{ realizado: m.realizado, meta: m.meta, dias }}
+              meta={m.meta_periodo === null ? undefined : formatarNumero(m.meta_periodo)}
+              ritmo={{ realizado: m.realizado, meta: m.meta_periodo, dias }}
             />
           ))}
         </div>
@@ -404,7 +409,7 @@ export function Comercial() {
                 </p>
               );
             }
-            return <BlocoCards key={cargo} titulo={titulo} metricas={agregadoDoCargo(dado, cargo)} dias={dado.dias_uteis} />;
+            return <BlocoCards key={cargo} titulo={titulo} metricas={cardsDoCargo(dado, cargo)} dias={dado.dias_uteis} />;
           })}
 
           <section className="flex flex-col gap-3" aria-labelledby="titulo-acompanhamento">
