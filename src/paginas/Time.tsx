@@ -12,18 +12,11 @@ import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo, type Ritmo } from "../lib/ritmo";
 import { useSquadAtual } from "../lib/squad";
-import { METRICAS_CLOSER, METRICAS_DASHBOARD, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 const DURACAO_DESTAQUE_MS = 2_400;
 const SEM_DIAS: DiasUteis = { decorridos: 0, total: 0 };
-
-/** Ordem fixa das métricas por cargo: todas as do cargo, sem as do Dripify. */
-const METRICAS_TIME: Record<Cargo, readonly string[]> = {
-  seller: METRICAS_DASHBOARD.seller,
-  sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
-  closer: METRICAS_CLOSER,
-};
 
 const VISUAL_CARGO: Record<Cargo, { rotulo: string; classe: string }> = {
   seller: { rotulo: "Seller", classe: "bg-warn-bg text-warn" },
@@ -46,7 +39,7 @@ interface CargoPessoa {
 
 /** Mesma pessoa nos dois cargos, num card só. */
 interface PessoaTime {
-  /** Email em minúsculas — também é o `id="pessoa-…"` que a Comercial usa no link. */
+  /** id_user — também é o `id="pessoa-…"` que a Comercial usa no link. */
   chave: string;
   cargos: CargoPessoa[];
 }
@@ -58,15 +51,11 @@ interface MetricaRitmo {
   ritmo: Ritmo;
 }
 
-/**
- * Agrupa por email: o `id_user` muda entre os endpoints de SDR e Closer
- * (contas diferentes da mesma pessoa) e o nome pode colidir. Mantém a ordem
- * de primeira aparição — SDRs primeiro, e dentro do grupo SDR → Closer.
- */
+/** Agrupa por id_user: no dash2 a mesma pessoa tem o mesmo id em todos os cargos. Mantém a ordem de primeira aparição. */
 function agruparPorPessoa(unidades: CargoPessoa[]): PessoaTime[] {
   const grupos = new Map<string, PessoaTime>();
   for (const u of unidades) {
-    const chave = u.pessoa.email.trim().toLowerCase();
+    const chave = u.pessoa.id_user;
     const grupo = grupos.get(chave);
     if (grupo) grupo.cargos.push(u);
     else grupos.set(chave, { chave, cargos: [u] });
@@ -75,7 +64,7 @@ function agruparPorPessoa(unidades: CargoPessoa[]): PessoaTime[] {
 }
 
 function metricasComRitmo({ cargo, pessoa }: CargoPessoa, dias: DiasUteis): MetricaRitmo[] {
-  return METRICAS_TIME[cargo].flatMap((chave) =>
+  return METRICAS_DASHBOARD[cargo].flatMap((chave) =>
     pessoa.metricas
       .filter((m) => m.metrica === chave)
       .map((m) => {
