@@ -330,6 +330,12 @@ describe("página Comercial", () => {
     await waitFor(() => expect(screen.getByTestId("dias-uteis").textContent).toBe("10 de 20"));
   });
 
+  it("nenhuma barra da página tem a linha vertical do esperado hoje", async () => {
+    await carregada();
+    expect(document.querySelectorAll('[role="progressbar"] > span[aria-hidden]')).toHaveLength(0);
+    expect(document.querySelectorAll('[role="progressbar"]').length).toBeGreaterThan(0);
+  });
+
   describe("tabelas do time", () => {
     it("ordena pela fração de metas no ritmo, com o nome no empate", async () => {
       await carregada();

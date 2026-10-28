@@ -264,7 +264,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                                 {formatarNumero(m.realizado)}
                                 <span className="text-[14px] font-semibold text-muted"> / {formatarNumero(m.meta_periodo)}</span>
                               </span>
-                              <ProgressBar valor={m.realizado} meta={m.meta_periodo} status={r.status} esperadoFrac={r.esperadoFrac} altura="h-1.5" />
+                              <ProgressBar valor={m.realizado} meta={m.meta_periodo} status={r.status} altura="h-1.5" />
                             </div>
                           ) : (
                             // Meta 0/sem meta: métrica aberta — valor / 0 e barra cheia azul.
@@ -273,7 +273,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                                 {formatarNumero(m.realizado)}
                                 <span className="text-[14px] font-semibold text-muted"> / 0</span>
                               </span>
-                              <ProgressBar valor={m.realizado} meta={0} status="sem_meta" esperadoFrac={0} altura="h-1.5" />
+                              <ProgressBar valor={m.realizado} meta={0} status="sem_meta" altura="h-1.5" />
                             </div>
                           )}
                         </td>

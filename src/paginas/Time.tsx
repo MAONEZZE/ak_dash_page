@@ -174,7 +174,7 @@ function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
           <span className="text-muted"> / {formatarNumero(meta ?? 0)}</span>
         </span>
       </div>
-      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={ritmo.status} esperadoFrac={ritmo.esperadoFrac} altura="h-1.5" />
+      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={ritmo.status} altura="h-1.5" />
       <div className="flex items-center justify-between gap-2">
         {!semMeta && (
           <span className="truncate text-muted" style={{ fontSize: u(12) }}>

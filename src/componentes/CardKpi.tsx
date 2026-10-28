@@ -127,7 +127,7 @@ export function CardKpi({
         semMeta ? (
           // Meta 0/sem meta = métrica aberta: barra cheia azul, sem ritmo pra projetar.
           <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(4px,min(0.45vw,0.8vh),14px)]` : "mt-auto gap-2"}`}>
-            <ProgressBar valor={ritmo.realizado} meta={0} status="sem_meta" esperadoFrac={0} altura={compacto ? CARD_COMPACTO_BARRA : "h-2"} />
+            <ProgressBar valor={ritmo.realizado} meta={0} status="sem_meta" altura={compacto ? CARD_COMPACTO_BARRA : "h-2"} />
             <span className={`font-semibold text-muted ${textoRodape}`}>Métrica aberta · sem meta no período</span>
           </div>
         ) : (
@@ -136,7 +136,6 @@ export function CardKpi({
               valor={ritmo.realizado}
               meta={ritmo.meta ?? 0}
               status={r.status}
-              esperadoFrac={r.esperadoFrac}
               altura={compacto ? CARD_COMPACTO_BARRA : "h-2"}
             />
             {/* No compacto (Geral/TV, card de 1/5 da tela) o rodapé encurta pra caber numa linha. */}
