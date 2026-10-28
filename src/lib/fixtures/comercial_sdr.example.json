@@ -27,7 +27,15 @@
           "meta_periodo": 440,
           "realizado": 185,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 42.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 255
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "conexoes_aceitas",
@@ -35,7 +43,15 @@
           "meta_periodo": 176,
           "realizado": 65,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 36.9,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 111
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "abordagens",
@@ -43,7 +59,15 @@
           "meta_periodo": 550,
           "realizado": 316,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 57.5,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 234
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "in_mails",
@@ -51,7 +75,15 @@
           "meta_periodo": 110,
           "realizado": 42,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 38.2,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 68
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "fups",
@@ -59,7 +91,15 @@
           "meta_periodo": 220,
           "realizado": 84,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 38.2,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 136
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "numeros_captados",
@@ -67,7 +107,15 @@
           "meta_periodo": 66,
           "realizado": 28,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 42.4,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 38
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "inscricoes_realizadas",
@@ -75,7 +123,15 @@
           "meta_periodo": 22,
           "realizado": 10,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 45.5,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 12
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "ligacoes_realizadas",
@@ -83,7 +139,15 @@
           "meta_periodo": 88,
           "realizado": 42,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 47.7,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 46
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "indicacoes",
@@ -91,7 +155,15 @@
           "meta_periodo": 44,
           "realizado": 21,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 47.7,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 23
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "reunioes_agendadas",
@@ -99,7 +171,15 @@
           "meta_periodo": 44,
           "realizado": 26,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 59.1,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 18
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         }
       ],
       "contas_origem": [
@@ -124,7 +204,15 @@
           "meta_periodo": 440,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 440
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "conexoes_aceitas",
@@ -132,7 +220,15 @@
           "meta_periodo": 176,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 176
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "abordagens",
@@ -140,7 +236,15 @@
           "meta_periodo": 550,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 550
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "in_mails",
@@ -148,7 +252,15 @@
           "meta_periodo": 110,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 110
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "fups",
@@ -156,7 +268,15 @@
           "meta_periodo": 220,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 220
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "numeros_captados",
@@ -164,7 +284,15 @@
           "meta_periodo": 66,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 66
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "inscricoes_realizadas",
@@ -172,7 +300,15 @@
           "meta_periodo": 22,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 22
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "ligacoes_realizadas",
@@ -180,7 +316,15 @@
           "meta_periodo": 88,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 88
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "indicacoes",
@@ -188,7 +332,15 @@
           "meta_periodo": 44,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 44
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "reunioes_agendadas",
@@ -196,7 +348,15 @@
           "meta_periodo": 44,
           "realizado": 0,
           "status": "sem_preenchimento",
-          "dias_com_lacuna": 30
+          "dias_com_lacuna": 30,
+          "pct_atingimento": 0.0,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 44
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         }
       ],
       "contas_origem": [],
@@ -219,7 +379,15 @@
           "meta_periodo": 440,
           "realizado": 124,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 28.2,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 316
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "conexoes_aceitas",
@@ -227,7 +395,15 @@
           "meta_periodo": 176,
           "realizado": 78,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 44.3,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 98
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "abordagens",
@@ -235,7 +411,15 @@
           "meta_periodo": 550,
           "realizado": 248,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 45.1,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 302
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "in_mails",
@@ -243,7 +427,15 @@
           "meta_periodo": 110,
           "realizado": 45,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 40.9,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 65
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "fups",
@@ -251,7 +443,15 @@
           "meta_periodo": 220,
           "realizado": 37,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 16.8,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 183
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "numeros_captados",
@@ -259,7 +459,15 @@
           "meta_periodo": 66,
           "realizado": 23,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 34.8,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 43
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "inscricoes_realizadas",
@@ -267,7 +475,15 @@
           "meta_periodo": 22,
           "realizado": 12,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 54.5,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 10
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "ligacoes_realizadas",
@@ -275,7 +491,15 @@
           "meta_periodo": 88,
           "realizado": 25,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 28.4,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 63
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "indicacoes",
@@ -283,7 +507,15 @@
           "meta_periodo": 44,
           "realizado": 13,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 29.5,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 31
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         },
         {
           "metrica": "reunioes_agendadas",
@@ -291,7 +523,15 @@
           "meta_periodo": 44,
           "realizado": 16,
           "status": "abaixo_da_meta",
-          "dias_com_lacuna": 20
+          "dias_com_lacuna": 20,
+          "pct_atingimento": 36.4,
+          "falta_folga": {
+            "tipo": "falta",
+            "valor": 28
+          },
+          "horas_restantes": null,
+          "media_necessaria": null,
+          "previsao": null
         }
       ],
       "contas_origem": [
@@ -299,6 +539,148 @@
       ],
       "pontuacao_total": 34.5,
       "posicao": 2
+    }
+  ],
+  "metricas_time": [
+    {
+      "metrica": "conexoes_enviadas",
+      "nome_exibicao": "Conexões Enviadas",
+      "meta_periodo": 1320,
+      "realizado": 309,
+      "pct_atingimento": 23.4,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 1011
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "conexoes_aceitas",
+      "nome_exibicao": "Conexões Aceitas",
+      "meta_periodo": 528,
+      "realizado": 143,
+      "pct_atingimento": 27.1,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 385
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "abordagens",
+      "nome_exibicao": "Abordagens",
+      "meta_periodo": 1650,
+      "realizado": 564,
+      "pct_atingimento": 34.2,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 1086
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "in_mails",
+      "nome_exibicao": "InMails Enviados",
+      "meta_periodo": 330,
+      "realizado": 87,
+      "pct_atingimento": 26.4,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 243
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "fups",
+      "nome_exibicao": "Follow-ups",
+      "meta_periodo": 660,
+      "realizado": 121,
+      "pct_atingimento": 18.3,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 539
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "numeros_captados",
+      "nome_exibicao": "Números Captados",
+      "meta_periodo": 198,
+      "realizado": 51,
+      "pct_atingimento": 25.8,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 147
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "inscricoes_realizadas",
+      "nome_exibicao": "Inscrições Realizadas",
+      "meta_periodo": 66,
+      "realizado": 22,
+      "pct_atingimento": 33.3,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 44
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "ligacoes_realizadas",
+      "nome_exibicao": "Ligações Realizadas",
+      "meta_periodo": 264,
+      "realizado": 67,
+      "pct_atingimento": 25.4,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 197
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "indicacoes",
+      "nome_exibicao": "Indicações Captadas",
+      "meta_periodo": 132,
+      "realizado": 34,
+      "pct_atingimento": 25.8,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 98
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
+    },
+    {
+      "metrica": "reunioes_agendadas",
+      "nome_exibicao": "Reuniões Agendadas",
+      "meta_periodo": 132,
+      "realizado": 42,
+      "pct_atingimento": 31.8,
+      "falta_folga": {
+        "tipo": "falta",
+        "valor": 90
+      },
+      "horas_restantes": null,
+      "media_necessaria": null,
+      "previsao": null
     }
   ],
   "serie_diaria": [

@@ -36,7 +36,38 @@ export interface Periodo {
 
 export type StatusMetrica = "atingido" | "abaixo_da_meta" | "sem_preenchimento" | "sem_meta";
 
-export interface Metrica {
+/** Indicadores da aba Dashboard das planilhas, calculados pelo BFF. `null` = sem meta (ou fora da granularidade). */
+export interface FaltaFolga {
+  tipo: "falta" | "folga";
+  valor: number;
+}
+
+export interface MediaNecessaria {
+  /** `null` quando a situação não é "pendente". */
+  valor: number | null;
+  unidade: "hora" | "dia";
+  situacao: "pendente" | "meta_batida" | "expediente_encerrado" | "periodo_encerrado";
+}
+
+export interface Indicadores {
+  pct_atingimento: number | null;
+  falta_folga: FaltaFolga | null;
+  /** Só na granularidade dia. */
+  horas_restantes: number | null;
+  media_necessaria: MediaNecessaria | null;
+  /** Só na granularidade mes: realizado ÷ dias úteis decorridos × 22. */
+  previsao: number | null;
+}
+
+/** Uma métrica do time inteiro do cargo: realizado de todos, meta = soma de quem tem meta. */
+export interface MetricaTime extends Indicadores {
+  metrica: string;
+  nome_exibicao: string;
+  meta_periodo: number | null;
+  realizado: number;
+}
+
+export interface Metrica extends Indicadores {
   metrica: string; // nome da coluna de origem, o mesmo dos dois lados: ex. "numeros_captados", "ligacoes_realizadas"
   nome_exibicao: string;
   /** Meta do cargo já multiplicada pelos dias úteis do período (no banco ela é DIÁRIA por pessoa): dia = a diária, semana = 5×, mês de 22 dias úteis = 22×. `null` = sem meta cadastrada, nunca 0. */
@@ -86,6 +117,7 @@ export interface RespostaComercial {
   periodo_parcial: boolean;
   avisos: string[];
   pessoas: PessoaComercial[];
+  metricas_time: MetricaTime[];
   serie_diaria: SerieDiariaDia[];
 }
 
