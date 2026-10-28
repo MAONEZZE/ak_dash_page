@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AtualizacaoProvider, useAtualizacao } from "../src/lib/atualizacao";
 import { SomProvider } from "../src/lib/som";
 import { Comercial } from "../src/paginas/Comercial";
-import type { Metrica, ParametrosComercial, PessoaComercial, RespostaComercial } from "../src/lib/tipos-api";
+import type { Metrica, MetricaTime, ParametrosComercial, PessoaComercial, RespostaComercial } from "../src/lib/tipos-api";
 
 // O BFF manda todas as métricas do cargo; a página só mostra as da aba Dashboard.
 const CHAVES_SELLER = ["fups", "numeros_captados", "indicacoes"];
@@ -47,6 +47,11 @@ function pessoa(id: string, nome: string, email: string, chaves: string[], valor
       realizado,
       status: meta === null ? "sem_meta" : realizado >= meta ? "atingido" : "abaixo_da_meta",
       dias_com_lacuna: 0,
+      pct_atingimento: null,
+      falta_folga: null,
+      horas_restantes: null,
+      media_necessaria: null,
+      previsao: null,
     };
   });
   return { id_user: id, email, nome, imagem_url: null, metas_atingidas: { atingidas: 0, total: 0 }, metricas, pontuacao_total: null, posicao: null, contas_origem: [] };
@@ -77,15 +82,41 @@ function closersPadrao(): PessoaComercial[] {
 let pessoasSeller: PessoaComercial[] = [];
 let pessoasSdr: PessoaComercial[] = [];
 let pessoasCloser: PessoaComercial[] = [];
+let metricasTimeSdr: MetricaTime[] | null = null;
 const chamadasSdr: ParametrosComercial[] = [];
 
-function resposta(pessoas: PessoaComercial[]): RespostaComercial {
+/** Uma entrada por chave, na ordem da primeira ocorrência; meta só soma quem tem meta. */
+function metricasTimeDe(pessoas: PessoaComercial[]): MetricaTime[] {
+  const porChave = new Map<string, { realizado: number; metas: number[] }>();
+  for (const pessoa of pessoas) {
+    for (const m of pessoa.metricas) {
+      const acumulado = porChave.get(m.metrica) ?? { realizado: 0, metas: [] };
+      acumulado.realizado += m.realizado;
+      if (m.meta_periodo !== null) acumulado.metas.push(m.meta_periodo);
+      porChave.set(m.metrica, acumulado);
+    }
+  }
+  return [...porChave].map(([chave, { realizado, metas }]) => ({
+    metrica: chave,
+    nome_exibicao: NOMES[chave],
+    meta_periodo: metas.length > 0 ? metas.reduce((soma, meta) => soma + meta, 0) : null,
+    realizado,
+    pct_atingimento: null,
+    falta_folga: null,
+    horas_restantes: null,
+    media_necessaria: null,
+    previsao: null,
+  }));
+}
+
+function resposta(pessoas: PessoaComercial[], metricasTime = metricasTimeDe(pessoas)): RespostaComercial {
   return {
     periodo: { granularidade: "mes", inicio: "2026-09-01", fim: "2026-09-30" },
     dias_uteis: DIAS_UTEIS,
     periodo_parcial: true,
     avisos: [],
     pessoas,
+    metricas_time: metricasTime,
     serie_diaria: [
       { dia: "2026-09-01", metricas: { fups: 1, numeros_captados: 2 } },
       { dia: "2026-09-02", metricas: { fups: 3, numeros_captados: 4 } },
@@ -97,7 +128,7 @@ vi.mock("../src/lib/api", () => ({
   buscarComercialSeller: vi.fn(async () => resposta(pessoasSeller)),
   buscarComercialSdr: vi.fn(async (params: ParametrosComercial) => {
     chamadasSdr.push(params);
-    return resposta(pessoasSdr);
+    return resposta(pessoasSdr, metricasTimeSdr ?? metricasTimeDe(pessoasSdr));
   }),
   buscarComercialCloser: vi.fn(async () => resposta(pessoasCloser)),
 }));
@@ -148,6 +179,7 @@ beforeEach(() => {
   pessoasSeller = [];
   pessoasSdr = sdrsPadrao();
   pessoasCloser = closersPadrao();
+  metricasTimeSdr = null;
 });
 
 afterEach(() => {
