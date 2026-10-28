@@ -165,6 +165,47 @@ describe("página Time — métricas do card", () => {
       "https://exemplo/9.png",
     ]);
   });
+
+  it("métrica com meta: valor / meta, barra e Falta/% na cor do terço da meta", async () => {
+    montar();
+    await screen.findByText("Carla");
+    const carla = card("7");
+
+    const indicacoes = within(carla).getByRole("group", { name: "Indicações" });
+    expect(indicacoes.textContent).toContain("2 / 10");
+    expect(indicacoes.textContent).toContain("Falta 8");
+    expect(indicacoes.textContent).toContain("20% de atingimento");
+    expect(within(indicacoes).getByText("8").className).toContain("text-bad");
+    expect(within(indicacoes).getByText("20%").className).toContain("text-bad");
+    expect(within(indicacoes).getByRole("progressbar").firstElementChild?.className).toContain("bg-bad");
+
+    const inscricoes = within(carla).getByRole("group", { name: "Inscrições Realizadas" });
+    expect(within(inscricoes).getByText("40%").className).toContain("text-warn");
+    expect(within(inscricoes).getByRole("progressbar").firstElementChild?.className).toContain("bg-warn-bar");
+
+    const reunioes = within(carla).getByRole("group", { name: "Reuniões Realizadas" });
+    expect(reunioes.textContent).toContain("Folga 20");
+    expect(within(reunioes).getByText("300%").className).toContain("text-ok");
+    expect(within(reunioes).getByRole("progressbar").firstElementChild?.className).toContain("bg-ok");
+
+    expect(carla.textContent).not.toContain("Esperado hoje");
+    expect(carla.textContent).not.toContain("No ritmo");
+    expect(carla.textContent).not.toContain("Atrás");
+  });
+
+  it("métrica sem meta: \"Meta aberta\", valor / 0 e barra cheia azul", async () => {
+    montar();
+    await screen.findByText("Nathan");
+    const agendadas = within(card("9")).getByRole("group", { name: "Reuniões Agendadas" });
+
+    expect(within(agendadas).getByText("Meta aberta")).toBeTruthy();
+    expect(agendadas.textContent).toContain("3 / 0");
+    const barra = within(agendadas).getByRole("progressbar").firstElementChild as HTMLElement;
+    expect(barra.style.width).toBe("100%");
+    expect(barra.className).toContain("bg-aberta");
+    expect(agendadas.textContent).not.toContain("Falta");
+    expect(agendadas.textContent).not.toContain("atingimento");
+  });
 });
 
 describe("página Time — grade", () => {

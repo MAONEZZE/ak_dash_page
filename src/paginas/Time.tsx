@@ -5,8 +5,9 @@ import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
-import { StatusChip } from "../componentes/StatusChip";
+import { RodapeAtingimento } from "../componentes/RodapeAtingimento";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
+import { statusDoAtingimento } from "../lib/atingimento";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -150,8 +151,7 @@ function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
   );
 }
 
-function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
-  const semMeta = !meta;
+function LinhaMetrica({ metrica, meta }: MetricaRitmo) {
   return (
     <div role="group" aria-label={metrica.nome_exibicao} className="flex min-w-0 flex-col" style={{ gap: u(6) }}>
       <div className="flex items-baseline justify-between gap-3">
@@ -163,15 +163,8 @@ function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
           <span className="text-muted"> / {formatarNumero(meta ?? 0)}</span>
         </span>
       </div>
-      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={ritmo.status} altura="h-1.5" />
-      <div className="flex items-center justify-between gap-2">
-        {!semMeta && (
-          <span className="truncate text-muted" style={{ fontSize: u(12) }}>
-            Esperado hoje: {formatarNumero(Math.round(ritmo.esperadoHoje))}
-          </span>
-        )}
-        <StatusChip status={ritmo.status} className="ml-auto" />
-      </div>
+      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={meta ? statusDoAtingimento(metrica.pct_atingimento) : "sem_meta"} altura="h-1.5" />
+      <RodapeAtingimento meta={meta} pct={metrica.pct_atingimento} faltaFolga={metrica.falta_folga} className="" style={{ fontSize: u(12) }} />
     </div>
   );
 }
