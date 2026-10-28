@@ -252,6 +252,30 @@ describe("página Comercial", () => {
     expect(inscricoes.textContent).toContain("87,5% · Falta 5 · 2,5/dia útil · Previsão 44");
   });
 
+  it.each([
+    {
+      caso: "média por hora pendente",
+      campos: { pct_atingimento: 25, falta_folga: { tipo: "falta", valor: 30 }, horas_restantes: 3.5, media_necessaria: { valor: 8.6, unidade: "hora", situacao: "pendente" } },
+      esperado: "25% · Falta 30 · 8,6/hora",
+    },
+    {
+      caso: "meta batida",
+      campos: { pct_atingimento: 107.5, falta_folga: { tipo: "folga", valor: 3 }, media_necessaria: { valor: null, unidade: "dia", situacao: "meta_batida" } },
+      esperado: "107,5% · Folga 3 · Meta batida",
+    },
+    {
+      caso: "expediente encerrado",
+      campos: { pct_atingimento: 50, falta_folga: { tipo: "falta", valor: 20 }, media_necessaria: { valor: null, unidade: "hora", situacao: "expediente_encerrado" } },
+      esperado: "50% · Falta 20 · Expediente encerrado",
+    },
+  ])("card traduz a situação da média necessária: $caso", async ({ campos, esperado }) => {
+    const base = { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 40, realizado: 35, horas_restantes: null, previsao: null };
+    metricasTimeSdr = [{ ...base, ...campos } as MetricaTime];
+    await carregada();
+    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(inscricoes.textContent).toContain(esperado);
+  });
+
   it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();
