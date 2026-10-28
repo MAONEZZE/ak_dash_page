@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
 import { RodapeAtingimento } from "../componentes/RodapeAtingimento";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
@@ -11,7 +10,7 @@ import { statusDoAtingimento } from "../lib/atingimento";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import { useSquadAtual } from "../lib/squad";
+import { useCargosFiltrados } from "../lib/squad";
 import { METRICAS_DASHBOARD, type Cargo, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
@@ -91,33 +90,36 @@ function indicePadrao(grupo: PessoaTime): number {
   );
 }
 
+/** Tamanho do conteúdo do card abaixo de 1200px em relação ao desenho original (pedido: 1,8×). */
+const ESCALA_CONTEUDO = 1.8;
+
 /**
- * Medidas do card em múltiplos de `--u`. Na TV (>1200px) `--u` vem do tamanho
- * do card, que divide a altura da tela — é o que faz ~6 pessoas caberem em
- * 1920×1080 sem rolagem. Abaixo disso `--u` é 1px e a página rola.
+ * Medidas do card em múltiplos de `--u`. Na TV (>1200px) a grade é fixa em 3×2
+ * cards por tela (mais de 6 pessoas: a página rola) e `--u` faz o conteúdo
+ * crescer até encostar no card. Abaixo disso `--u` é 1px e a página rola.
  *
  * NÃO usar `cqh`/`cqw`/`container-type`: o browser da TV é um Chromium 94, sem
  * container queries — ver tests/compat-navegador-antigo.test.ts.
  */
 function u(px: number): string {
-  return `calc(var(--u) * ${px})`;
+  return `calc(var(--u) * ${px * ESCALA_CONTEUDO})`;
 }
 
-/** Altura × largura do card com `--u` = 1px — com folga pro chip, que não escala. */
-const ALTURA_BASE_CARD = 340;
-const LARGURA_BASE_CARD = 560;
-/** Cabeçalho do app + título da página + paddings do <main> e uma margem; é só escala, a grade `1fr` fixa o tamanho real. */
-const RESERVA_VERTICAL_PX = 250;
+/**
+ * Tamanho natural do conteúdo na TV antes da ESCALA_CONTEUDO: métricas empilhadas em
+ * 2 colunas, medido com 4 métricas e nome de pessoa médio, mais uma folga. Nome mais
+ * longo corta com reticências.
+ */
+const ALTURA_CONTEUDO = 316;
+const LARGURA_CONTEUDO = 392;
+/** Cabeçalho do app (68) + paddings do <main> (44) + o gap entre as duas linhas de cards (12) + arredondamento. */
+const RESERVA_VERTICAL_PX = 128;
 
-function variaveisTv(qtdCards: number): CSSProperties {
-  const linhas = Math.max(1, Math.ceil(qtdCards / 3));
-  const reserva = RESERVA_VERTICAL_PX + (linhas - 1) * 12;
-  return {
-    "--card-h": `calc((100vh - ${reserva}px) / ${linhas})`,
-    "--card-w": "calc((100vw - 72px) / 3)",
-    "--u-tv": `min(calc(var(--card-h) / ${ALTURA_BASE_CARD}), calc(var(--card-w) / ${LARGURA_BASE_CARD}))`,
-  } as CSSProperties;
-}
+const VARIAVEIS_TV = {
+  "--card-h": `calc((100vh - ${RESERVA_VERTICAL_PX}px) / 2)`,
+  "--card-w": "calc((100vw - 72px) / 3)",
+  "--u-tv": `min(calc(var(--card-h) / ${ALTURA_CONTEUDO * ESCALA_CONTEUDO}), calc(var(--card-w) / ${LARGURA_CONTEUDO * ESCALA_CONTEUDO}))`,
+} as CSSProperties;
 
 function AnelVerde({ verdes, comMeta }: { verdes: number; comMeta: number }) {
   const raio = 26;
@@ -148,10 +150,11 @@ function AnelVerde({ verdes, comMeta }: { verdes: number; comMeta: number }) {
   );
 }
 
+/** Na TV cada métrica empilha (nome, valor, barra, Falta, %): fica estreita e o conteúdo pode crescer mais. */
 function LinhaMetrica({ metrica, meta }: MetricaCard) {
   return (
     <div role="group" aria-label={metrica.nome_exibicao} className="flex min-w-0 flex-col" style={{ gap: u(6) }}>
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-baseline justify-between gap-3 min-[1201px]:flex-col min-[1201px]:items-start min-[1201px]:gap-1">
         <span className="truncate font-semibold uppercase leading-tight tracking-[0.06em] text-muted" style={{ fontSize: u(12) }}>
           {metrica.nome_exibicao}
         </span>
@@ -160,8 +163,14 @@ function LinhaMetrica({ metrica, meta }: MetricaCard) {
           <span className="text-muted"> / {formatarNumero(meta ?? 0)}</span>
         </span>
       </div>
-      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={meta ? statusDoAtingimento(metrica.pct_atingimento) : "sem_meta"} altura="h-1.5" />
-      <RodapeAtingimento meta={meta} pct={metrica.pct_atingimento} faltaFolga={metrica.falta_folga} className="" style={{ fontSize: u(12) }} />
+      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={meta ? statusDoAtingimento(metrica.pct_atingimento) : "sem_meta"} altura="h-[calc(var(--u)*10)]" />
+      <RodapeAtingimento
+        meta={meta}
+        pct={metrica.pct_atingimento}
+        faltaFolga={metrica.falta_folga}
+        className="min-[1201px]:flex-col min-[1201px]:items-start min-[1201px]:gap-0.5"
+        style={{ fontSize: u(12) }}
+      />
     </div>
   );
 }
@@ -197,7 +206,7 @@ function CardPessoaTime({
       <div className="flex items-center" style={{ gap: u(14) }}>
         <Avatar nome={nome} imagemUrl={imagemUrl} tamanho={u(64)} />
         <div className="flex min-w-0 flex-1 flex-col" style={{ gap: u(5) }}>
-          <div className="flex min-w-0 flex-wrap items-center" style={{ gap: u(8) }}>
+          <div className="flex min-w-0 flex-wrap items-center min-[1201px]:flex-nowrap" style={{ gap: u(8) }}>
             <span className="truncate font-display font-extrabold leading-none tracking-tight" style={{ fontSize: u(21) }}>
               {nome}
             </span>
@@ -228,8 +237,8 @@ function CardPessoaTime({
         </div>
         <AnelVerde verdes={verdes} comMeta={comMeta} />
       </div>
-      {/* Duas colunas na TV: o card tem mais largura que altura sobrando. */}
-      <div className="grid grid-cols-1 min-[1201px]:grid-cols-2" style={{ columnGap: u(20), rowGap: u(14) }}>
+      {/* Na TV: duas colunas (o card tem mais largura que altura) e a sobra de altura vai entre as linhas. */}
+      <div className="grid grid-cols-1 min-[1201px]:flex-1 min-[1201px]:grid-cols-2 min-[1201px]:content-around" style={{ columnGap: u(20), rowGap: u(14) }}>
         {metricas.map((m) => (
           <LinhaMetrica key={m.metrica.metrica} {...m} />
         ))}
@@ -273,7 +282,7 @@ export function Time() {
   const [seller, setSeller] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
-  const squad = useSquadAtual();
+  const cargosFiltrados = useCargosFiltrados();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   /** Cargo escolhido no toggle de quem tem dupla função, por chave da pessoa. */
@@ -341,7 +350,7 @@ export function Time() {
     ...(closer.dado?.pessoas.map((pessoa) => ({ cargo: "closer" as const, pessoa })) ?? []),
     ...(seller.dado?.pessoas.map((pessoa) => ({ cargo: "seller" as const, pessoa })) ?? []),
   ];
-  const grupos = agruparPorPessoa(squad === "todos" ? unidades : unidades.filter((u) => u.cargo === squad));
+  const grupos = agruparPorPessoa(unidades.filter((u) => cargosFiltrados.includes(u.cargo)));
   const cards = grupos
     .map((grupo) => {
       const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo), grupo.cargos.length - 1);
@@ -376,19 +385,15 @@ export function Time() {
 
   return (
     <div
-      className="flex flex-col gap-3 [--u:1px] min-[1201px]:h-full min-[1201px]:[--u:var(--u-tv)]"
-      style={variaveisTv(cards.length)}
+      className="flex flex-col gap-3 [--u:1px] min-[1201px]:[--u:var(--u-tv)]"
+      style={VARIAVEIS_TV}
     >
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Time</h1>
-        <PillSquad />
-      </div>
       <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
       {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
       {cards.length > 0 && (
         <section
           aria-label="Time"
-          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:min-h-0 min-[1201px]:flex-1 min-[1201px]:auto-rows-[minmax(0,1fr)] min-[1201px]:grid-cols-3"
+          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-3"
         >
           {cards.map(({ grupo, indiceAtivo, metricas }) => (
             <CardPessoaTime

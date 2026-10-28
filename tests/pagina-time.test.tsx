@@ -223,6 +223,13 @@ describe("página Time — grade", () => {
     expect(screen.queryByText("Carla")).toBeNull();
   });
 
+  it("filtro de função com Sellers e SDRs mostra só esses cargos", async () => {
+    montar("/time?squad=seller,sdr");
+    await screen.findByText("Nathan");
+    expect(ordemDosCards().sort()).toEqual(["11", "2", "9"]);
+    expect(screen.queryByText("Carla")).toBeNull();
+  });
+
   it("com filtro de função, quem tem dois cargos aparece sem toggle", async () => {
     montar("/time?squad=closer");
     await screen.findByText("Jonathan");
@@ -254,6 +261,12 @@ describe("página Time — grade", () => {
     montar();
     await screen.findByText("Nathan");
     await waitFor(() => expect(screen.getByTestId("dias-uteis").textContent).toBe("10/22"));
+  });
+
+  it("sem título da página", async () => {
+    montar();
+    await screen.findByText("Nathan");
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
   });
 });
 

@@ -5,7 +5,6 @@ import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
-import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
@@ -14,7 +13,7 @@ import { agregarPorMetrica, resumoMetas, serieDoTimePorMetrica, type MetricaAgre
 import { paraPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo } from "../lib/ritmo";
 import { useSomDeAumento } from "../lib/som";
-import { useSquadAtual } from "../lib/squad";
+import { useCargosFiltrados } from "../lib/squad";
 import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type MetricaTime, type ParametrosComercial, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
@@ -285,8 +284,8 @@ export function Comercial() {
   // Gráfico e "Para bater a meta": sempre o mês corrente, nunca o período da pill.
   const [mes, setMes] = useState<Record<Cargo, RespostaComercial | null>>({ seller: null, sdr: null, closer: null });
   const [metricaGrafico, setMetricaGrafico] = useState("");
-  // O filtro de função fica na linha do título (querystring `squad`).
-  const squad = useSquadAtual();
+  // O filtro de função fica no header (querystring `squad`).
+  const cargosVisiveis = useCargosFiltrados();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   const { registrar } = useAtualizacao();
@@ -360,7 +359,6 @@ export function Comercial() {
   const carregando = blocos.some((b) => b.carregando) && semDado;
   const erro = semDado ? (blocos.find((b) => b.erro)?.erro ?? null) : null;
 
-  const cargosVisiveis: Cargo[] = squad === "todos" ? CARGOS : [squad];
   const dadoMes: Record<Cargo, RespostaComercial | null> = {
     seller: filtroEhMesCorrente ? porCargo.seller.dado : mes.seller,
     sdr: filtroEhMesCorrente ? porCargo.sdr.dado : mes.sdr,
@@ -382,12 +380,6 @@ export function Comercial() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Comercial</h1>
-          <PillSquad />
-        </div>
-      </div>
       <AvisoFontes avisos={blocos.flatMap((b) => b.dado?.avisos ?? [])} />
 
       {carregando ? (

@@ -191,9 +191,9 @@ afterEach(() => {
 });
 
 describe("página Comercial", () => {
-  it("título da página, sem a nota da linha vertical", async () => {
+  it("sem título da página nem a nota da linha vertical", async () => {
     await carregada();
-    expect(screen.getByRole("heading", { level: 1, name: "Comercial" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
     expect(screen.queryByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeNull();
   });
 
@@ -298,6 +298,14 @@ describe("página Comercial", () => {
     await carregada("/?granularidade=mes&squad=sdr");
     expect(screen.getByRole("region", { name: "Prospecção · SDRs" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "Fechamento · Closers" })).toBeNull();
+    expect(screen.getByRole("article", { name: "SDRs" })).toBeTruthy();
+    expect(screen.queryByRole("article", { name: "Closers" })).toBeNull();
+  });
+
+  it("filtro de função com Sellers e SDRs mostra os dois e esconde Closers", async () => {
+    await carregada("/?granularidade=mes&squad=seller,sdr");
+    const regioes = screen.getAllByRole("region").map((r) => r.getAttribute("aria-label")).filter((n) => n?.includes("·"));
+    expect(regioes).toEqual(["Captação · Sellers", "Prospecção · SDRs"]);
     expect(screen.getByRole("article", { name: "SDRs" })).toBeTruthy();
     expect(screen.queryByRole("article", { name: "Closers" })).toBeNull();
   });

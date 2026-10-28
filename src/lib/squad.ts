@@ -1,31 +1,33 @@
 import { useSearchParams } from "react-router-dom";
+import type { Cargo } from "./tipos-api";
 
-export type Squad = "todos" | "seller" | "sdr" | "closer";
-
-export const SQUADS: { id: Squad; label: string }[] = [
-  { id: "todos", label: "Todos" },
+export const SQUADS: { id: Cargo; label: string }[] = [
   { id: "seller", label: "Sellers" },
   { id: "sdr", label: "SDRs" },
   { id: "closer", label: "Closers" },
 ];
 
 /**
- * Squad selecionado. Mora na querystring, como a granularidade, porque a pill
- * vive no header (fora da árvore da página) e quem lê é a Comercial — mesma
- * ponte que já existe pro período, sem context novo.
+ * Cargos marcados no filtro de função, na ordem do funil. Mora na querystring
+ * (`squad=seller,sdr`), como a granularidade, porque o filtro vive no header
+ * (fora da árvore da página). Sem filtro (ou `squad=todos`) são os três.
  */
-export function useSquadAtual(): Squad {
+export function useCargosFiltrados(): Cargo[] {
   const [params] = useSearchParams();
-  const valor = params.get("squad");
-  return SQUADS.some((s) => s.id === valor) ? (valor as Squad) : "todos";
+  const valores = (params.get("squad") ?? "").split(",");
+  const marcados = SQUADS.filter((s) => valores.includes(s.id)).map((s) => s.id);
+  return marcados.length > 0 ? marcados : SQUADS.map((s) => s.id);
 }
 
-export function useDefinirSquad(): (squad: Squad) => void {
+/** Grava a seleção; com os três marcados o filtro sai da querystring. */
+export function useDefinirCargos(): (cargos: Cargo[]) => void {
   const [params, setParams] = useSearchParams();
 
-  return (squad: Squad) => {
+  return (cargos: Cargo[]) => {
     const novo = new URLSearchParams(params);
-    novo.set("squad", squad);
+    const ordenados = SQUADS.filter((s) => cargos.includes(s.id)).map((s) => s.id);
+    if (ordenados.length === 0 || ordenados.length === SQUADS.length) novo.delete("squad");
+    else novo.set("squad", ordenados.join(","));
     setParams(novo, { replace: true });
   };
 }
