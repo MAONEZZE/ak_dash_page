@@ -1,0 +1,378 @@
+{
+  "periodo": {
+    "granularidade": "mes",
+    "inicio": "2026-09-01",
+    "fim": "2026-09-30"
+  },
+  "dias_uteis": {
+    "decorridos": 10,
+    "total": 22
+  },
+  "periodo_parcial": true,
+  "avisos": [],
+  "pessoas": [
+    {
+      "id_user": "9",
+      "email": "nathanmayumi5@gmail.com",
+      "nome": "Nathan",
+      "imagem_url": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 3
+      },
+      "metricas": [
+        {
+          "metrica": "fups",
+          "nome_exibicao": "Follow-ups",
+          "meta_periodo": 220,
+          "realizado": 84,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "meta_periodo": 66,
+          "realizado": 28,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações Captadas",
+          "meta_periodo": 44,
+          "realizado": 21,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        }
+      ],
+      "contas_origem": [
+        "Linkedin Jonathan"
+      ],
+      "pontuacao_total": 0,
+      "posicao": 1
+    },
+    {
+      "id_user": "2",
+      "email": "jonathan.pamplona@akeel.com.br",
+      "nome": "Jonathan",
+      "imagem_url": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 3
+      },
+      "metricas": [
+        {
+          "metrica": "fups",
+          "nome_exibicao": "Follow-ups",
+          "meta_periodo": 220,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "meta_periodo": 66,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações Captadas",
+          "meta_periodo": 44,
+          "realizado": 0,
+          "status": "sem_preenchimento",
+          "dias_com_lacuna": 30
+        }
+      ],
+      "contas_origem": [],
+      "pontuacao_total": 0,
+      "posicao": 3
+    },
+    {
+      "id_user": "4",
+      "email": "jenniferpamplona007@gmail.com",
+      "nome": "Jennifer",
+      "imagem_url": null,
+      "metas_atingidas": {
+        "atingidas": 0,
+        "total": 3
+      },
+      "metricas": [
+        {
+          "metrica": "fups",
+          "nome_exibicao": "Follow-ups",
+          "meta_periodo": 220,
+          "realizado": 37,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "meta_periodo": 66,
+          "realizado": 23,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações Captadas",
+          "meta_periodo": 44,
+          "realizado": 13,
+          "status": "abaixo_da_meta",
+          "dias_com_lacuna": 20
+        }
+      ],
+      "contas_origem": [
+        "Linkedin Jacob"
+      ],
+      "pontuacao_total": 0,
+      "posicao": 2
+    }
+  ],
+  "serie_diaria": [
+    {
+      "dia": "2026-09-01",
+      "metricas": {
+        "fups": 13,
+        "numeros_captados": 3,
+        "indicacoes": 2
+      }
+    },
+    {
+      "dia": "2026-09-02",
+      "metricas": {
+        "fups": 2,
+        "numeros_captados": 6,
+        "indicacoes": 6
+      }
+    },
+    {
+      "dia": "2026-09-03",
+      "metricas": {
+        "fups": 19,
+        "numeros_captados": 5,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-04",
+      "metricas": {
+        "fups": 10,
+        "numeros_captados": 5,
+        "indicacoes": 3
+      }
+    },
+    {
+      "dia": "2026-09-05",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-06",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-07",
+      "metricas": {
+        "fups": 11,
+        "numeros_captados": 7,
+        "indicacoes": 4
+      }
+    },
+    {
+      "dia": "2026-09-08",
+      "metricas": {
+        "fups": 13,
+        "numeros_captados": 8,
+        "indicacoes": 1
+      }
+    },
+    {
+      "dia": "2026-09-09",
+      "metricas": {
+        "fups": 20,
+        "numeros_captados": 4,
+        "indicacoes": 7
+      }
+    },
+    {
+      "dia": "2026-09-10",
+      "metricas": {
+        "fups": 15,
+        "numeros_captados": 1,
+        "indicacoes": 2
+      }
+    },
+    {
+      "dia": "2026-09-11",
+      "metricas": {
+        "fups": 3,
+        "numeros_captados": 7,
+        "indicacoes": 4
+      }
+    },
+    {
+      "dia": "2026-09-12",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-13",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-14",
+      "metricas": {
+        "fups": 15,
+        "numeros_captados": 5,
+        "indicacoes": 5
+      }
+    },
+    {
+      "dia": "2026-09-15",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-16",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-17",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-18",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-19",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-20",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-21",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-22",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-23",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-24",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-25",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-26",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-27",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-28",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-29",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    },
+    {
+      "dia": "2026-09-30",
+      "metricas": {
+        "fups": 0,
+        "numeros_captados": 0,
+        "indicacoes": 0
+      }
+    }
+  ]
+}

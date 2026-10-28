@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 //
-// Página Comercial: dois blocos de cards com ritmo (SDRs e Closers),
+// Página Comercial: um bloco de cards com ritmo por cargo (Sellers, SDRs e
+// Closers, com as métricas da aba "Dashboard" de cada planilha),
 // "Acompanhamento do mês" (gráfico + "Para bater a meta", sempre no mês
-// corrente) e o "Time comercial" em duas tabelas. O filtro de função
+// corrente) e o "Time comercial" com uma tabela por cargo. O filtro de função
 // (?squad=) esconde o que não se aplica. As 4 métricas do Dripify não aparecem
 // em lugar nenhum.
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -13,8 +14,10 @@ import { SomProvider } from "../src/lib/som";
 import { Comercial } from "../src/paginas/Comercial";
 import type { Metrica, ParametrosComercial, PessoaComercial, RespostaComercial } from "../src/lib/tipos-api";
 
-const CHAVES_SDR = ["fups", "numeros_captados", "ligacoes_realizadas", "reunioes_agendadas", "indicacoes", "inscricoes_realizadas"];
-const CHAVES_CLOSER = ["ligacoes_agendadas", "ligacoes_realizadas", "reunioes_agendadas", "reunioes_realizadas", "indicacoes", "inscricoes_realizadas"];
+// O BFF manda todas as métricas do cargo; a página só mostra as da aba Dashboard.
+const CHAVES_SELLER = ["fups", "numeros_captados", "indicacoes"];
+const CHAVES_SDR = ["inscricoes_realizadas", "indicacoes", "reunioes_agendadas", "ligacoes_efetuadas", "ligacoes_realizadas"];
+const CHAVES_CLOSER = ["reunioes_agendadas", "reunioes_realizadas", "indicacoes", "inscricoes_realizadas", "ligacoes_agendadas", "ligacoes_realizadas"];
 const NOMES: Record<string, string> = {
   conexoes_enviadas: "Conexões Enviadas",
   conexoes_aceitas: "Conexões Aceitas",
@@ -27,6 +30,7 @@ const NOMES: Record<string, string> = {
   indicacoes: "Indicações",
   inscricoes_realizadas: "Inscrições Realizadas",
   ligacoes_agendadas: "Ligações Agendadas",
+  ligacoes_efetuadas: "Ligações Efetuadas",
   reunioes_realizadas: "Reuniões Realizadas",
 };
 
@@ -70,6 +74,7 @@ function closersPadrao(): PessoaComercial[] {
   ];
 }
 
+let pessoasSeller: PessoaComercial[] = [];
 let pessoasSdr: PessoaComercial[] = [];
 let pessoasCloser: PessoaComercial[] = [];
 const chamadasSdr: ParametrosComercial[] = [];
@@ -89,6 +94,7 @@ function resposta(pessoas: PessoaComercial[]): RespostaComercial {
 }
 
 vi.mock("../src/lib/api", () => ({
+  buscarComercialSeller: vi.fn(async () => resposta(pessoasSeller)),
   buscarComercialSdr: vi.fn(async (params: ParametrosComercial) => {
     chamadasSdr.push(params);
     return resposta(pessoasSdr);
@@ -138,6 +144,8 @@ function nomesDasLinhas(tabela: HTMLElement): string[] {
 }
 
 beforeEach(() => {
+  // Sem sellers por padrão: o gráfico abre na primeira métrica de SDR.
+  pessoasSeller = [];
   pessoasSdr = sdrsPadrao();
   pessoasCloser = closersPadrao();
 });
@@ -161,40 +169,62 @@ describe("página Comercial", () => {
     }
   });
 
-  it("um bloco de 6 cards para SDRs e outro para Closers, somando o time", async () => {
+  it("um bloco de cards por cargo, com as métricas da aba Dashboard da planilha, somando o time", async () => {
     // Sem o Zé (sem meta nenhuma): com ele, a meta do time não fecha — ver o teste seguinte.
     pessoasSdr = sdrsPadrao().filter((p) => p.nome !== "Zé");
     await carregada();
     const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
     const closers = screen.getByRole("region", { name: "Fechamento · Closers" });
 
-    expect(within(sdrs).getAllByRole("article")).toHaveLength(6);
-    expect(within(closers).getAllByRole("article")).toHaveLength(6);
-    // Follow-ups do time SDR: 5 + 10 + 10 + 10 = 35, contra a soma das metas 10 × 4 = 40.
-    const fups = within(sdrs).getAllByRole("article")[0];
-    expect(fups.textContent).toContain("Follow-ups");
-    expect(fups.textContent).toContain("35");
-    expect(fups.textContent).toContain("/ 40");
-    expect(within(fups).getByRole("progressbar")).toBeTruthy();
+    expect(within(sdrs).getAllByRole("article")).toHaveLength(3);
+    expect(within(closers).getAllByRole("article")).toHaveLength(4);
+    expect(closers.textContent).toContain("Reuniões Realizadas");
+    expect(closers.textContent).not.toContain("Ligações Agendadas");
+    expect(sdrs.textContent).not.toContain("Ligações Efetuadas");
+    // Inscrições do time SDR: 5 + 10 + 10 + 10 = 35, contra a soma das metas 10 × 4 = 40.
+    const inscricoes = within(sdrs).getAllByRole("article")[0];
+    expect(inscricoes.textContent).toContain("Inscrições Realizadas");
+    expect(inscricoes.textContent).toContain("35");
+    expect(inscricoes.textContent).toContain("/ 40");
+    expect(within(inscricoes).getByRole("progressbar")).toBeTruthy();
   });
 
   it("card do time soma a meta de quem tem meta e o realizado de todo mundo", async () => {
-    // Padrão: o Zé lança 3 follow-ups e não tem meta — os 3 entram no realizado
+    // Padrão: o Zé lança 3 inscrições e não tem meta — as 3 entram no realizado
     // (38) e a meta é a dos outros 4 (40). Decisão do usuário, 2026-10-05.
     await carregada();
-    const fups = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
-    expect(fups.textContent).toContain("38");
-    expect(fups.textContent).toContain("/ 40");
-    expect(fups.textContent).not.toContain("Nenhuma meta definida no período");
+    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(inscricoes.textContent).toContain("38");
+    expect(inscricoes.textContent).toContain("/ 40");
+    expect(inscricoes.textContent).not.toContain("Nenhuma meta definida no período");
   });
 
   it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();
     const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
-    expect(within(sdrs).getAllByText("Métrica aberta · sem meta no período")).toHaveLength(6);
-    expect(within(sdrs).getAllByText("/ 0")).toHaveLength(6);
-    expect(within(sdrs).getAllByRole("progressbar")).toHaveLength(6);
+    expect(within(sdrs).getAllByText("Métrica aberta · sem meta no período")).toHaveLength(3);
+    expect(within(sdrs).getAllByText("/ 0")).toHaveLength(3);
+    expect(within(sdrs).getAllByRole("progressbar")).toHaveLength(3);
+  });
+
+  it("filtro de função Seller mostra só o bloco e a tabela de Sellers, com as métricas da planilha", async () => {
+    pessoasSeller = [pessoa("4", "Isaque", "isaque@x.com", CHAVES_SELLER, [[30, 50], [2, 3], [1, null]])];
+    await carregada("/?granularidade=mes&squad=seller");
+    const sellers = screen.getByRole("region", { name: "Captação · Sellers" });
+    expect(within(sellers).getAllByRole("article")).toHaveLength(3);
+    expect(sellers.textContent).toContain("Follow-ups");
+    expect(sellers.textContent).toContain("Números Captados");
+    expect(nomesDasLinhas(within(screen.getByRole("article", { name: "Sellers" })).getByRole("table"))).toEqual(["Isaque"]);
+    expect(screen.queryByRole("region", { name: "Prospecção · SDRs" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Fechamento · Closers" })).toBeNull();
+    expect(screen.queryByRole("article", { name: "SDRs" })).toBeNull();
+  });
+
+  it("sem filtro mostra os três cargos, na ordem do funil", async () => {
+    await carregada();
+    const regioes = screen.getAllByRole("region").map((r) => r.getAttribute("aria-label")).filter((n) => n?.includes("·"));
+    expect(regioes).toEqual(["Captação · Sellers", "Prospecção · SDRs", "Fechamento · Closers"]);
   });
 
   it("filtro de função SDR esconde o bloco e a tabela de Closers", async () => {
@@ -238,7 +268,8 @@ describe("página Comercial", () => {
       expect(bia.textContent).toContain("2/3 no ritmo");
       expect(bia.textContent).toContain("2 batidas");
       // Métrica sem meta é aberta: "/ 0" e barra cheia, não some.
-      expect(within(bia).getAllByText("/ 0")).toHaveLength(3);
+      const carla = within(tabela).getAllByRole("row")[2];
+      expect(within(carla).getAllByText("/ 0")).toHaveLength(2);
     });
 
     it("quem não tem meta nenhuma aparece na tabela, sem rodapé de 'sem meta'", async () => {

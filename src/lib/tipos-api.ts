@@ -3,13 +3,13 @@
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
  * Fonte única de dado: Supabase (dash.vw_metricas, dash.metricas_metas,
  * dash.metricas_faturamento, dash.cliente_faturamento, dash.users). Escopo:
- * /pessoas, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
+ * /pessoas, /comercial/seller, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
  * demais KPIs da página Financeiro (inadimplência, margem, despesas,
  * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
  */
 
 export type Granularidade = "dia" | "semana" | "mes" | "ano" | "custom";
-export type Cargo = "sdr" | "closer";
+export type Cargo = "seller" | "sdr" | "closer";
 
 export interface Erro {
   erro: {
@@ -120,7 +120,18 @@ export const METRICAS_CLOSER = [
 ] as const;
 export type MetricaCloser = (typeof METRICAS_CLOSER)[number];
 
-/** Parâmetros de query aceitos por /comercial/sdr e /comercial/closer. */
+/**
+ * Métricas que a aba "Dashboard" de cada planilha (Sellers, SDRs, Closers)
+ * acompanha, na ordem dela — é o que Comercial e Time mostram por cargo.
+ * "Onboarding realizado" (Dashboard Closers) ainda não existe no banco.
+ */
+export const METRICAS_DASHBOARD: Record<Cargo, readonly string[]> = {
+  seller: ["fups", "numeros_captados", "indicacoes"],
+  sdr: ["inscricoes_realizadas", "indicacoes", "reunioes_agendadas"],
+  closer: ["reunioes_agendadas", "reunioes_realizadas", "indicacoes", "inscricoes_realizadas"],
+};
+
+/** Parâmetros de query aceitos por /comercial/{seller,sdr,closer}. */
 export interface ParametrosComercial {
   granularidade: Granularidade;
   periodo: string; // formato depende de granularidade — ver openapi.yaml

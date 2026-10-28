@@ -1,11 +1,4 @@
-# Ajustes na animacao
-- a régua do termometro não deve diminuir 
-- pontos importantes da animação:
-    - 
-- todos os estágios do termometro devem ter a animação do boneco:
-    - no quente o boneco deve andar pelo eixo x e z
-    - no frio ele deve ficar tremendo parado com os braços crusados e com uma touca (touca-verde-ref.png)
-    - no médio, deve ficar andando normalmente pelo eixo x e z
-
-
-possuo dois agente que trabalham em conjunto para responderem conversas no linkedin e instagram
+deve mudar algumas coisas no card:
+- ele está ficando tranparente e mal da para ver o texto, deixe o background da cor normal do card 
+- após o card de informações de envio + confirmação está vindo uma mensagem desnecessária que pode ser removida tipo essa:
+Prévia enviada no cartão nativo do Telegram — confira e toque em Enviar pra confirmar o envio para Jennifer e Japa, ou Cancelar pra desistir.

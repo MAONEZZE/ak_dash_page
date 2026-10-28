@@ -56,6 +56,7 @@ function resposta(pessoas: PessoaComercial[]): RespostaComercial {
 }
 
 vi.mock("../src/lib/api", () => ({
+  buscarComercialSeller: vi.fn(async () => resposta([])),
   // Nathan: 3 de 5 metas no ritmo (0,6). Jonathan SDR: 1/1. Elisa: nenhuma meta.
   buscarComercialSdr: vi.fn(async () =>
     resposta([

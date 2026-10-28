@@ -7,8 +7,8 @@ interface Props {
   pessoas: PessoaGeral[];
 }
 
-const TITULO: Record<Cargo, string> = { sdr: "Ranking SDR", closer: "Ranking Closer" };
-const COR_SELO: Record<Cargo, string> = { sdr: "bg-ok-bg text-sdr", closer: "bg-closer-bg text-closer" };
+const TITULO: Record<Cargo, string> = { seller: "Ranking Seller", sdr: "Ranking SDR", closer: "Ranking Closer" };
+const COR_SELO: Record<Cargo, string> = { seller: "bg-warn-bg text-warn", sdr: "bg-ok-bg text-sdr", closer: "bg-closer-bg text-closer" };
 
 /** Ordem visual 2º | 1º | 3º, com o degrau do 1º mais alto. */
 const ORDEM_VISUAL: Record<number, string> = { 1: "order-2", 2: "order-1", 3: "order-3" };
