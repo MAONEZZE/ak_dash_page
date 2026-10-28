@@ -11,10 +11,12 @@ import {
   escalaValorCompacto,
   escalaValorCompactoDestaque,
 } from "../lib/card-compacto";
+import { statusDoAtingimento } from "../lib/atingimento";
 import { formatarNumero } from "../lib/formato";
 import { calcularRitmo } from "../lib/ritmo";
-import type { DiasUteis } from "../lib/tipos-api";
+import type { DiasUteis, FaltaFolga } from "../lib/tipos-api";
 import { ProgressBar } from "./ProgressBar";
+import { RodapeAtingimento } from "./RodapeAtingimento";
 import { StatusChip } from "./StatusChip";
 
 interface CardKpiProps {
@@ -33,8 +35,8 @@ interface CardKpiProps {
    * "Esperado hoje N · Projeção N (P%)". Substitui `pct`/`legenda`.
    */
   ritmo?: { realizado: number; meta: number | null; dias: DiasUteis };
-  /** Linha extra com os indicadores da aba Dashboard (Comercial). Só aparece no card com ritmo e meta. */
-  detalhe?: string;
+  /** Card da Comercial: barra na cor do terço da meta e rodapé "Falta X · Y% de atingimento" (RodapeAtingimento). Sem chip de ritmo. Não usar junto com `ritmo`. */
+  atingimento?: { realizado: number; meta: number | null; pct: number | null; faltaFolga: FaltaFolga | null };
   /** Variante escura (fundo `--color-bg-dark-2`). */
   variante?: "claro" | "escuro";
   /** Classe de tom pastel (`pastel-verde`, `pastel-verde-escuro`) — card pastel da Geral. O fundo é o do pastel; `variante` só decide se o texto é claro. */
@@ -76,7 +78,7 @@ export function CardKpi({
   indisponivel,
   legenda = "",
   ritmo,
-  detalhe,
+  atingimento,
   variante = "claro",
   tamanho = "normal",
   destaque = false,
@@ -86,7 +88,7 @@ export function CardKpi({
   const escuro = variante === "escuro";
   const compacto = tamanho === "compacto";
   const r = ritmo ? calcularRitmo(ritmo.realizado, ritmo.meta, ritmo.dias) : null;
-  const semMeta = r?.status === "sem_meta";
+  const semMeta = r?.status === "sem_meta" || (atingimento !== undefined && !atingimento.meta);
   const textoRodape = compacto ? CARD_COMPACTO_LEGENDA : "text-[14px]";
 
   return (
@@ -123,7 +125,17 @@ export function CardKpi({
           </span>
         )}
       </div>
-      {r && ritmo ? (
+      {atingimento ? (
+        <div className="mt-auto flex flex-col gap-2">
+          <ProgressBar
+            valor={atingimento.realizado}
+            meta={atingimento.meta ?? 0}
+            status={atingimento.meta ? statusDoAtingimento(atingimento.pct) : "sem_meta"}
+            altura="h-2"
+          />
+          <RodapeAtingimento meta={atingimento.meta} pct={atingimento.pct} faltaFolga={atingimento.faltaFolga} />
+        </div>
+      ) : r && ritmo ? (
         semMeta ? (
           // Meta 0/sem meta = métrica aberta: barra cheia azul, sem ritmo pra projetar.
           <div className={`flex flex-col ${compacto ? `${CARD_COMPACTO_RODAPE} gap-[clamp(4px,min(0.45vw,0.8vh),14px)]` : "mt-auto gap-2"}`}>
@@ -147,7 +159,6 @@ export function CardKpi({
                   ? `${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%`
                   : `${formatarNumero(Math.round(r.projecao))} (${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%)`}
             </span>
-            {detalhe && <span className={`font-semibold text-muted ${textoRodape}`}>{detalhe}</span>}
           </div>
         )
       ) : destaque ? (
