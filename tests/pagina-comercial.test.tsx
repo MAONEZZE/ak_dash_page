@@ -188,10 +188,10 @@ afterEach(() => {
 });
 
 describe("página Comercial", () => {
-  it("título com a nota sobre a linha vertical da barra", async () => {
+  it("título da página, sem a nota da linha vertical", async () => {
     await carregada();
     expect(screen.getByRole("heading", { level: 1, name: "Comercial" })).toBeTruthy();
-    expect(screen.getByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeTruthy();
+    expect(screen.queryByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeNull();
   });
 
   it("não mostra as métricas de prospecção do LinkedIn em lugar nenhum", async () => {

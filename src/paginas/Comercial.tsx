@@ -405,7 +405,6 @@ export function Comercial() {
           <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Comercial</h1>
           <PillSquad />
         </div>
-        <p className="text-[14px] font-semibold text-muted">Linha vertical na barra = onde o time deveria estar hoje</p>
       </div>
       <AvisoFontes avisos={blocos.flatMap((b) => b.dado?.avisos ?? [])} />
 
