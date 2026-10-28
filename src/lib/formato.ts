@@ -81,6 +81,6 @@ export function formatarHora(data: Date): string {
 }
 
 /** Nome a exibir na UI: sempre o nome que vem da API — e-mail só como último recurso, se vier nulo. */
-export function nomeExibicao(nome: string | null | undefined, email: string): string {
-  return nome ?? email;
+export function nomeExibicao(nome: string | null | undefined, email: string | null): string {
+  return nome ?? email ?? "Sem nome";
 }

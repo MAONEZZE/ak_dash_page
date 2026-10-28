@@ -3,27 +3,18 @@ import { useLocation } from "react-router-dom";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
-import { StatusChip } from "../componentes/StatusChip";
+import { RodapeAtingimento } from "../componentes/RodapeAtingimento";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
+import { statusDoAtingimento } from "../lib/atingimento";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import { calcularRitmo, type Ritmo } from "../lib/ritmo";
-import { useSquadAtual } from "../lib/squad";
-import { METRICAS_CLOSER, METRICAS_DASHBOARD, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { useCargosFiltrados } from "../lib/squad";
+import { METRICAS_DASHBOARD, type Cargo, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 const DURACAO_DESTAQUE_MS = 2_400;
-const SEM_DIAS: DiasUteis = { decorridos: 0, total: 0 };
-
-/** Ordem fixa das métricas por cargo: todas as do cargo, sem as do Dripify. */
-const METRICAS_TIME: Record<Cargo, readonly string[]> = {
-  seller: METRICAS_DASHBOARD.seller,
-  sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
-  closer: METRICAS_CLOSER,
-};
 
 const VISUAL_CARGO: Record<Cargo, { rotulo: string; classe: string }> = {
   seller: { rotulo: "Seller", classe: "bg-warn-bg text-warn" },
@@ -46,27 +37,22 @@ interface CargoPessoa {
 
 /** Mesma pessoa nos dois cargos, num card só. */
 interface PessoaTime {
-  /** Email em minúsculas — também é o `id="pessoa-…"` que a Comercial usa no link. */
+  /** id_user — também é o `id="pessoa-…"` que a Comercial usa no link. */
   chave: string;
   cargos: CargoPessoa[];
 }
 
-interface MetricaRitmo {
+interface MetricaCard {
   metrica: Metrica;
   /** `null` = sem meta cadastrada; 0 = métrica aberta. Os dois aparecem com barra azul. */
   meta: number | null;
-  ritmo: Ritmo;
 }
 
-/**
- * Agrupa por email: o `id_user` muda entre os endpoints de SDR e Closer
- * (contas diferentes da mesma pessoa) e o nome pode colidir. Mantém a ordem
- * de primeira aparição — SDRs primeiro, e dentro do grupo SDR → Closer.
- */
+/** Agrupa por id_user: no dash2 a mesma pessoa tem o mesmo id em todos os cargos. Mantém a ordem de primeira aparição. */
 function agruparPorPessoa(unidades: CargoPessoa[]): PessoaTime[] {
   const grupos = new Map<string, PessoaTime>();
   for (const u of unidades) {
-    const chave = u.pessoa.email.trim().toLowerCase();
+    const chave = u.pessoa.id_user;
     const grupo = grupos.get(chave);
     if (grupo) grupo.cargos.push(u);
     else grupos.set(chave, { chave, cargos: [u] });
@@ -74,70 +60,73 @@ function agruparPorPessoa(unidades: CargoPessoa[]): PessoaTime[] {
   return [...grupos.values()];
 }
 
-function metricasComRitmo({ cargo, pessoa }: CargoPessoa, dias: DiasUteis): MetricaRitmo[] {
-  return METRICAS_TIME[cargo].flatMap((chave) =>
+function metricasDoCard({ cargo, pessoa }: CargoPessoa): MetricaCard[] {
+  return METRICAS_DASHBOARD[cargo].flatMap((chave) =>
     pessoa.metricas
       .filter((m) => m.metrica === chave)
       .map((m) => {
         // Number(): numeric do Postgres pode chegar como string ("0.00") apesar do tipo.
         // Meta 0 = métrica aberta: aparece com valor / 0 e barra azul, só não conta como meta.
         const meta = m.meta_periodo === null ? null : Number(m.meta_periodo);
-        return { metrica: m, meta, ritmo: calcularRitmo(m.realizado, meta, dias) };
+        return { metrica: m, meta };
       }),
   );
 }
 
-function resumo(metricas: MetricaRitmo[]) {
+function resumo(metricas: MetricaCard[]) {
   const comMeta = metricas.filter((m) => (m.meta ?? 0) > 0);
   return {
     comMeta: comMeta.length,
-    noRitmo: comMeta.filter((m) => m.ritmo.status === "no_ritmo").length,
+    verdes: comMeta.filter((m) => statusDoAtingimento(m.metrica.pct_atingimento) === "no_ritmo").length,
     batidas: comMeta.filter((m) => m.metrica.realizado >= (m.meta ?? 0)).length,
   };
 }
 
 /** Cargo que o card abre: o primeiro com alguma meta (dupla função pode ter meta num cargo só). */
-function indicePadrao(grupo: PessoaTime, dias: DiasUteis): number {
+function indicePadrao(grupo: PessoaTime): number {
   return Math.max(
     0,
-    grupo.cargos.findIndex((c) => resumo(metricasComRitmo(c, dias)).comMeta > 0),
+    grupo.cargos.findIndex((c) => resumo(metricasDoCard(c)).comMeta > 0),
   );
 }
 
+/** Tamanho do conteúdo do card abaixo de 1200px em relação ao desenho original (pedido: 1,8×). */
+const ESCALA_CONTEUDO = 1.8;
+
 /**
- * Medidas do card em múltiplos de `--u`. Na TV (>1200px) `--u` vem do tamanho
- * do card, que divide a altura da tela — é o que faz ~6 pessoas caberem em
- * 1920×1080 sem rolagem. Abaixo disso `--u` é 1px e a página rola.
+ * Medidas do card em múltiplos de `--u`. Na TV (>1200px) a grade é fixa em 3×2
+ * cards por tela (mais de 6 pessoas: a página rola) e `--u` faz o conteúdo
+ * crescer até encostar no card. Abaixo disso `--u` é 1px e a página rola.
  *
  * NÃO usar `cqh`/`cqw`/`container-type`: o browser da TV é um Chromium 94, sem
  * container queries — ver tests/compat-navegador-antigo.test.ts.
  */
 function u(px: number): string {
-  return `calc(var(--u) * ${px})`;
+  return `calc(var(--u) * ${px * ESCALA_CONTEUDO})`;
 }
 
-/** Altura × largura do card com `--u` = 1px — com folga pro chip, que não escala. */
-const ALTURA_BASE_CARD = 340;
-const LARGURA_BASE_CARD = 560;
-/** Cabeçalho do app + título da página + paddings do <main> e uma margem; é só escala, a grade `1fr` fixa o tamanho real. */
-const RESERVA_VERTICAL_PX = 250;
+/**
+ * Tamanho natural do conteúdo na TV antes da ESCALA_CONTEUDO: métricas empilhadas em
+ * 2 colunas, medido com 4 métricas e nome de pessoa médio, mais uma folga. Nome mais
+ * longo corta com reticências.
+ */
+const ALTURA_CONTEUDO = 316;
+const LARGURA_CONTEUDO = 392;
+/** Cabeçalho do app (68) + paddings do <main> (44) + o gap entre as duas linhas de cards (12) + arredondamento. */
+const RESERVA_VERTICAL_PX = 128;
 
-function variaveisTv(qtdCards: number): CSSProperties {
-  const linhas = Math.max(1, Math.ceil(qtdCards / 3));
-  const reserva = RESERVA_VERTICAL_PX + (linhas - 1) * 12;
-  return {
-    "--card-h": `calc((100vh - ${reserva}px) / ${linhas})`,
-    "--card-w": "calc((100vw - 72px) / 3)",
-    "--u-tv": `min(calc(var(--card-h) / ${ALTURA_BASE_CARD}), calc(var(--card-w) / ${LARGURA_BASE_CARD}))`,
-  } as CSSProperties;
-}
+const VARIAVEIS_TV = {
+  "--card-h": `calc((100vh - ${RESERVA_VERTICAL_PX}px) / 2)`,
+  "--card-w": "calc((100vw - 72px) / 3)",
+  "--u-tv": `min(calc(var(--card-h) / ${ALTURA_CONTEUDO * ESCALA_CONTEUDO}), calc(var(--card-w) / ${LARGURA_CONTEUDO * ESCALA_CONTEUDO}))`,
+} as CSSProperties;
 
-function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
+function AnelVerde({ verdes, comMeta }: { verdes: number; comMeta: number }) {
   const raio = 26;
   const circunferencia = 2 * Math.PI * raio;
-  const preenchido = comMeta > 0 ? (noRitmo / comMeta) * circunferencia : 0;
+  const preenchido = comMeta > 0 ? (verdes / comMeta) * circunferencia : 0;
   return (
-    <div role="img" aria-label={`${noRitmo} de ${comMeta} metas no ritmo`} className="relative shrink-0" style={{ width: u(60), height: u(60) }}>
+    <div role="img" aria-label={`${verdes} de ${comMeta} metas no verde`} className="relative shrink-0" style={{ width: u(60), height: u(60) }}>
       <svg viewBox="0 0 60 60" className="h-full w-full" aria-hidden>
         <circle cx={30} cy={30} r={raio} fill="none" strokeWidth={6} className="stroke-track" />
         {preenchido > 0 && (
@@ -155,17 +144,17 @@ function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
         )}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-display font-extrabold leading-none" style={{ fontSize: u(16) }}>
-        {noRitmo}/{comMeta}
+        {verdes}/{comMeta}
       </span>
     </div>
   );
 }
 
-function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
-  const semMeta = !meta;
+/** Na TV cada métrica empilha (nome, valor, barra, Falta, %): fica estreita e o conteúdo pode crescer mais. */
+function LinhaMetrica({ metrica, meta }: MetricaCard) {
   return (
     <div role="group" aria-label={metrica.nome_exibicao} className="flex min-w-0 flex-col" style={{ gap: u(6) }}>
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-baseline justify-between gap-3 min-[1201px]:flex-col min-[1201px]:items-start min-[1201px]:gap-1">
         <span className="truncate font-semibold uppercase leading-tight tracking-[0.06em] text-muted" style={{ fontSize: u(12) }}>
           {metrica.nome_exibicao}
         </span>
@@ -174,15 +163,14 @@ function LinhaMetrica({ metrica, meta, ritmo }: MetricaRitmo) {
           <span className="text-muted"> / {formatarNumero(meta ?? 0)}</span>
         </span>
       </div>
-      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={ritmo.status} esperadoFrac={ritmo.esperadoFrac} altura="h-1.5" />
-      <div className="flex items-center justify-between gap-2">
-        {!semMeta && (
-          <span className="truncate text-muted" style={{ fontSize: u(12) }}>
-            Esperado hoje: {formatarNumero(Math.round(ritmo.esperadoHoje))}
-          </span>
-        )}
-        <StatusChip status={ritmo.status} className="ml-auto" />
-      </div>
+      <ProgressBar valor={metrica.realizado} meta={meta ?? 0} status={meta ? statusDoAtingimento(metrica.pct_atingimento) : "sem_meta"} altura="h-[calc(var(--u)*10)]" />
+      <RodapeAtingimento
+        meta={meta}
+        pct={metrica.pct_atingimento}
+        faltaFolga={metrica.falta_folga}
+        className="min-[1201px]:flex-col min-[1201px]:items-start min-[1201px]:gap-0.5"
+        style={{ fontSize: u(12) }}
+      />
     </div>
   );
 }
@@ -197,7 +185,7 @@ function CardPessoaTime({
   grupo: PessoaTime;
   indiceAtivo: number;
   aoTrocarCargo: (indice: number) => void;
-  metricas: MetricaRitmo[];
+  metricas: MetricaCard[];
   destacado: boolean;
 }) {
   const { cargos } = grupo;
@@ -205,7 +193,7 @@ function CardPessoaTime({
   const nome = nomeExibicao(pessoa.nome, pessoa.email);
   // A conta de um cargo pode não ter foto cadastrada: usa a do outro.
   const imagemUrl = pessoa.imagem_url ?? cargos.find((c) => c.pessoa.imagem_url)?.pessoa.imagem_url ?? null;
-  const { comMeta, noRitmo, batidas } = resumo(metricas);
+  const { comMeta, verdes, batidas } = resumo(metricas);
   const chipCargo = "rounded-full px-2 py-0.5 font-bold uppercase leading-none tracking-[0.08em]";
 
   return (
@@ -218,7 +206,7 @@ function CardPessoaTime({
       <div className="flex items-center" style={{ gap: u(14) }}>
         <Avatar nome={nome} imagemUrl={imagemUrl} tamanho={u(64)} />
         <div className="flex min-w-0 flex-1 flex-col" style={{ gap: u(5) }}>
-          <div className="flex min-w-0 flex-wrap items-center" style={{ gap: u(8) }}>
+          <div className="flex min-w-0 flex-wrap items-center min-[1201px]:flex-nowrap" style={{ gap: u(8) }}>
             <span className="truncate font-display font-extrabold leading-none tracking-tight" style={{ fontSize: u(21) }}>
               {nome}
             </span>
@@ -244,13 +232,13 @@ function CardPessoaTime({
             )}
           </div>
           <span className="truncate text-muted" style={{ fontSize: u(13) }}>
-            {batidas} {batidas === 1 ? "meta batida" : "metas batidas"} · {noRitmo} no ritmo
+            {batidas} {batidas === 1 ? "meta batida" : "metas batidas"} · {verdes} no verde
           </span>
         </div>
-        <AnelRitmo noRitmo={noRitmo} comMeta={comMeta} />
+        <AnelVerde verdes={verdes} comMeta={comMeta} />
       </div>
-      {/* Duas colunas na TV: o card tem mais largura que altura sobrando. */}
-      <div className="grid grid-cols-1 min-[1201px]:grid-cols-2" style={{ columnGap: u(20), rowGap: u(14) }}>
+      {/* Na TV: duas colunas (o card tem mais largura que altura) e a sobra de altura vai entre as linhas. */}
+      <div className="grid grid-cols-1 min-[1201px]:flex-1 min-[1201px]:grid-cols-2 min-[1201px]:content-around" style={{ columnGap: u(20), rowGap: u(14) }}>
         {metricas.map((m) => (
           <LinhaMetrica key={m.metrica.metrica} {...m} />
         ))}
@@ -294,7 +282,7 @@ export function Time() {
   const [seller, setSeller] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
-  const squad = useSquadAtual();
+  const cargosFiltrados = useCargosFiltrados();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   /** Cargo escolhido no toggle de quem tem dupla função, por chave da pessoa. */
@@ -357,19 +345,18 @@ export function Time() {
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar, diasUteis]);
 
-  const dias = diasUteis ?? SEM_DIAS;
   const unidades: CargoPessoa[] = [
     ...(sdr.dado?.pessoas.map((pessoa) => ({ cargo: "sdr" as const, pessoa })) ?? []),
     ...(closer.dado?.pessoas.map((pessoa) => ({ cargo: "closer" as const, pessoa })) ?? []),
     ...(seller.dado?.pessoas.map((pessoa) => ({ cargo: "seller" as const, pessoa })) ?? []),
   ];
-  const grupos = agruparPorPessoa(squad === "todos" ? unidades : unidades.filter((u) => u.cargo === squad));
+  const grupos = agruparPorPessoa(unidades.filter((u) => cargosFiltrados.includes(u.cargo)));
   const cards = grupos
     .map((grupo) => {
-      const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo, dias), grupo.cargos.length - 1);
-      const metricas = metricasComRitmo(grupo.cargos[indiceAtivo], dias);
-      const { comMeta, noRitmo } = resumo(metricas);
-      return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? noRitmo / comMeta : -1 };
+      const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo), grupo.cargos.length - 1);
+      const metricas = metricasDoCard(grupo.cargos[indiceAtivo]);
+      const { comMeta, verdes } = resumo(metricas);
+      return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? verdes / comMeta : -1 };
     })
     .sort((a, b) => b.proporcao - a.proporcao);
 
@@ -398,19 +385,15 @@ export function Time() {
 
   return (
     <div
-      className="flex flex-col gap-3 [--u:1px] min-[1201px]:h-full min-[1201px]:[--u:var(--u-tv)]"
-      style={variaveisTv(cards.length)}
+      className="flex flex-col gap-3 [--u:1px] min-[1201px]:[--u:var(--u-tv)]"
+      style={VARIAVEIS_TV}
     >
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Time</h1>
-        <PillSquad />
-      </div>
       <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
       {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
       {cards.length > 0 && (
         <section
           aria-label="Time"
-          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:min-h-0 min-[1201px]:flex-1 min-[1201px]:auto-rows-[minmax(0,1fr)] min-[1201px]:grid-cols-3"
+          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-3"
         >
           {cards.map(({ grupo, indiceAtivo, metricas }) => (
             <CardPessoaTime

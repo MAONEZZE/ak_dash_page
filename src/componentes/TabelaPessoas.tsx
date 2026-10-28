@@ -112,7 +112,7 @@ function CardCargo({
                     )}
                     {r && m.meta && (
                       <div className="mt-[clamp(3px,0.45vh,6px)]">
-                        <ProgressBar valor={m.realizado ?? 0} meta={m.meta} status={r.status} esperadoFrac={r.esperadoFrac} altura="h-1" />
+                        <ProgressBar valor={m.realizado ?? 0} meta={m.meta} status={r.status} altura="h-1" />
                       </div>
                     )}
                   </td>

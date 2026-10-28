@@ -4,6 +4,7 @@ import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "reac
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
 import { CalendarioIntervalo, formatarDataCurta } from "./componentes/CalendarioIntervalo";
+import { PillSquad } from "./componentes/PillSquad";
 import { formatarHora } from "./lib/formato";
 import { useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
@@ -35,7 +36,10 @@ const NAV_ITENS = [
   { rota: "/financeiro", rotulo: "Financeiro" },
 ];
 
-const GRANULARIDADES: { id: Granularidade; label: string }[] = [
+/** Páginas que filtram por função (Todos/Sellers/SDRs/Closers). */
+const PAGINAS_COM_SQUAD = ["/comercial", "/time"];
+
+const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mês" },
@@ -317,7 +321,7 @@ export default function App() {
           <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col">
             <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
               {/*
-               * Navbar: marca à esquerda, páginas + filtro de data no centro, som + menu à direita.
+               * Navbar: marca à esquerda, páginas + filtro de data (+ função, na Comercial/Time) no centro, som + menu à direita.
                * Abaixo de lg os filtros descem pra uma segunda linha inteira — no celular
                * as três colunas não cabem e os segmentados se sobrepunham à marca.
                */}
@@ -330,6 +334,7 @@ export default function App() {
                   <PillNav />
                   {granularidade === "mes" && <PillPeriodoNavegavel />}
                   <PillPeriodo />
+                  {PAGINAS_COM_SQUAD.includes(location.pathname) && <PillSquad />}
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <BotaoSom />

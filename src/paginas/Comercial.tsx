@@ -5,7 +5,6 @@ import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
-import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
@@ -14,7 +13,7 @@ import { agregarPorMetrica, resumoMetas, serieDoTimePorMetrica, type MetricaAgre
 import { paraPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo } from "../lib/ritmo";
 import { useSomDeAumento } from "../lib/som";
-import { useSquadAtual } from "../lib/squad";
+import { useCargosFiltrados } from "../lib/squad";
 import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type MetricaTime, type ParametrosComercial, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
@@ -65,23 +64,6 @@ function umaCasa(valor: number): string {
   return formatarNumero(Math.round(valor * 10) / 10);
 }
 
-/** Linha de indicadores do card (aba Dashboard): % de atingimento, falta/folga, média necessária e previsão. */
-function detalheIndicadores(m: MetricaTime): string {
-  const partes: string[] = [];
-  if (m.pct_atingimento !== null) partes.push(`${formatarNumero(m.pct_atingimento)}%`);
-  if (m.falta_folga) partes.push(`${m.falta_folga.tipo === "falta" ? "Falta" : "Folga"} ${formatarNumero(m.falta_folga.valor)}`);
-  const necessaria = m.media_necessaria;
-  if (necessaria?.situacao === "pendente" && necessaria.valor !== null) {
-    partes.push(necessaria.unidade === "dia" ? `${umaCasa(necessaria.valor)}/dia útil` : `${umaCasa(necessaria.valor)}/hora`);
-  } else if (necessaria?.situacao === "meta_batida") {
-    partes.push("Meta batida");
-  } else if (necessaria?.situacao === "expediente_encerrado") {
-    partes.push("Expediente encerrado");
-  }
-  if (m.previsao !== null) partes.push(`Previsão ${formatarNumero(Math.round(m.previsao))}`);
-  return partes.join(" · ");
-}
-
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
 function Esqueleto() {
   return (
@@ -100,7 +82,7 @@ function Esqueleto() {
   );
 }
 
-function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: MetricaTime[]; dias: DiasUteis }) {
+function BlocoCards({ titulo, metricas }: { titulo: string; metricas: MetricaTime[] }) {
   return (
     <section className="flex flex-col gap-3" aria-label={titulo}>
       <h2 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">{titulo}</h2>
@@ -114,8 +96,7 @@ function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: Metr
               label={m.nome_exibicao}
               value={formatarNumero(m.realizado)}
               meta={m.meta_periodo === null ? undefined : formatarNumero(m.meta_periodo)}
-              ritmo={{ realizado: m.realizado, meta: m.meta_periodo, dias }}
-              detalhe={detalheIndicadores(m)}
+              atingimento={{ realizado: m.realizado, meta: m.meta_periodo, pct: m.pct_atingimento, faltaFolga: m.falta_folga }}
             />
           ))}
         </div>
@@ -184,7 +165,7 @@ interface TabelaCargoProps {
 /**
  * Uma tabela por cargo: as métricas do cargo + "Metas". Linhas ordenadas pela fração
  * de metas no ritmo; clicar (ou Enter/Espaço) leva pra Time, no card da pessoa
- * (`#pessoa-<email>` — contrato com a página Time). Todo mundo do cargo vira
+ * (`#pessoa-<id_user>` — contrato com a página Time). Todo mundo do cargo vira
  * linha: meta 0/sem meta é métrica aberta (valor + barra azul), nunca some.
  */
 function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
@@ -202,7 +183,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
     .sort((a, b) => proporcao(b.resumo) - proporcao(a.resumo) || a.nome.localeCompare(b.nome, "pt-BR"));
 
   function abrir(pessoa: PessoaComercial) {
-    navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.email.toLowerCase()}` });
+    navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.id_user}` });
   }
 
   const titulo = TITULO_TABELA[cargo];
@@ -264,7 +245,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                                 {formatarNumero(m.realizado)}
                                 <span className="text-[14px] font-semibold text-muted"> / {formatarNumero(m.meta_periodo)}</span>
                               </span>
-                              <ProgressBar valor={m.realizado} meta={m.meta_periodo} status={r.status} esperadoFrac={r.esperadoFrac} altura="h-1.5" />
+                              <ProgressBar valor={m.realizado} meta={m.meta_periodo} status={r.status} altura="h-1.5" />
                             </div>
                           ) : (
                             // Meta 0/sem meta: métrica aberta — valor / 0 e barra cheia azul.
@@ -273,7 +254,7 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
                                 {formatarNumero(m.realizado)}
                                 <span className="text-[14px] font-semibold text-muted"> / 0</span>
                               </span>
-                              <ProgressBar valor={m.realizado} meta={0} status="sem_meta" esperadoFrac={0} altura="h-1.5" />
+                              <ProgressBar valor={m.realizado} meta={0} status="sem_meta" altura="h-1.5" />
                             </div>
                           )}
                         </td>
@@ -303,8 +284,8 @@ export function Comercial() {
   // Gráfico e "Para bater a meta": sempre o mês corrente, nunca o período da pill.
   const [mes, setMes] = useState<Record<Cargo, RespostaComercial | null>>({ seller: null, sdr: null, closer: null });
   const [metricaGrafico, setMetricaGrafico] = useState("");
-  // O filtro de função fica na linha do título (querystring `squad`).
-  const squad = useSquadAtual();
+  // O filtro de função fica no header (querystring `squad`).
+  const cargosVisiveis = useCargosFiltrados();
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
   const { registrar } = useAtualizacao();
@@ -378,7 +359,6 @@ export function Comercial() {
   const carregando = blocos.some((b) => b.carregando) && semDado;
   const erro = semDado ? (blocos.find((b) => b.erro)?.erro ?? null) : null;
 
-  const cargosVisiveis: Cargo[] = squad === "todos" ? CARGOS : [squad];
   const dadoMes: Record<Cargo, RespostaComercial | null> = {
     seller: filtroEhMesCorrente ? porCargo.seller.dado : mes.seller,
     sdr: filtroEhMesCorrente ? porCargo.sdr.dado : mes.sdr,
@@ -400,13 +380,6 @@ export function Comercial() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Comercial</h1>
-          <PillSquad />
-        </div>
-        <p className="text-[14px] font-semibold text-muted">Linha vertical na barra = onde o time deveria estar hoje</p>
-      </div>
       <AvisoFontes avisos={blocos.flatMap((b) => b.dado?.avisos ?? [])} />
 
       {carregando ? (
@@ -427,7 +400,7 @@ export function Comercial() {
                 </p>
               );
             }
-            return <BlocoCards key={cargo} titulo={titulo} metricas={cardsDoCargo(dado, cargo)} dias={dado.dias_uteis} />;
+            return <BlocoCards key={cargo} titulo={titulo} metricas={cardsDoCargo(dado, cargo)} />;
           })}
 
           <section className="flex flex-col gap-3" aria-labelledby="titulo-acompanhamento">

@@ -96,17 +96,20 @@ function metricasTimeDe(pessoas: PessoaComercial[]): MetricaTime[] {
       porChave.set(m.metrica, acumulado);
     }
   }
-  return [...porChave].map(([chave, { realizado, metas }]) => ({
-    metrica: chave,
-    nome_exibicao: NOMES[chave],
-    meta_periodo: metas.length > 0 ? metas.reduce((soma, meta) => soma + meta, 0) : null,
-    realizado,
-    pct_atingimento: null,
-    falta_folga: null,
-    horas_restantes: null,
-    media_necessaria: null,
-    previsao: null,
-  }));
+  return [...porChave].map(([chave, { realizado, metas }]) => {
+    const meta = metas.length > 0 ? metas.reduce((soma, m) => soma + m, 0) : null;
+    return {
+      metrica: chave,
+      nome_exibicao: NOMES[chave],
+      meta_periodo: meta,
+      realizado,
+      pct_atingimento: meta ? Math.round((realizado / meta) * 1000) / 10 : null,
+      falta_folga: !meta ? null : realizado < meta ? { tipo: "falta", valor: meta - realizado } : { tipo: "folga", valor: realizado - meta },
+      horas_restantes: null,
+      media_necessaria: null,
+      previsao: null,
+    };
+  });
 }
 
 function resposta(pessoas: PessoaComercial[], metricasTime = metricasTimeDe(pessoas)): RespostaComercial {
@@ -188,10 +191,10 @@ afterEach(() => {
 });
 
 describe("página Comercial", () => {
-  it("título com a nota sobre a linha vertical da barra", async () => {
+  it("sem título da página nem a nota da linha vertical", async () => {
     await carregada();
-    expect(screen.getByRole("heading", { level: 1, name: "Comercial" })).toBeTruthy();
-    expect(screen.getByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeTruthy();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+    expect(screen.queryByText("Linha vertical na barra = onde o time deveria estar hoje")).toBeNull();
   });
 
   it("não mostra as métricas de prospecção do LinkedIn em lugar nenhum", async () => {
@@ -243,44 +246,31 @@ describe("página Comercial", () => {
     expect(inscricoes.textContent).not.toContain("/ 40");
   });
 
-  it("card mostra % de atingimento, falta, média necessária e previsão vindos do BFF", async () => {
+  it.each([
+    { caso: "vermelho", campos: { meta_periodo: 40, realizado: 8, pct_atingimento: 20, falta_folga: { tipo: "falta", valor: 32 } }, texto: "Falta 32", numero: "32", pct: "20%", classeTexto: "text-bad", classeBarra: "bg-bad" },
+    { caso: "amarelo", campos: { meta_periodo: 40, realizado: 22, pct_atingimento: 55, falta_folga: { tipo: "falta", valor: 18 } }, texto: "Falta 18", numero: "18", pct: "55%", classeTexto: "text-warn", classeBarra: "bg-warn-bar" },
+    { caso: "verde com folga", campos: { meta_periodo: 40, realizado: 42, pct_atingimento: 105, falta_folga: { tipo: "folga", valor: 2 } }, texto: "Folga 2", numero: "2", pct: "105%", classeTexto: "text-ok", classeBarra: "bg-ok" },
+  ])("card mostra Falta e % de atingimento na cor do terço da meta, sem chip nem esperado hoje: $caso", async ({ campos, texto, numero, pct, classeTexto, classeBarra }) => {
     metricasTimeSdr = [
-      { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 40, realizado: 35, pct_atingimento: 87.5, falta_folga: { tipo: "falta", valor: 5 }, horas_restantes: null, media_necessaria: { valor: 2.5, unidade: "dia", situacao: "pendente" }, previsao: 44 },
+      { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", horas_restantes: null, media_necessaria: null, previsao: null, ...campos } as MetricaTime,
     ];
     await carregada();
-    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
-    expect(inscricoes.textContent).toContain("87,5% · Falta 5 · 2,5/dia útil · Previsão 44");
-  });
-
-  it.each([
-    {
-      caso: "média por hora pendente",
-      campos: { pct_atingimento: 25, falta_folga: { tipo: "falta", valor: 30 }, horas_restantes: 3.5, media_necessaria: { valor: 8.6, unidade: "hora", situacao: "pendente" } },
-      esperado: "25% · Falta 30 · 8,6/hora",
-    },
-    {
-      caso: "meta batida",
-      campos: { pct_atingimento: 107.5, falta_folga: { tipo: "folga", valor: 3 }, media_necessaria: { valor: null, unidade: "dia", situacao: "meta_batida" } },
-      esperado: "107,5% · Folga 3 · Meta batida",
-    },
-    {
-      caso: "expediente encerrado",
-      campos: { pct_atingimento: 50, falta_folga: { tipo: "falta", valor: 20 }, media_necessaria: { valor: null, unidade: "hora", situacao: "expediente_encerrado" } },
-      esperado: "50% · Falta 20 · Expediente encerrado",
-    },
-  ])("card traduz a situação da média necessária: $caso", async ({ campos, esperado }) => {
-    const base = { metrica: "inscricoes_realizadas", nome_exibicao: "Inscrições Realizadas", meta_periodo: 40, realizado: 35, horas_restantes: null, previsao: null };
-    metricasTimeSdr = [{ ...base, ...campos } as MetricaTime];
-    await carregada();
-    const inscricoes = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
-    expect(inscricoes.textContent).toContain(esperado);
+    const card = within(screen.getByRole("region", { name: "Prospecção · SDRs" })).getAllByRole("article")[0];
+    expect(card.textContent).toContain(texto);
+    expect(card.textContent).toContain("% de atingimento");
+    expect(within(card).getByText(numero).className).toContain(classeTexto);
+    expect(within(card).getByText(pct).className).toContain(classeTexto);
+    expect((within(card).getByRole("progressbar").firstElementChild as HTMLElement).className).toContain(classeBarra);
+    for (const fora of ["Esperado hoje", "Projeção", "No ritmo", "Atrás", "Previsão"]) {
+      expect(card.textContent).not.toContain(fora);
+    }
   });
 
   it("card sem meta em ninguém mostra a métrica aberta: valor / 0 e barra cheia", async () => {
     pessoasSdr = [pessoa("5", "Zé", "ze@x.com", CHAVES_SDR, seis(3, null))];
     await carregada();
     const sdrs = screen.getByRole("region", { name: "Prospecção · SDRs" });
-    expect(within(sdrs).getAllByText("Métrica aberta · sem meta no período")).toHaveLength(3);
+    expect(within(sdrs).getAllByText("Meta aberta")).toHaveLength(3);
     expect(within(sdrs).getAllByText("/ 0")).toHaveLength(3);
     expect(within(sdrs).getAllByRole("progressbar")).toHaveLength(3);
   });
@@ -312,6 +302,14 @@ describe("página Comercial", () => {
     expect(screen.queryByRole("article", { name: "Closers" })).toBeNull();
   });
 
+  it("filtro de função com Sellers e SDRs mostra os dois e esconde Closers", async () => {
+    await carregada("/?granularidade=mes&squad=seller,sdr");
+    const regioes = screen.getAllByRole("region").map((r) => r.getAttribute("aria-label")).filter((n) => n?.includes("·"));
+    expect(regioes).toEqual(["Captação · Sellers", "Prospecção · SDRs"]);
+    expect(screen.getByRole("article", { name: "SDRs" })).toBeTruthy();
+    expect(screen.queryByRole("article", { name: "Closers" })).toBeNull();
+  });
+
   it("filtro de função Closer esconde o bloco e a tabela de SDRs", async () => {
     await carregada("/?granularidade=mes&squad=closer");
     expect(screen.queryByRole("region", { name: "Prospecção · SDRs" })).toBeNull();
@@ -328,6 +326,12 @@ describe("página Comercial", () => {
   it("publica os dias úteis do período pro cabeçalho", async () => {
     await carregada();
     await waitFor(() => expect(screen.getByTestId("dias-uteis").textContent).toBe("10 de 20"));
+  });
+
+  it("nenhuma barra da página tem a linha vertical do esperado hoje", async () => {
+    await carregada();
+    expect(document.querySelectorAll('[role="progressbar"] > span[aria-hidden]')).toHaveLength(0);
+    expect(document.querySelectorAll('[role="progressbar"]').length).toBeGreaterThan(0);
   });
 
   describe("tabelas do time", () => {
@@ -372,7 +376,7 @@ describe("página Comercial", () => {
 
       fireEvent.keyDown(ana, { key: "Enter" });
 
-      expect(screen.getByTestId("destino").textContent).toBe("/time?granularidade=mes&squad=sdr#pessoa-ana.silva@x.com");
+      expect(screen.getByTestId("destino").textContent).toBe("/time?granularidade=mes&squad=sdr#pessoa-1");
     });
   });
 

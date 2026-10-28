@@ -22,7 +22,7 @@ export interface Pessoa {
   id: string;
   nome: string;
   cargo: Cargo;
-  email: string;
+  email: string | null;
   imagem_url: string | null;
 }
 
@@ -84,7 +84,7 @@ export interface MetasAtingidas {
 
 export interface PessoaComercial {
   id_user: string;
-  email: string;
+  email: string | null;
   nome: string | null;
   imagem_url: string | null;
   metas_atingidas: MetasAtingidas;
