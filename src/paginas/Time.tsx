@@ -11,13 +11,11 @@ import { statusDoAtingimento } from "../lib/atingimento";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import { calcularRitmo, type Ritmo } from "../lib/ritmo";
 import { useSquadAtual } from "../lib/squad";
-import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_DASHBOARD, type Cargo, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 const DURACAO_DESTAQUE_MS = 2_400;
-const SEM_DIAS: DiasUteis = { decorridos: 0, total: 0 };
 
 const VISUAL_CARGO: Record<Cargo, { rotulo: string; classe: string }> = {
   seller: { rotulo: "Seller", classe: "bg-warn-bg text-warn" },
@@ -45,11 +43,10 @@ interface PessoaTime {
   cargos: CargoPessoa[];
 }
 
-interface MetricaRitmo {
+interface MetricaCard {
   metrica: Metrica;
   /** `null` = sem meta cadastrada; 0 = métrica aberta. Os dois aparecem com barra azul. */
   meta: number | null;
-  ritmo: Ritmo;
 }
 
 /** Agrupa por id_user: no dash2 a mesma pessoa tem o mesmo id em todos os cargos. Mantém a ordem de primeira aparição. */
@@ -64,7 +61,7 @@ function agruparPorPessoa(unidades: CargoPessoa[]): PessoaTime[] {
   return [...grupos.values()];
 }
 
-function metricasComRitmo({ cargo, pessoa }: CargoPessoa, dias: DiasUteis): MetricaRitmo[] {
+function metricasDoCard({ cargo, pessoa }: CargoPessoa): MetricaCard[] {
   return METRICAS_DASHBOARD[cargo].flatMap((chave) =>
     pessoa.metricas
       .filter((m) => m.metrica === chave)
@@ -72,25 +69,25 @@ function metricasComRitmo({ cargo, pessoa }: CargoPessoa, dias: DiasUteis): Metr
         // Number(): numeric do Postgres pode chegar como string ("0.00") apesar do tipo.
         // Meta 0 = métrica aberta: aparece com valor / 0 e barra azul, só não conta como meta.
         const meta = m.meta_periodo === null ? null : Number(m.meta_periodo);
-        return { metrica: m, meta, ritmo: calcularRitmo(m.realizado, meta, dias) };
+        return { metrica: m, meta };
       }),
   );
 }
 
-function resumo(metricas: MetricaRitmo[]) {
+function resumo(metricas: MetricaCard[]) {
   const comMeta = metricas.filter((m) => (m.meta ?? 0) > 0);
   return {
     comMeta: comMeta.length,
-    noRitmo: comMeta.filter((m) => m.ritmo.status === "no_ritmo").length,
+    verdes: comMeta.filter((m) => statusDoAtingimento(m.metrica.pct_atingimento) === "no_ritmo").length,
     batidas: comMeta.filter((m) => m.metrica.realizado >= (m.meta ?? 0)).length,
   };
 }
 
 /** Cargo que o card abre: o primeiro com alguma meta (dupla função pode ter meta num cargo só). */
-function indicePadrao(grupo: PessoaTime, dias: DiasUteis): number {
+function indicePadrao(grupo: PessoaTime): number {
   return Math.max(
     0,
-    grupo.cargos.findIndex((c) => resumo(metricasComRitmo(c, dias)).comMeta > 0),
+    grupo.cargos.findIndex((c) => resumo(metricasDoCard(c)).comMeta > 0),
   );
 }
 
@@ -122,12 +119,12 @@ function variaveisTv(qtdCards: number): CSSProperties {
   } as CSSProperties;
 }
 
-function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
+function AnelVerde({ verdes, comMeta }: { verdes: number; comMeta: number }) {
   const raio = 26;
   const circunferencia = 2 * Math.PI * raio;
-  const preenchido = comMeta > 0 ? (noRitmo / comMeta) * circunferencia : 0;
+  const preenchido = comMeta > 0 ? (verdes / comMeta) * circunferencia : 0;
   return (
-    <div role="img" aria-label={`${noRitmo} de ${comMeta} metas no ritmo`} className="relative shrink-0" style={{ width: u(60), height: u(60) }}>
+    <div role="img" aria-label={`${verdes} de ${comMeta} metas no verde`} className="relative shrink-0" style={{ width: u(60), height: u(60) }}>
       <svg viewBox="0 0 60 60" className="h-full w-full" aria-hidden>
         <circle cx={30} cy={30} r={raio} fill="none" strokeWidth={6} className="stroke-track" />
         {preenchido > 0 && (
@@ -145,13 +142,13 @@ function AnelRitmo({ noRitmo, comMeta }: { noRitmo: number; comMeta: number }) {
         )}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-display font-extrabold leading-none" style={{ fontSize: u(16) }}>
-        {noRitmo}/{comMeta}
+        {verdes}/{comMeta}
       </span>
     </div>
   );
 }
 
-function LinhaMetrica({ metrica, meta }: MetricaRitmo) {
+function LinhaMetrica({ metrica, meta }: MetricaCard) {
   return (
     <div role="group" aria-label={metrica.nome_exibicao} className="flex min-w-0 flex-col" style={{ gap: u(6) }}>
       <div className="flex items-baseline justify-between gap-3">
@@ -179,7 +176,7 @@ function CardPessoaTime({
   grupo: PessoaTime;
   indiceAtivo: number;
   aoTrocarCargo: (indice: number) => void;
-  metricas: MetricaRitmo[];
+  metricas: MetricaCard[];
   destacado: boolean;
 }) {
   const { cargos } = grupo;
@@ -187,7 +184,7 @@ function CardPessoaTime({
   const nome = nomeExibicao(pessoa.nome, pessoa.email);
   // A conta de um cargo pode não ter foto cadastrada: usa a do outro.
   const imagemUrl = pessoa.imagem_url ?? cargos.find((c) => c.pessoa.imagem_url)?.pessoa.imagem_url ?? null;
-  const { comMeta, noRitmo, batidas } = resumo(metricas);
+  const { comMeta, verdes, batidas } = resumo(metricas);
   const chipCargo = "rounded-full px-2 py-0.5 font-bold uppercase leading-none tracking-[0.08em]";
 
   return (
@@ -226,10 +223,10 @@ function CardPessoaTime({
             )}
           </div>
           <span className="truncate text-muted" style={{ fontSize: u(13) }}>
-            {batidas} {batidas === 1 ? "meta batida" : "metas batidas"} · {noRitmo} no ritmo
+            {batidas} {batidas === 1 ? "meta batida" : "metas batidas"} · {verdes} no verde
           </span>
         </div>
-        <AnelRitmo noRitmo={noRitmo} comMeta={comMeta} />
+        <AnelVerde verdes={verdes} comMeta={comMeta} />
       </div>
       {/* Duas colunas na TV: o card tem mais largura que altura sobrando. */}
       <div className="grid grid-cols-1 min-[1201px]:grid-cols-2" style={{ columnGap: u(20), rowGap: u(14) }}>
@@ -339,7 +336,6 @@ export function Time() {
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
   }, [atualizadoEm, atualizando, carregar, registrar, diasUteis]);
 
-  const dias = diasUteis ?? SEM_DIAS;
   const unidades: CargoPessoa[] = [
     ...(sdr.dado?.pessoas.map((pessoa) => ({ cargo: "sdr" as const, pessoa })) ?? []),
     ...(closer.dado?.pessoas.map((pessoa) => ({ cargo: "closer" as const, pessoa })) ?? []),
@@ -348,10 +344,10 @@ export function Time() {
   const grupos = agruparPorPessoa(squad === "todos" ? unidades : unidades.filter((u) => u.cargo === squad));
   const cards = grupos
     .map((grupo) => {
-      const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo, dias), grupo.cargos.length - 1);
-      const metricas = metricasComRitmo(grupo.cargos[indiceAtivo], dias);
-      const { comMeta, noRitmo } = resumo(metricas);
-      return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? noRitmo / comMeta : -1 };
+      const indiceAtivo = Math.min(cargoEscolhido[grupo.chave] ?? indicePadrao(grupo), grupo.cargos.length - 1);
+      const metricas = metricasDoCard(grupo.cargos[indiceAtivo]);
+      const { comMeta, verdes } = resumo(metricas);
+      return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? verdes / comMeta : -1 };
     })
     .sort((a, b) => b.proporcao - a.proporcao);
 

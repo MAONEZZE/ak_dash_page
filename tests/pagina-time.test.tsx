@@ -257,6 +257,36 @@ describe("página Time — grade", () => {
   });
 });
 
+describe("página Time — métricas no verde", () => {
+  it("subtítulo conta metas batidas e no verde", async () => {
+    montar();
+    await screen.findByText("Carla");
+    expect(card("7").textContent).toContain("1 meta batida · 2 no verde");
+    expect(card("9").textContent).toContain("0 metas batidas · 1 no verde");
+  });
+
+  it("anel mostra X/Y no verde, contando só as métricas com meta", async () => {
+    montar();
+    await screen.findByText("Carla");
+    expect(within(card("9")).getByRole("img", { name: "1 de 2 metas no verde" }).textContent).toBe("1/2");
+    expect(within(card("7")).getByRole("img", { name: "2 de 4 metas no verde" }).textContent).toBe("2/4");
+  });
+
+  it("ordena os cards pela proporção de métricas no verde, da maior pra menor", async () => {
+    montar();
+    await screen.findByText("Carla");
+    expect(ordemDosCards()).toEqual(["2", "9", "7", "11", "8"]);
+  });
+
+  it("o toggle de cargo também troca o anel e a posição", async () => {
+    montar();
+    await screen.findByText("Jonathan");
+    fireEvent.click(within(card("2")).getByRole("button", { name: "Closer" }));
+    expect(within(card("2")).getByRole("img", { name: "0 de 1 metas no verde" })).toBeTruthy();
+    expect(ordemDosCards()).toEqual(["9", "7", "2", "11", "8"]);
+  });
+});
+
 describe("página Time — chegada pela Comercial (#pessoa-…)", () => {
   it("rola até o card do hash, centralizado, e destaca por ~2,4s", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
