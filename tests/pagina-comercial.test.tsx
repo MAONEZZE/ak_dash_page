@@ -96,17 +96,20 @@ function metricasTimeDe(pessoas: PessoaComercial[]): MetricaTime[] {
       porChave.set(m.metrica, acumulado);
     }
   }
-  return [...porChave].map(([chave, { realizado, metas }]) => ({
-    metrica: chave,
-    nome_exibicao: NOMES[chave],
-    meta_periodo: metas.length > 0 ? metas.reduce((soma, meta) => soma + meta, 0) : null,
-    realizado,
-    pct_atingimento: null,
-    falta_folga: null,
-    horas_restantes: null,
-    media_necessaria: null,
-    previsao: null,
-  }));
+  return [...porChave].map(([chave, { realizado, metas }]) => {
+    const meta = metas.length > 0 ? metas.reduce((soma, m) => soma + m, 0) : null;
+    return {
+      metrica: chave,
+      nome_exibicao: NOMES[chave],
+      meta_periodo: meta,
+      realizado,
+      pct_atingimento: meta ? Math.round((realizado / meta) * 1000) / 10 : null,
+      falta_folga: !meta ? null : realizado < meta ? { tipo: "falta", valor: meta - realizado } : { tipo: "folga", valor: realizado - meta },
+      horas_restantes: null,
+      media_necessaria: null,
+      previsao: null,
+    };
+  });
 }
 
 function resposta(pessoas: PessoaComercial[], metricasTime = metricasTimeDe(pessoas)): RespostaComercial {
