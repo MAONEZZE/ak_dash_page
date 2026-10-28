@@ -7,7 +7,7 @@ import { CardKpi } from "../componentes/CardKpi";
 import { GraficoAreaMeta } from "../componentes/GraficoAreaMeta";
 import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
-import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
+import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { agregarPorMetrica, resumoMetas, serieDoTimePorMetrica, type MetricaAgregada } from "../lib/insights";
@@ -15,21 +15,30 @@ import { paraPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo } from "../lib/ritmo";
 import { useSomDeAumento } from "../lib/som";
 import { useSquadAtual } from "../lib/squad";
-import { METRICAS_CLOSER, type Cargo, type DiasUteis, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_DASHBOARD, type Cargo, type DiasUteis, type MetricaTime, type ParametrosComercial, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
-/**
- * As 6 métricas de cada cargo, na ordem dos cards e das colunas. As 4 do
- * Dripify (conexoes_enviadas, conexoes_aceitas, abordagens, in_mails) ficam
- * de fora de toda a página — decisão de produto.
- */
-const COLUNAS: Record<Cargo, readonly string[]> = {
-  sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
-  closer: METRICAS_CLOSER,
-};
+/** Métricas de cada cargo, na ordem dos cards e das colunas: as da aba "Dashboard" da planilha do cargo. */
+const COLUNAS = METRICAS_DASHBOARD;
 
-const ROTULO_CARGO: Record<Cargo, string> = { sdr: "SDR", closer: "Closer" };
+/** Ordem do funil: captação (Seller) → agendamento (SDR) → fechamento (Closer). */
+const CARGOS: Cargo[] = ["seller", "sdr", "closer"];
+
+const ROTULO_CARGO: Record<Cargo, string> = { seller: "Seller", sdr: "SDR", closer: "Closer" };
+const TITULO_TABELA: Record<Cargo, string> = { seller: "Sellers", sdr: "SDRs", closer: "Closers" };
+const TITULO_BLOCO: Record<Cargo, string> = {
+  seller: "Captação · Sellers",
+  sdr: "Prospecção · SDRs",
+  closer: "Fechamento · Closers",
+};
+const COR_CARGO: Record<Cargo, string> = { seller: "text-warn", sdr: "text-sdr", closer: "text-closer" };
+
+const BUSCAR: Record<Cargo, (params: ParametrosComercial) => Promise<RespostaComercial>> = {
+  seller: buscarComercialSeller,
+  sdr: buscarComercialSdr,
+  closer: buscarComercialCloser,
+};
 
 interface EstadoBloco {
   dado: RespostaComercial | null;
@@ -38,11 +47,17 @@ interface EstadoBloco {
 }
 
 const ESTADO_INICIAL: EstadoBloco = { dado: null, carregando: true, erro: null };
+const ESTADOS_INICIAIS: Record<Cargo, EstadoBloco> = { seller: ESTADO_INICIAL, sdr: ESTADO_INICIAL, closer: ESTADO_INICIAL };
 
-/** Agregado do time por métrica, só as 6 do cargo e na ordem delas. */
+/** Agregado do time por métrica, só as do cargo e na ordem delas. */
 function agregadoDoCargo(dado: RespostaComercial | null, cargo: Cargo): MetricaAgregada[] {
   const agregado = agregarPorMetrica(dado?.pessoas ?? []);
   return COLUNAS[cargo].flatMap((chave) => agregado.find((m) => m.metrica === chave) ?? []);
+}
+
+/** Cards do time por métrica, só as do cargo e na ordem delas: realizado e meta vêm de `metricas_time`. */
+function cardsDoCargo(dado: RespostaComercial | null, cargo: Cargo): MetricaTime[] {
+  return COLUNAS[cargo].flatMap((chave) => dado?.metricas_time.find((m) => m.metrica === chave) ?? []);
 }
 
 /** Uma casa decimal — média e necessário por dia útil quase nunca são inteiros. */
@@ -50,12 +65,29 @@ function umaCasa(valor: number): string {
   return formatarNumero(Math.round(valor * 10) / 10);
 }
 
+/** Linha de indicadores do card (aba Dashboard): % de atingimento, falta/folga, média necessária e previsão. */
+function detalheIndicadores(m: MetricaTime): string {
+  const partes: string[] = [];
+  if (m.pct_atingimento !== null) partes.push(`${formatarNumero(m.pct_atingimento)}%`);
+  if (m.falta_folga) partes.push(`${m.falta_folga.tipo === "falta" ? "Falta" : "Folga"} ${formatarNumero(m.falta_folga.valor)}`);
+  const necessaria = m.media_necessaria;
+  if (necessaria?.situacao === "pendente" && necessaria.valor !== null) {
+    partes.push(necessaria.unidade === "dia" ? `${umaCasa(necessaria.valor)}/dia útil` : `${umaCasa(necessaria.valor)}/hora`);
+  } else if (necessaria?.situacao === "meta_batida") {
+    partes.push("Meta batida");
+  } else if (necessaria?.situacao === "expediente_encerrado") {
+    partes.push("Expediente encerrado");
+  }
+  if (m.previsao !== null) partes.push(`Previsão ${formatarNumero(Math.round(m.previsao))}`);
+  return partes.join(" · ");
+}
+
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
 function Esqueleto() {
   return (
     <>
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-        {Array.from({ length: 6 }, (_, i) => (
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
           <CardEsqueleto key={i} className="min-h-[168px]" />
         ))}
       </section>
@@ -68,21 +100,22 @@ function Esqueleto() {
   );
 }
 
-function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: MetricaAgregada[]; dias: DiasUteis }) {
+function BlocoCards({ titulo, metricas, dias }: { titulo: string; metricas: MetricaTime[]; dias: DiasUteis }) {
   return (
     <section className="flex flex-col gap-3" aria-label={titulo}>
       <h2 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">{titulo}</h2>
       {metricas.length === 0 ? (
         <p className="text-lg text-muted">Nenhum dado lançado neste período.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {metricas.map((m) => (
             <CardKpi
               key={m.metrica}
-              label={m.nomeExibicao}
+              label={m.nome_exibicao}
               value={formatarNumero(m.realizado)}
-              meta={m.meta === null ? undefined : formatarNumero(m.meta)}
-              ritmo={{ realizado: m.realizado, meta: m.meta, dias }}
+              meta={m.meta_periodo === null ? undefined : formatarNumero(m.meta_periodo)}
+              ritmo={{ realizado: m.realizado, meta: m.meta_periodo, dias }}
+              detalhe={detalheIndicadores(m)}
             />
           ))}
         </div>
@@ -149,7 +182,7 @@ interface TabelaCargoProps {
 }
 
 /**
- * Uma tabela por cargo: as 6 métricas + "Metas". Linhas ordenadas pela fração
+ * Uma tabela por cargo: as métricas do cargo + "Metas". Linhas ordenadas pela fração
  * de metas no ritmo; clicar (ou Enter/Espaço) leva pra Time, no card da pessoa
  * (`#pessoa-<email>` — contrato com a página Time). Todo mundo do cargo vira
  * linha: meta 0/sem meta é métrica aberta (valor + barra azul), nunca some.
@@ -172,16 +205,16 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
     navigate({ pathname: "/time", search, hash: `#pessoa-${pessoa.email.toLowerCase()}` });
   }
 
-  const titulo = cargo === "sdr" ? "SDRs" : "Closers";
+  const titulo = TITULO_TABELA[cargo];
 
   return (
     <article className="glass-panel flex min-w-0 flex-col gap-3 rounded-[24px] p-5" aria-label={titulo}>
-      <h3 className={`text-[15px] font-bold uppercase tracking-[0.13em] ${cargo === "sdr" ? "text-sdr" : "text-closer"}`}>{titulo}</h3>
+      <h3 className={`text-[15px] font-bold uppercase tracking-[0.13em] ${COR_CARGO[cargo]}`}>{titulo}</h3>
       {linhas.length === 0 ? (
         <p className="text-[15px] text-muted">Nenhuma pessoa ativa neste cargo.</p>
       ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] border-collapse text-left">
+            <table className="w-full min-w-[720px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-line">
                   <th scope="col" className="py-2 pr-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
@@ -266,10 +299,9 @@ function TabelaCargo({ cargo, dado, destaques }: TabelaCargoProps) {
 
 export function Comercial() {
   const { granularidade, periodo } = useFiltrosAtuais();
-  const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
-  const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
+  const [porCargo, setPorCargo] = useState<Record<Cargo, EstadoBloco>>(ESTADOS_INICIAIS);
   // Gráfico e "Para bater a meta": sempre o mês corrente, nunca o período da pill.
-  const [mes, setMes] = useState<{ sdr: RespostaComercial | null; closer: RespostaComercial | null }>({ sdr: null, closer: null });
+  const [mes, setMes] = useState<Record<Cargo, RespostaComercial | null>>({ seller: null, sdr: null, closer: null });
   const [metricaGrafico, setMetricaGrafico] = useState("");
   // O filtro de função fica na linha do título (querystring `squad`).
   const squad = useSquadAtual();
@@ -284,37 +316,40 @@ export function Comercial() {
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
-    setSdr((atual) => ({ ...atual, carregando: true }));
-    setCloser((atual) => ({ ...atual, carregando: true }));
+    setPorCargo((atual) => ({
+      seller: { ...atual.seller, carregando: true },
+      sdr: { ...atual.sdr, carregando: true },
+      closer: { ...atual.closer, carregando: true },
+    }));
 
     const params = { granularidade, periodo };
     const paramsMes = { granularidade: "mes" as const, periodo: mesCorrente };
+    const atualizar = (cargo: Cargo, f: (atual: EstadoBloco) => EstadoBloco) =>
+      setPorCargo((atual) => ({ ...atual, [cargo]: f(atual[cargo]) }));
 
     // No `catch`, mantém o `dado` já carregado — um refresh que falhou não
     // pode apagar a tela que já estava funcionando.
-    await Promise.all([
-      buscarComercialSdr(params)
-        .then((dado) => setSdr({ dado, carregando: false, erro: null }))
-        .catch((erro: unknown) =>
-          setSdr((atual) => ({ ...atual, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar SDRs." })),
-        ),
-      buscarComercialCloser(params)
-        .then((dado) => setCloser({ dado, carregando: false, erro: null }))
-        .catch((erro: unknown) =>
-          setCloser((atual) => ({ ...atual, carregando: false, erro: erro instanceof Error ? erro.message : "Falha ao carregar Closers." })),
-        ),
-      // Falha aqui não vira erro de página: só o acompanhamento do mês fica sem dado novo.
-      ...(filtroEhMesCorrente
-        ? []
-        : [
-            buscarComercialSdr(paramsMes)
-              .then((dado) => setMes((atual) => ({ ...atual, sdr: dado })))
-              .catch(() => undefined),
-            buscarComercialCloser(paramsMes)
-              .then((dado) => setMes((atual) => ({ ...atual, closer: dado })))
-              .catch(() => undefined),
-          ]),
-    ]);
+    await Promise.all(
+      CARGOS.flatMap((cargo) => [
+        BUSCAR[cargo](params)
+          .then((dado) => atualizar(cargo, () => ({ dado, carregando: false, erro: null })))
+          .catch((erro: unknown) =>
+            atualizar(cargo, (atual) => ({
+              ...atual,
+              carregando: false,
+              erro: erro instanceof Error ? erro.message : `Falha ao carregar ${TITULO_TABELA[cargo]}.`,
+            })),
+          ),
+        // Falha aqui não vira erro de página: só o acompanhamento do mês fica sem dado novo.
+        ...(filtroEhMesCorrente
+          ? []
+          : [
+              BUSCAR[cargo](paramsMes)
+                .then((dado) => setMes((atual) => ({ ...atual, [cargo]: dado })))
+                .catch(() => undefined),
+            ]),
+      ]),
+    );
 
     setAtualizadoEm(new Date());
     setAtualizando(false);
@@ -327,10 +362,10 @@ export function Comercial() {
   }, [carregar]);
 
   // Nathan e Jennifer são os dois SDRs vigiados — não tem por que olhar o bloco de Closer.
-  const { destaques } = useSomDeAumento({ pessoas: sdr.dado?.pessoas, granularidade, periodo });
+  const { destaques } = useSomDeAumento({ pessoas: porCargo.sdr.dado?.pessoas, granularidade, periodo });
 
   // Header vive fora da árvore desta página (App.tsx): repassa o "Atualizar" e os dias úteis do período.
-  const diasUteis = sdr.dado?.dias_uteis ?? closer.dado?.dias_uteis;
+  const diasUteis = CARGOS.map((c) => porCargo[c].dado?.dias_uteis).find(Boolean);
   useEffect(() => {
     registrar({ atualizadoEm, atualizando, aoAtualizar: carregar, diasUteis });
     return () => registrar({ atualizadoEm: null, atualizando: false, aoAtualizar: null });
@@ -338,18 +373,20 @@ export function Comercial() {
 
   // Esqueleto/erro só tomam a tela enquanto não há dado nenhum — depois disso
   // o auto-refresh troca só os valores, sem piscar a página.
-  const carregando = (sdr.carregando || closer.carregando) && !sdr.dado && !closer.dado;
-  const erro = !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro) : null;
+  const blocos = CARGOS.map((c) => porCargo[c]);
+  const semDado = blocos.every((b) => !b.dado);
+  const carregando = blocos.some((b) => b.carregando) && semDado;
+  const erro = semDado ? (blocos.find((b) => b.erro)?.erro ?? null) : null;
 
-  const cargosVisiveis: Cargo[] = squad === "todos" ? ["sdr", "closer"] : [squad];
-  const porCargo = { sdr, closer };
+  const cargosVisiveis: Cargo[] = squad === "todos" ? CARGOS : [squad];
   const dadoMes: Record<Cargo, RespostaComercial | null> = {
-    sdr: filtroEhMesCorrente ? sdr.dado : mes.sdr,
-    closer: filtroEhMesCorrente ? closer.dado : mes.closer,
+    seller: filtroEhMesCorrente ? porCargo.seller.dado : mes.seller,
+    sdr: filtroEhMesCorrente ? porCargo.sdr.dado : mes.sdr,
+    closer: filtroEhMesCorrente ? porCargo.closer.dado : mes.closer,
   };
 
-  // Opções do gráfico: as métricas do mês dos cargos visíveis. Quatro métricas
-  // existem nos dois cargos, cada um com a sua meta — o id leva o cargo.
+  // Opções do gráfico: as métricas do mês dos cargos visíveis. Algumas métricas
+  // existem em mais de um cargo, cada um com a sua meta — o id leva o cargo.
   const opcoesGrafico = cargosVisiveis.flatMap((cargo) =>
     agregadoDoCargo(dadoMes[cargo], cargo).map((m) => ({
       id: `${cargo}:${m.metrica}`,
@@ -370,7 +407,7 @@ export function Comercial() {
         </div>
         <p className="text-[14px] font-semibold text-muted">Linha vertical na barra = onde o time deveria estar hoje</p>
       </div>
-      <AvisoFontes avisos={[...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
+      <AvisoFontes avisos={blocos.flatMap((b) => b.dado?.avisos ?? [])} />
 
       {carregando ? (
         <Esqueleto />
@@ -382,7 +419,7 @@ export function Comercial() {
         <>
           {cargosVisiveis.map((cargo) => {
             const { dado, erro: erroCargo } = porCargo[cargo];
-            const titulo = cargo === "sdr" ? "Prospecção · SDRs" : "Fechamento · Closers";
+            const titulo = TITULO_BLOCO[cargo];
             if (!dado) {
               return (
                 <p key={cargo} className="text-lg text-muted" role="alert">
@@ -390,7 +427,7 @@ export function Comercial() {
                 </p>
               );
             }
-            return <BlocoCards key={cargo} titulo={titulo} metricas={agregadoDoCargo(dado, cargo)} dias={dado.dias_uteis} />;
+            return <BlocoCards key={cargo} titulo={titulo} metricas={cardsDoCargo(dado, cargo)} dias={dado.dias_uteis} />;
           })}
 
           <section className="flex flex-col gap-3" aria-labelledby="titulo-acompanhamento">

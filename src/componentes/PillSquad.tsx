@@ -1,6 +1,6 @@
 import { SQUADS, useDefinirSquad, useSquadAtual } from "../lib/squad";
 
-/** Filtro de função (Todos/SDR/Closers) da Comercial e da Time — fica na linha do título da página, à direita. */
+/** Filtro de função (Todos/Sellers/SDRs/Closers) da Comercial e da Time — fica na linha do título da página, à direita. */
 export function PillSquad() {
   const squad = useSquadAtual();
   const definirSquad = useDefinirSquad();

@@ -6,13 +6,13 @@ import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { PillSquad } from "../componentes/PillSquad";
 import { ProgressBar } from "../componentes/ProgressBar";
 import { StatusChip } from "../componentes/StatusChip";
-import { buscarComercialCloser, buscarComercialSdr } from "../lib/api";
+import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero, nomeExibicao } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
 import { calcularRitmo, type Ritmo } from "../lib/ritmo";
 import { useSquadAtual } from "../lib/squad";
-import { METRICAS_CLOSER, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
+import { METRICAS_CLOSER, METRICAS_DASHBOARD, type Cargo, type DiasUteis, type Metrica, type PessoaComercial, type RespostaComercial } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 const DURACAO_DESTAQUE_MS = 2_400;
@@ -20,11 +20,13 @@ const SEM_DIAS: DiasUteis = { decorridos: 0, total: 0 };
 
 /** Ordem fixa das métricas por cargo: todas as do cargo, sem as do Dripify. */
 const METRICAS_TIME: Record<Cargo, readonly string[]> = {
+  seller: METRICAS_DASHBOARD.seller,
   sdr: ["fups", "numeros_captados", "inscricoes_realizadas", "ligacoes_realizadas", "indicacoes", "reunioes_agendadas"],
   closer: METRICAS_CLOSER,
 };
 
 const VISUAL_CARGO: Record<Cargo, { rotulo: string; classe: string }> = {
+  seller: { rotulo: "Seller", classe: "bg-warn-bg text-warn" },
   sdr: { rotulo: "SDR", classe: "bg-ok-bg text-sdr" },
   closer: { rotulo: "Closer", classe: "bg-closer-bg text-closer" },
 };
@@ -289,6 +291,7 @@ function useDestaqueDoHash(chavesRenderizadas: string): string | null {
 
 export function Time() {
   const { granularidade, periodo } = useFiltrosAtuais();
+  const [seller, setSeller] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [sdr, setSdr] = useState<EstadoBloco>(ESTADO_INICIAL);
   const [closer, setCloser] = useState<EstadoBloco>(ESTADO_INICIAL);
   const squad = useSquadAtual();
@@ -300,6 +303,7 @@ export function Time() {
 
   const carregar = useCallback(async () => {
     setAtualizando(true);
+    setSeller((atual) => ({ ...atual, carregando: true }));
     setSdr((atual) => ({ ...atual, carregando: true }));
     setCloser((atual) => ({ ...atual, carregando: true }));
 
@@ -307,6 +311,15 @@ export function Time() {
 
     // Mesmo contrato da Comercial: refresh que falhou mantém o `dado` anterior.
     await Promise.all([
+      buscarComercialSeller(params)
+        .then((dado) => setSeller({ dado, carregando: false, erro: null }))
+        .catch((erro: unknown) =>
+          setSeller((atual) => ({
+            ...atual,
+            carregando: false,
+            erro: erro instanceof Error ? erro.message : "Falha ao carregar Sellers.",
+          })),
+        ),
       buscarComercialSdr(params)
         .then((dado) => setSdr({ dado, carregando: false, erro: null }))
         .catch((erro: unknown) =>
@@ -337,7 +350,7 @@ export function Time() {
     return () => clearInterval(id);
   }, [carregar]);
 
-  const diasUteis = sdr.dado?.dias_uteis ?? closer.dado?.dias_uteis;
+  const diasUteis = sdr.dado?.dias_uteis ?? closer.dado?.dias_uteis ?? seller.dado?.dias_uteis;
 
   useEffect(() => {
     registrar({ atualizadoEm, atualizando, aoAtualizar: carregar, diasUteis });
@@ -348,6 +361,7 @@ export function Time() {
   const unidades: CargoPessoa[] = [
     ...(sdr.dado?.pessoas.map((pessoa) => ({ cargo: "sdr" as const, pessoa })) ?? []),
     ...(closer.dado?.pessoas.map((pessoa) => ({ cargo: "closer" as const, pessoa })) ?? []),
+    ...(seller.dado?.pessoas.map((pessoa) => ({ cargo: "seller" as const, pessoa })) ?? []),
   ];
   const grupos = agruparPorPessoa(squad === "todos" ? unidades : unidades.filter((u) => u.cargo === squad));
   const cards = grupos
@@ -361,8 +375,8 @@ export function Time() {
 
   const destacado = useDestaqueDoHash(cards.map((c) => c.grupo.chave).join(","));
 
-  const carregando = (sdr.carregando || closer.carregando) && !sdr.dado && !closer.dado;
-  const erro = !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro) : null;
+  const carregando = (seller.carregando || sdr.carregando || closer.carregando) && !seller.dado && !sdr.dado && !closer.dado;
+  const erro = !seller.dado && !sdr.dado && !closer.dado ? (sdr.erro ?? closer.erro ?? seller.erro) : null;
 
   if (carregando) {
     return (
@@ -391,7 +405,7 @@ export function Time() {
         <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight">Time</h1>
         <PillSquad />
       </div>
-      <AvisoFontes avisos={[...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
+      <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
       {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
       {cards.length > 0 && (
         <section

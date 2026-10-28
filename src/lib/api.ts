@@ -1,5 +1,6 @@
 import comercialClosterFixture from "./fixtures/comercial_closer.example.json";
 import comercialSdrFixture from "./fixtures/comercial_sdr.example.json";
+import comercialSellerFixture from "./fixtures/comercial_seller.example.json";
 import financeiroFixture from "./fixtures/financeiro.example.json";
 import geralFixture from "./fixtures/geral.example.json";
 import pessoasFixture from "./fixtures/pessoas.example.json";
@@ -145,6 +146,15 @@ async function requisitar<T>(caminho: string, params?: Record<string, string | s
 export async function buscarPessoas(): Promise<Pessoa[]> {
   if (USA_FIXTURES) return pessoasFixture as Pessoa[];
   return requisitar<Pessoa[]>("/pessoas");
+}
+
+export async function buscarComercialSeller(params: ParametrosComercial): Promise<RespostaComercial> {
+  if (USA_FIXTURES) return comercialSellerFixture as RespostaComercial;
+  return requisitar<RespostaComercial>("/comercial/seller", {
+    granularidade: params.granularidade,
+    periodo: params.periodo,
+    pessoas: params.pessoas,
+  });
 }
 
 export async function buscarComercialSdr(params: ParametrosComercial): Promise<RespostaComercial> {

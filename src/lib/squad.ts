@@ -1,10 +1,11 @@
 import { useSearchParams } from "react-router-dom";
 
-export type Squad = "todos" | "sdr" | "closer";
+export type Squad = "todos" | "seller" | "sdr" | "closer";
 
 export const SQUADS: { id: Squad; label: string }[] = [
   { id: "todos", label: "Todos" },
-  { id: "sdr", label: "SDR" },
+  { id: "seller", label: "Sellers" },
+  { id: "sdr", label: "SDRs" },
   { id: "closer", label: "Closers" },
 ];
 

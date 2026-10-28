@@ -33,6 +33,8 @@ interface CardKpiProps {
    * "Esperado hoje N · Projeção N (P%)". Substitui `pct`/`legenda`.
    */
   ritmo?: { realizado: number; meta: number | null; dias: DiasUteis };
+  /** Linha extra com os indicadores da aba Dashboard (Comercial). Só aparece no card com ritmo e meta. */
+  detalhe?: string;
   /** Variante escura (fundo `--color-bg-dark-2`). */
   variante?: "claro" | "escuro";
   /** Classe de tom pastel (`pastel-verde`, `pastel-verde-escuro`) — card pastel da Geral. O fundo é o do pastel; `variante` só decide se o texto é claro. */
@@ -74,6 +76,7 @@ export function CardKpi({
   indisponivel,
   legenda = "",
   ritmo,
+  detalhe,
   variante = "claro",
   tamanho = "normal",
   destaque = false,
@@ -145,6 +148,7 @@ export function CardKpi({
                   ? `${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%`
                   : `${formatarNumero(Math.round(r.projecao))} (${Math.round((r.projecao / (ritmo.meta ?? 1)) * 100)}%)`}
             </span>
+            {detalhe && <span className={`font-semibold text-muted ${textoRodape}`}>{detalhe}</span>}
           </div>
         )
       ) : destaque ? (
