@@ -30,6 +30,8 @@ const VENDAS: RespostaFinanceiro["vendas"] = [
     forma_pgto_2: null,
     user_closer: 1,
     closer: "Jacob",
+    id_planilha: 1,
+    recebimentos: [],
   },
   {
     id: 2,
@@ -50,6 +52,8 @@ const VENDAS: RespostaFinanceiro["vendas"] = [
     forma_pgto_2: null,
     user_closer: null,
     closer: null,
+    id_planilha: 2,
+    recebimentos: [],
   },
 ];
 

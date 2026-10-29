@@ -277,8 +277,18 @@ export interface CardFinanceiro {
   realizado: number;
 }
 
+/** Um mês do calendário de recebimentos da planilha (colunas PAGO/LÍQUIDO da BASE_VENDAS). */
+export interface RecebimentoMes {
+  /** AAAA-MM */
+  mes: string;
+  pago: number;
+  liquido: number;
+}
+
 export interface VendaFinanceiro {
   id: number;
+  /** ID da coluna A da BASE_VENDAS; null em venda antiga sem correspondência. */
+  id_planilha: number | null;
   /** metricas_faturamento.data_venda cru (ex. "2026-01-26T00:00:00") — cortar os 10 primeiros caracteres antes de formatarData. */
   data_venda: string;
   /** cliente_faturamento.nome via id_cliente; null sem id_cliente ou sem cliente correspondente. */
@@ -308,6 +318,8 @@ export interface VendaFinanceiro {
   user_closer: number | null;
   /** dash.users.nome via user_closer — inclui closer inativo (saiu do time mas vendeu no período); null sem user_closer ou sem correspondente. */
   closer: string | null;
+  /** Calendário nos meses do período pedido — base de pago/líquido/recebido. */
+  recebimentos: RecebimentoMes[];
 }
 
 export interface RespostaFinanceiro {

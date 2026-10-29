@@ -35,6 +35,8 @@ function venda(over: Partial<VendaFinanceiro>): VendaFinanceiro {
     forma_pgto_2: null,
     user_closer: null,
     closer: null,
+    id_planilha: null,
+    recebimentos: [],
     ...over,
   };
 }
