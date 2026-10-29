@@ -1,8 +1,9 @@
 /**
  * Contrato BFF (ak_dash) <-> Frontend (ak_dash_page).
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
- * Fonte única de dado: Supabase (dash.vw_metricas, dash.metricas_metas,
- * dash.metricas_faturamento, dash.cliente_faturamento, dash.users). Escopo:
+ * Fonte única de dado: Supabase (dash2.vw_metricas, dash2.metas,
+ * dash2.users/dash2.user_cargos, dash2.metricas_faturamento,
+ * dash2.cliente_faturamento). Escopo:
  * /pessoas, /comercial/seller, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
  * demais KPIs da página Financeiro (inadimplência, margem, despesas,
  * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
