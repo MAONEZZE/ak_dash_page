@@ -6,6 +6,7 @@ import {
   chaveCanal,
   chaveCloser,
   chaveMetodoPagamento,
+  mesesDoPeriodo,
   METODOS_PAGAMENTO_CANONICOS,
   serieMensal,
   tetoElastico,
@@ -287,6 +288,14 @@ describe("serieMensal", () => {
       expect(ponto.pago).toBe(0);
       expect(ponto.liquido).toBe(0);
     }
+  });
+});
+
+describe("mesesDoPeriodo", () => {
+  it("mesesDoPeriodo lista os meses tocados, cruzando a virada do ano", () => {
+    expect(mesesDoPeriodo("2026-09-01", "2026-09-30")).toEqual(["2026-09"]);
+    expect(mesesDoPeriodo("2025-11-20", "2026-02-03")).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
+    expect(mesesDoPeriodo("2026-10-28", "2026-10-28")).toEqual(["2026-10"]);
   });
 });
 

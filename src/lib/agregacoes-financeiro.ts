@@ -188,6 +188,26 @@ export function serieMensal(vendas: VendaFinanceiro[], ano: string): PontoSerieM
   return pontos;
 }
 
+/** Meses AAAA-MM tocados por `inicio..fim` (AAAA-MM-DD), na ordem, cruzando a virada do ano se preciso. */
+export function mesesDoPeriodo(inicio: string, fim: string): string[] {
+  const meses: string[] = [];
+  let ano = Number(inicio.slice(0, 4));
+  let mes = Number(inicio.slice(5, 7));
+  const anoFim = Number(fim.slice(0, 4));
+  const mesFim = Number(fim.slice(5, 7));
+
+  while (ano < anoFim || (ano === anoFim && mes <= mesFim)) {
+    meses.push(`${ano}-${String(mes).padStart(2, "0")}`);
+    mes += 1;
+    if (mes > 12) {
+      mes = 1;
+      ano += 1;
+    }
+  }
+
+  return meses;
+}
+
 /** Listas canônicas fixas — vêm dos valores reais observados no banco (ver docs/plans/pagina-financeiro-cards-graficos-tabelas.md). */
 export const CANAIS_CANONICOS: ItemCanonico[] = [
   { chave: "LinkedIn", rotulo: "LinkedIn" },
