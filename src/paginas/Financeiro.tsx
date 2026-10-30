@@ -46,8 +46,7 @@ const COLUNAS_CANAL: ColunaAgrupada[] = [
 
 const COLUNAS_METODO: ColunaAgrupada[] = [
   { titulo: "Pago pelo cliente", valor: (l) => formatarMoeda(l.pago) },
-  { titulo: "Imposto (R$)", valor: (l) => formatarMoeda(l.imposto) },
-  { titulo: "Taxa (R$)", valor: (l) => formatarMoeda(l.taxa) },
+  { titulo: "Taxa (R$)", valor: (l) => formatarMoeda(l.pago - l.liquido) },
   { titulo: "Líquido na conta", valor: (l) => formatarMoeda(l.liquido) },
   { titulo: "% de taxa", valor: (l) => formatarPercentual(l.pago - l.liquido, l.pago) },
 ];
@@ -172,10 +171,10 @@ export function Financeiro() {
 
   const closersCanonicos: ItemCanonico[] = estado.closers.map((c) => ({ chave: c.id, rotulo: c.nome }));
 
-  const porCanal = tabelaComTotal(agruparPor(vendasPeriodo, chaveCanal, CANAIS_CANONICOS));
+  const porCanal = tabelaComTotal(agruparPor(vendasAno, chaveCanal, CANAIS_CANONICOS, inicio, fim));
   const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasPeriodo, METODOS_PAGAMENTO_CANONICOS));
-  const porCloser = tabelaComTotal(agruparPor(vendasPeriodo, chaveCloser, closersCanonicos));
-  const porProduto = tabelaComTotal(agruparPor(vendasPeriodo, chaveProduto, PRODUTOS_CANONICOS));
+  const porCloser = tabelaComTotal(agruparPor(vendasAno, chaveCloser, closersCanonicos, inicio, fim));
+  const porProduto = tabelaComTotal(agruparPor(vendasAno, chaveProduto, PRODUTOS_CANONICOS, inicio, fim));
 
   return (
     <div className="flex flex-col gap-5">

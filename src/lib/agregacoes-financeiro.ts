@@ -8,8 +8,6 @@ export interface LinhaAgrupada {
   bruto: number;
   pago: number;
   liquido: number;
-  imposto: number;
-  taxa: number;
 }
 
 export interface ItemCanonico {
@@ -18,17 +16,16 @@ export interface ItemCanonico {
 }
 
 function linhaVazia(chave: string, rotulo: string): LinhaAgrupada {
-  return { chave, rotulo, vendas: 0, bruto: 0, pago: 0, liquido: 0, imposto: 0, taxa: 0 };
+  return { chave, rotulo, vendas: 0, bruto: 0, pago: 0, liquido: 0 };
 }
 
-/** Uma contribuição já resolvida (chave + valores) — uma venda normal gera 1; uma venda com segundo pagamento gera 2, uma pra cada forma de pagamento (ver `agruparPorFormaPagamento`). */
+/** Uma contribuição já resolvida (chave + valores) — uma venda normal gera 1; uma venda com segundo pagamento gera 2, uma pra cada forma de pagamento (ver `agruparPorFormaPagamento`). `vendas` é 1 só se a venda é do período. */
 interface Contribuicao {
   chave: string;
   rotulo: string;
+  vendas: 0 | 1;
   bruto: number;
   pago: number;
-  impostoRs: number;
-  taxaRs: number;
   liquido: number;
 }
 
@@ -45,12 +42,10 @@ function agruparContribuicoes(contribuicoes: Contribuicao[], canonicos: ItemCano
       porChave.set(c.chave, linha);
       extras.push(c.chave);
     }
-    linha.vendas += 1;
+    linha.vendas += c.vendas;
     linha.bruto += c.bruto;
     linha.pago += c.pago;
     linha.liquido += c.liquido;
-    linha.imposto += c.impostoRs;
-    linha.taxa += c.taxaRs;
   }
 
   return [...canonicos.map((c) => porChave.get(c.chave)!), ...extras.map((chave) => porChave.get(chave)!)];
@@ -58,28 +53,39 @@ function agruparContribuicoes(contribuicoes: Contribuicao[], canonicos: ItemCano
 
 /**
  * Agrupa `vendas` pela chave que `chaveDe` extrai de cada uma — usada por
- * canal/closer/produto, que não olham forma de pagamento. `pago`/`liquido`
- * (e o Imposto/Taxa derivados) somam os DOIS pagamentos da venda, quando há
- * um segundo (`valor_pgto_2`/`liquido_pgto_2`) — é o mesmo dinheiro da
- * mesma venda, só que recebido em duas parcelas/formas diferentes.
+ * canal/closer/produto. Como na planilha: `vendas`/`bruto` são só das vendas
+ * com `data_venda` em `inicio..fim`; `pago`/`liquido` são o recebido nos meses
+ * do período, de QUALQUER venda (uma venda fora do período entra só se tiver
+ * recebimento nesses meses).
  */
 export function agruparPor(
   vendas: VendaFinanceiro[],
   chaveDe: (venda: VendaFinanceiro) => ItemCanonico,
   canonicos: ItemCanonico[],
+  inicio: string,
+  fim: string,
 ): LinhaAgrupada[] {
-  const contribuicoes = vendas.map((venda): Contribuicao => {
+  const meses = new Set(mesesDoPeriodo(inicio, fim));
+  const contribuicoes: Contribuicao[] = [];
+
+  for (const venda of vendas) {
+    const dia = venda.data_venda.slice(0, 10);
+    const doPeriodo = dia >= inicio && dia <= fim;
+    const temRecebimentoNoPeriodo = venda.recebimentos.some((r) => meses.has(r.mes));
+    if (!doPeriodo && !temRecebimentoNoPeriodo) continue;
+
     const { chave, rotulo } = chaveDe(venda);
-    return {
+    const recebido = recebidoNosMeses(venda, meses);
+    contribuicoes.push({
       chave,
       rotulo,
-      bruto: venda.valor_bruto_contrato,
-      pago: venda.valor_entrada + venda.valor_pgto_2,
-      impostoRs: venda.valor_entrada * venda.imposto + venda.valor_pgto_2 * venda.imposto,
-      taxaRs: venda.valor_entrada * (1 - venda.imposto) * venda.taxa + venda.valor_pgto_2 * (1 - venda.imposto) * venda.taxa_pgto_2,
-      liquido: venda.liquido_entrada + venda.liquido_pgto_2,
-    };
-  });
+      vendas: doPeriodo ? 1 : 0,
+      bruto: doPeriodo ? venda.valor_bruto_contrato : 0,
+      pago: recebido.pago,
+      liquido: recebido.liquido,
+    });
+  }
+
   return agruparContribuicoes(contribuicoes, canonicos);
 }
 
@@ -88,7 +94,7 @@ export function agruparPor(
  * uma venda pode ter pago em duas formas diferentes (ex. entrada no PIX,
  * resto no cartão). Por isso cada venda vira até 2 contribuições aqui: uma
  * pra `metodo_pagamento` (sempre) e outra pra `forma_pgto_2` (só quando
- * `valor_pgto_2 > 0`) — cada uma com seu próprio pago/imposto/taxa/líquido,
+ * `valor_pgto_2 > 0`) — cada uma com seu próprio pago/líquido,
  * em vez de somar tudo na linha de `metodo_pagamento` só porque é a mesma venda.
  */
 export function agruparPorFormaPagamento(vendas: VendaFinanceiro[], canonicos: ItemCanonico[]): LinhaAgrupada[] {
@@ -99,10 +105,9 @@ export function agruparPorFormaPagamento(vendas: VendaFinanceiro[], canonicos: I
     contribuicoes.push({
       chave,
       rotulo,
+      vendas: 1,
       bruto: 0,
       pago: venda.valor_entrada,
-      impostoRs: venda.valor_entrada * venda.imposto,
-      taxaRs: venda.valor_entrada * (1 - venda.imposto) * venda.taxa,
       liquido: venda.liquido_entrada,
     });
 
@@ -111,10 +116,9 @@ export function agruparPorFormaPagamento(vendas: VendaFinanceiro[], canonicos: I
       contribuicoes.push({
         chave: rotulo2,
         rotulo: rotulo2,
+        vendas: 1,
         bruto: 0,
         pago: venda.valor_pgto_2,
-        impostoRs: venda.valor_pgto_2 * venda.imposto,
-        taxaRs: venda.valor_pgto_2 * (1 - venda.imposto) * venda.taxa_pgto_2,
         liquido: venda.liquido_pgto_2,
       });
     }
@@ -131,8 +135,6 @@ export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
     total.bruto += linha.bruto;
     total.pago += linha.pago;
     total.liquido += linha.liquido;
-    total.imposto += linha.imposto;
-    total.taxa += linha.taxa;
   }
   return total;
 }

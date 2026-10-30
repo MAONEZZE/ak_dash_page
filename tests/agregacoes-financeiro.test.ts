@@ -46,7 +46,7 @@ function venda(over: Partial<VendaFinanceiro>): VendaFinanceiro {
 describe("agruparPor", () => {
   it("lista canônica sai sempre na frente, mesmo zerada", () => {
     const vendas = [venda({ canal: "LinkedIn", valor_bruto_contrato: 1000 })];
-    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS);
+    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS, "2026-08-01", "2026-08-31");
 
     expect(linhas.map((l) => l.chave)).toEqual(CANAIS_CANONICOS.map((c) => c.chave));
     const dripify = linhas.find((l) => l.chave === "Dripify")!;
@@ -59,7 +59,7 @@ describe("agruparPor", () => {
 
   it("valor desconhecido (fora da lista canônica) é anexado no fim", () => {
     const vendas = [venda({ canal: "Grafia Nova", valor_bruto_contrato: 500 })];
-    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS);
+    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS, "2026-08-01", "2026-08-31");
 
     expect(linhas).toHaveLength(CANAIS_CANONICOS.length + 1);
     expect(linhas.at(-1)!.chave).toBe("Grafia Nova");
@@ -67,8 +67,8 @@ describe("agruparPor", () => {
   });
 
   it("metodo_pagamento vazio vira 'Não informado' — cai na linha canônica, não vira extra", () => {
-    const vendas = [venda({ metodo_pagamento: "", valor_entrada: 100 })];
-    const linhas = agruparPor(vendas, chaveMetodoPagamento, METODOS_PAGAMENTO_CANONICOS);
+    const vendas = [venda({ metodo_pagamento: "", recebimentos: [{ mes: "2026-08", pago: 100, liquido: 90 }] })];
+    const linhas = agruparPor(vendas, chaveMetodoPagamento, METODOS_PAGAMENTO_CANONICOS, "2026-08-01", "2026-08-31");
 
     expect(linhas).toHaveLength(METODOS_PAGAMENTO_CANONICOS.length);
     const naoInformado = linhas.find((l) => l.chave === "Não informado")!;
@@ -79,7 +79,7 @@ describe("agruparPor", () => {
   it("closer NULL vira 'Sem closer definido', anexado no fim (closer não está entre os ativos)", () => {
     const canonicos = [{ chave: "1", rotulo: "Jacob" }];
     const vendas = [venda({ user_closer: null })];
-    const linhas = agruparPor(vendas, chaveCloser, canonicos);
+    const linhas = agruparPor(vendas, chaveCloser, canonicos, "2026-08-01", "2026-08-31");
 
     expect(linhas.at(-1)!.chave).toBe("__sem_closer__");
     expect(linhas.at(-1)!.rotulo).toBe("Sem closer definido");
@@ -89,7 +89,7 @@ describe("agruparPor", () => {
     // Mariana (id 5) está inativa — não entra na lista canônica (só ativos) — mas vendeu.
     const canonicos = [{ chave: "1", rotulo: "Jacob" }];
     const vendas = [venda({ user_closer: 5, closer: "Mariana", valor_bruto_contrato: 900 })];
-    const linhas = agruparPor(vendas, chaveCloser, canonicos);
+    const linhas = agruparPor(vendas, chaveCloser, canonicos, "2026-08-01", "2026-08-31");
 
     expect(linhas).toHaveLength(2);
     expect(linhas.at(-1)!.chave).toBe("5");
@@ -105,41 +105,49 @@ describe("agruparPor", () => {
       venda({ user_closer: 2, closer: "Jonathan", valor_bruto_contrato: 100 }),
       venda({ user_closer: 10, closer: "Jonathan", valor_bruto_contrato: 200 }),
     ];
-    const linhas = agruparPor(vendas, chaveCloser, canonicos);
+    const linhas = agruparPor(vendas, chaveCloser, canonicos, "2026-08-01", "2026-08-31");
 
     expect(linhas).toHaveLength(2);
     expect(linhas.find((l) => l.chave === "2")!.bruto).toBe(100);
     expect(linhas.find((l) => l.chave === "10")!.bruto).toBe(200);
   });
+
+  it("agruparPor conta bruto e vendas do período e soma pago e líquido do mês de todas as vendas", () => {
+    const vendas = [
+      venda({
+        id: 1,
+        data_venda: "2026-09-10T00:00:00",
+        valor_bruto_contrato: 40000,
+        user_closer: 1,
+        closer: "Jacob",
+        recebimentos: [{ mes: "2026-09", pago: 10000, liquido: 9000 }],
+      }),
+      venda({ id: 2, data_venda: "2026-09-20T00:00:00", valor_bruto_contrato: 20000, user_closer: 1, closer: "Jacob", recebimentos: [] }),
+      venda({
+        id: 3,
+        data_venda: "2026-04-16T00:00:00",
+        valor_bruto_contrato: 120000,
+        user_closer: 3,
+        closer: "Alex",
+        recebimentos: [
+          { mes: "2026-09", pago: 10000, liquido: 8500 },
+          { mes: "2026-08", pago: 10000, liquido: 9000 },
+        ],
+      }),
+    ];
+    const canonicos = [
+      { chave: "1", rotulo: "Jacob" },
+      { chave: "3", rotulo: "Alex" },
+    ];
+    const linhas = agruparPor(vendas, chaveCloser, canonicos, "2026-09-01", "2026-09-30");
+
+    expect(linhas.find((l) => l.chave === "1")).toMatchObject({ vendas: 2, bruto: 60000, pago: 10000, liquido: 9000 });
+    expect(linhas.find((l) => l.chave === "3")).toMatchObject({ vendas: 0, bruto: 0, pago: 10000, liquido: 8500 });
+    expect(totalDeLinhas(linhas)).toMatchObject({ vendas: 2, bruto: 60000, pago: 20000, liquido: 17500 });
+  });
 });
 
 describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_2)", () => {
-  it("agruparPor (canal/closer/produto) soma pago e líquido dos DOIS pagamentos da mesma venda", () => {
-    const vendas = [
-      venda({
-        canal: "LinkedIn",
-        valor_entrada: 30000,
-        liquido_entrada: 27000,
-        valor_pgto_2: 30000,
-        taxa_pgto_2: 0.1949,
-        liquido_pgto_2: 21737.7,
-        forma_pgto_2: "Cartão",
-      }),
-    ];
-    const [linha] = agruparPor(vendas, chaveCanal, [{ chave: "LinkedIn", rotulo: "LinkedIn" }]);
-
-    expect(linha.pago).toBe(60000);
-    expect(linha.liquido).toBeCloseTo(48737.7, 2);
-  });
-
-  it("agruparPor sem segundo pagamento não muda (valor_pgto_2/liquido_pgto_2 zerados)", () => {
-    const vendas = [venda({ canal: "LinkedIn", valor_entrada: 1000, liquido_entrada: 900 })];
-    const [linha] = agruparPor(vendas, chaveCanal, [{ chave: "LinkedIn", rotulo: "LinkedIn" }]);
-
-    expect(linha.pago).toBe(1000);
-    expect(linha.liquido).toBe(900);
-  });
-
   describe("agruparPorFormaPagamento — 'Como entrou o dinheiro'", () => {
     it("uma venda com um só pagamento vira uma única linha, igual agruparPor", () => {
       const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, imposto: 0.1, taxa: 0, liquido_entrada: 90 })];
@@ -173,15 +181,6 @@ describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_
       expect(pix.liquido).toBe(27000);
       expect(cartao.pago).toBe(30000);
       expect(cartao.liquido).toBeCloseTo(21737.7, 2);
-
-      // Reconciliação por linha: Pago − Imposto − Taxa = Líquido, nas duas.
-      expect(pix.pago - pix.imposto - pix.taxa).toBeCloseTo(pix.liquido, 2);
-      expect(cartao.pago - cartao.imposto - cartao.taxa).toBeCloseTo(cartao.liquido, 2);
-
-      // A soma das duas linhas fecha com o total combinado da venda (mesmo que agruparPor daria numa tabela por canal/closer/produto).
-      const [linhaCombinada] = agruparPor(vendas, () => ({ chave: "x", rotulo: "x" }), []);
-      expect(pix.pago + cartao.pago).toBe(linhaCombinada.pago);
-      expect(pix.liquido + cartao.liquido).toBeCloseTo(linhaCombinada.liquido, 2);
     });
 
     it("forma_pgto_2 vazia/ausente com valor_pgto_2 > 0 vira 'Não informado'", () => {
@@ -207,7 +206,7 @@ describe("totalDeLinhas", () => {
       venda({ canal: "LinkedIn", valor_bruto_contrato: 300000 }),
       venda({ canal: "Instagram", valor_bruto_contrato: 630000 }),
     ];
-    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS);
+    const linhas = agruparPor(vendas, chaveCanal, CANAIS_CANONICOS, "2026-08-01", "2026-08-31");
     const total = totalDeLinhas(linhas);
 
     expect(total.bruto).toBe(930000);
@@ -225,7 +224,7 @@ describe("totalDeLinhas", () => {
       venda({ produto: "a", valor_bruto_contrato: 3000 }), // ticket médio de A = 2000
       venda({ produto: "b", valor_bruto_contrato: 100 }), // ticket médio de B = 100
     ];
-    const linhas = agruparPor(vendas, (v) => ({ chave: v.produto!, rotulo: v.produto! }), canonicos);
+    const linhas = agruparPor(vendas, (v) => ({ chave: v.produto!, rotulo: v.produto! }), canonicos, "2026-08-01", "2026-08-31");
     const total = totalDeLinhas(linhas);
 
     const somaDosTicketsMedios = linhas.reduce((acc, l) => acc + (l.vendas > 0 ? l.bruto / l.vendas : 0), 0);
@@ -233,15 +232,6 @@ describe("totalDeLinhas", () => {
 
     expect(ticketMedioTotal).toBeCloseTo(1366.67, 1);
     expect(ticketMedioTotal).not.toBeCloseTo(somaDosTicketsMedios, 1);
-  });
-});
-
-describe("imposto/taxa", () => {
-  it("Pago − Imposto − Taxa fecha com o Líquido — número real do banco (taxa 0,1949)", () => {
-    const v = venda({ valor_entrada: 60000, imposto: 0.1, taxa: 0.1949, liquido_entrada: 43475.4 });
-    const [linha] = agruparPor([v], () => ({ chave: "x", rotulo: "x" }), []);
-
-    expect(linha.pago - linha.imposto - linha.taxa).toBeCloseTo(v.liquido_entrada, 2);
   });
 });
 
