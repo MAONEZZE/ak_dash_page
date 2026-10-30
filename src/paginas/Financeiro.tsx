@@ -4,6 +4,7 @@ import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoLinhasFinanceiro } from "../componentes/GraficoLinhasFinanceiro";
 import { TabelaAgrupada, type ColunaAgrupada } from "../componentes/TabelaAgrupada";
+import { TabelaMesAMes } from "../componentes/TabelaMesAMes";
 import {
   agruparPor,
   agruparPorFormaPagamento,
@@ -15,6 +16,7 @@ import {
   PRODUTOS_CANONICOS,
   serieMensal,
   resumoDoAno,
+  totalSerie,
   totaisDoPeriodo,
   totalDeLinhas,
   type ItemCanonico,
@@ -185,7 +187,7 @@ export function Financeiro() {
   return (
     <div className="flex flex-col gap-5">
       <AvisoFontes avisos={estado.dado.avisos} />
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Indicadores do período" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CardKpi
           label="Contrato bruto vendido"
           value={formatarMoeda(totais.vendido)}
@@ -270,6 +272,10 @@ export function Financeiro() {
           total={porCanal.total}
           tamanho="compacto"
         />
+      </section>
+
+      <section>
+        <TabelaMesAMes pontos={serie} total={totalSerie(serie)} ano={anoAlvo} />
       </section>
 
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">

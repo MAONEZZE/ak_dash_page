@@ -95,10 +95,12 @@ describe("página Financeiro", () => {
   it("renderiza os 4 cards, os gráficos e as 4 tabelas sem quebrar", async () => {
     montar();
 
-    await waitFor(() => expect(screen.getByText("Contrato bruto vendido")).toBeTruthy());
-    expect(screen.getByText("Recebimento bruto")).toBeTruthy();
-    expect(screen.getByText("Liquidou na conta")).toBeTruthy();
-    expect(screen.getByText("Bruto vendido no ano")).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
+    const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
+    expect(cards.getByText("Contrato bruto vendido")).toBeTruthy();
+    expect(cards.getByText("Recebimento bruto")).toBeTruthy();
+    expect(cards.getByText("Liquidou na conta")).toBeTruthy();
+    expect(cards.getByText("Bruto vendido no ano")).toBeTruthy();
 
     // 100000 + 5000 = 105000, formatado em BRL
     expect(screen.getAllByText(/R\$\s*105\.000,00/).length).toBeGreaterThan(0);
@@ -137,13 +139,14 @@ describe("página Financeiro", () => {
     vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
     montar("/?granularidade=dia&periodo=2026-09-12");
 
-    await waitFor(() => expect(screen.getByText("Contrato bruto vendido")).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
+    const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
 
-    const cardVendido = screen.getByText("Contrato bruto vendido").closest("article")!;
+    const cardVendido = cards.getByText("Contrato bruto vendido").closest("article")!;
     expect(within(cardVendido).getByText(/^R\$\s*100\.000,00$/)).toBeTruthy();
 
     for (const rotulo of ["Recebimento bruto", "Liquidou na conta"]) {
-      const card = screen.getByText(rotulo).closest("article")!;
+      const card = cards.getByText(rotulo).closest("article")!;
       expect(within(card).getByText("—")).toBeTruthy();
     }
     expect(screen.getAllByText("Recebimentos só por mês")).toHaveLength(2);
@@ -181,5 +184,51 @@ describe("página Financeiro", () => {
       const par = within(regiao).getByText(rotulo).closest("div")!;
       expect(within(par).getByText(valor)).toBeTruthy();
     }
+  });
+
+  it("tabela resultado mês a mês mostra as 7 linhas da planilha com jan a dez e total", async () => {
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+    montar("/?granularidade=mes&periodo=2026-09");
+
+    await waitFor(() => expect(screen.getByRole("table", { name: "Resultado mês a mês" })).toBeTruthy());
+    const tabela = screen.getByRole("table", { name: "Resultado mês a mês" });
+
+    const cabecalhos = within(tabela)
+      .getAllByRole("columnheader")
+      .map((th) => th.textContent);
+    expect(cabecalhos).toEqual([
+      "Categoria",
+      "Jan/26",
+      "Fev/26",
+      "Mar/26",
+      "Abr/26",
+      "Mai/26",
+      "Jun/26",
+      "Jul/26",
+      "Ago/26",
+      "Set/26",
+      "Out/26",
+      "Nov/26",
+      "Dez/26",
+      "Total 2026",
+    ]);
+
+    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
+    const rotulos = linhas.map((tr) => tr.children[0].textContent);
+    expect(rotulos).toEqual([
+      "Contrato bruto vendido",
+      "Recebimento bruto",
+      "Liquidou na conta",
+      "· pago de parcelas anteriores",
+      "Total recebido no mês",
+      "Nº de contratos fechados",
+      "Ticket médio",
+    ]);
+
+    const linhaDe = (rotulo: string) => linhas[rotulos.indexOf(rotulo)];
+    const colunaSet = cabecalhos.indexOf("Set/26");
+    expect(linhaDe("Contrato bruto vendido").children[colunaSet].textContent).toMatch(/^R\$\s*105\.000,00$/);
+    expect(linhaDe("Nº de contratos fechados").children[colunaSet].textContent).toBe("2");
+    expect(linhaDe("Ticket médio").children[cabecalhos.indexOf("Jan/26")].textContent).toBe("—");
   });
 });
