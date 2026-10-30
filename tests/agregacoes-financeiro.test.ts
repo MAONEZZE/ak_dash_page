@@ -13,6 +13,7 @@ import {
   tetoElastico,
   totaisDoPeriodo,
   totalDeLinhas,
+  totalSerie,
 } from "../src/lib/agregacoes-financeiro";
 import type { VendaFinanceiro } from "../src/lib/tipos-api";
 
@@ -137,17 +138,6 @@ describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_
 
     expect(linha.pago).toBe(1000);
     expect(linha.liquido).toBe(900);
-  });
-
-  it("serieMensal soma os dois pagamentos no mês da venda", () => {
-    const vendas = [
-      venda({ data_venda: "2026-03-10T00:00:00", valor_entrada: 30000, liquido_entrada: 27000, valor_pgto_2: 30000, liquido_pgto_2: 21737.7 }),
-    ];
-    const serie = serieMensal(vendas, "2026");
-
-    expect(serie[2].mes).toBe("2026-03");
-    expect(serie[2].pago).toBe(60000);
-    expect(serie[2].liquido).toBeCloseTo(48737.7, 2);
   });
 
   describe("agruparPorFormaPagamento — 'Como entrou o dinheiro'", () => {
@@ -354,10 +344,64 @@ describe("serieMensal", () => {
     expect(serie[0].vendido).toBe(1000);
     for (const ponto of serie.slice(8)) {
       // set (índice 8) a dez (índice 11)
-      expect(ponto.vendido).toBe(0);
-      expect(ponto.pago).toBe(0);
-      expect(ponto.liquido).toBe(0);
+      expect(ponto).toMatchObject({ vendido: 0, recebimentoBruto: 0, liquidouVendasDoMes: 0, parcelasAnteriores: 0, totalRecebido: 0, contratos: 0, ticketMedio: null });
     }
+  });
+
+  it("serieMensal reproduz o resultado mês a mês da planilha", () => {
+    const vendas = [
+      venda({
+        id: 1,
+        data_venda: "2026-09-10T00:00:00",
+        valor_bruto_contrato: 40000,
+        recebimentos: [{ mes: "2026-09", pago: 10000, liquido: 9000 }],
+      }),
+      venda({ id: 2, data_venda: "2026-09-20T00:00:00", valor_bruto_contrato: 20000, recebimentos: [] }),
+      venda({
+        id: 3,
+        data_venda: "2026-04-16T00:00:00",
+        valor_bruto_contrato: 120000,
+        recebimentos: [
+          { mes: "2026-09", pago: 10000, liquido: 8500 },
+          { mes: "2026-08", pago: 10000, liquido: 9000 },
+          { mes: "2026-04", pago: 10000, liquido: 9000 },
+        ],
+      }),
+    ];
+    const pontos = serieMensal(vendas, "2026");
+
+    expect(pontos).toHaveLength(12);
+    expect(pontos[8]).toEqual({
+      mes: "2026-09",
+      vendido: 60000,
+      recebimentoBruto: 10000,
+      liquidouVendasDoMes: 9000,
+      parcelasAnteriores: 8500,
+      totalRecebido: 17500,
+      contratos: 2,
+      ticketMedio: 30000,
+    });
+    expect(pontos[3]).toEqual({
+      mes: "2026-04",
+      vendido: 120000,
+      recebimentoBruto: 10000,
+      liquidouVendasDoMes: 9000,
+      parcelasAnteriores: 0,
+      totalRecebido: 9000,
+      contratos: 1,
+      ticketMedio: 120000,
+    });
+    expect(pontos[0].mes).toBe("2026-01");
+    expect(pontos[0].contratos).toBe(0);
+    expect(pontos[0].ticketMedio).toBeNull();
+
+    expect(totalSerie(pontos)).toMatchObject({
+      mes: "total",
+      vendido: 180000,
+      totalRecebido: 35500,
+      contratos: 3,
+      ticketMedio: 60000,
+    });
   });
 });
 

@@ -204,10 +204,10 @@ export function Financeiro() {
           />
           <div className="border-t border-line" />
           <GraficoLinhasFinanceiro
-            titulo="Pago × Líquido"
+            titulo="Total recebido × Liquidou"
             series={[
-              { rotulo: "Pago", valores: serie.map((p) => p.pago), cor: "brand" },
-              { rotulo: "Líquido", valores: serie.map((p) => p.liquido), cor: "closer", tracejada: true },
+              { rotulo: "Total recebido", valores: serie.map((p) => p.totalRecebido), cor: "brand" },
+              { rotulo: "Liquidou", valores: serie.map((p) => p.liquidouVendasDoMes), cor: "closer", tracejada: true },
             ]}
             piso={300_000}
             multiploTeto={100_000}

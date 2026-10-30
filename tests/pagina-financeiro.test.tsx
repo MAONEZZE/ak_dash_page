@@ -95,7 +95,7 @@ describe("página Financeiro", () => {
     expect(screen.getAllByText(/R\$\s*105\.000,00/).length).toBeGreaterThan(0);
 
     expect(screen.getAllByText("Vendido").length).toBeGreaterThan(0);
-    expect(screen.getByText("Pago × Líquido")).toBeTruthy();
+    expect(screen.getByText("Total recebido × Liquidou")).toBeTruthy();
 
     expect(screen.getByText("Por canal")).toBeTruthy();
     expect(screen.getByText("Como entrou o dinheiro")).toBeTruthy();

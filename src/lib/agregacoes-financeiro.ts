@@ -239,32 +239,67 @@ export function resumoDoAno(vendas: VendaFinanceiro[], ano: string, ate: string)
   };
 }
 
+/**
+ * Uma linha do "Resultado mês a mês" da planilha (DASHBOARD, linhas 18–24).
+ * `vendido`/`contratos`/ticket são das vendas com `data_venda` no mês;
+ * `recebimentoBruto`/`liquidouVendasDoMes` são o PAGO/LÍQUIDO do mês dessas
+ * mesmas vendas; `totalRecebido` é o LÍQUIDO do mês de TODAS as vendas e
+ * `parcelasAnteriores` = `totalRecebido − liquidouVendasDoMes`. "Parcelas
+ * anteriores" e "total recebido" usam LÍQUIDO, como a planilha.
+ */
 export interface PontoSerieMensal {
-  mes: string; // AAAA-MM
+  mes: string; // AAAA-MM, ou "total" em `totalSerie`
   vendido: number;
-  pago: number;
-  liquido: number;
+  recebimentoBruto: number;
+  liquidouVendasDoMes: number;
+  parcelasAnteriores: number;
+  totalRecebido: number;
+  contratos: number;
+  ticketMedio: number | null;
 }
 
-/** 12 pontos (jan..dez de `ano`), um por mês do calendário — meses sem venda saem com os três valores zerados. */
+/** 12 pontos (jan..dez de `ano`), um por mês do calendário — meses sem venda saem zerados (ticket `null`). */
 export function serieMensal(vendas: VendaFinanceiro[], ano: string): PontoSerieMensal[] {
-  const pontos: PontoSerieMensal[] = Array.from({ length: 12 }, (_, i) => ({
-    mes: `${ano}-${String(i + 1).padStart(2, "0")}`,
-    vendido: 0,
-    pago: 0,
-    liquido: 0,
-  }));
+  return Array.from({ length: 12 }, (_, i) => {
+    const mes = `${ano}-${String(i + 1).padStart(2, "0")}`;
+    const meses = new Set([mes]);
+    const doMes = vendas.filter((v) => v.data_venda.slice(0, 7) === mes);
 
-  for (const v of vendas) {
-    const mes = v.data_venda.slice(0, 7);
-    const ponto = pontos.find((p) => p.mes === mes);
-    if (!ponto) continue;
-    ponto.vendido += v.valor_bruto_contrato;
-    ponto.pago += v.valor_entrada + v.valor_pgto_2;
-    ponto.liquido += v.liquido_entrada + v.liquido_pgto_2;
-  }
+    const vendido = doMes.reduce((acc, v) => acc + v.valor_bruto_contrato, 0);
+    const recebimentoBruto = doMes.reduce((acc, v) => acc + recebidoNosMeses(v, meses).pago, 0);
+    const liquidouVendasDoMes = doMes.reduce((acc, v) => acc + recebidoNosMeses(v, meses).liquido, 0);
+    const totalRecebido = vendas.reduce((acc, v) => acc + recebidoNosMeses(v, meses).liquido, 0);
+    const contratos = doMes.length;
 
-  return pontos;
+    return {
+      mes,
+      vendido,
+      recebimentoBruto,
+      liquidouVendasDoMes,
+      parcelasAnteriores: totalRecebido - liquidouVendasDoMes,
+      totalRecebido,
+      contratos,
+      ticketMedio: contratos > 0 ? vendido / contratos : null,
+    };
+  });
+}
+
+/** Linha de total do "Resultado mês a mês": soma os meses, recalcula o ticket sobre o total e sai com `mes: "total"`. */
+export function totalSerie(pontos: PontoSerieMensal[]): PontoSerieMensal {
+  const soma = (campo: Exclude<keyof PontoSerieMensal, "mes" | "ticketMedio">) => pontos.reduce((acc, p) => acc + p[campo], 0);
+  const vendido = soma("vendido");
+  const contratos = soma("contratos");
+
+  return {
+    mes: "total",
+    vendido,
+    recebimentoBruto: soma("recebimentoBruto"),
+    liquidouVendasDoMes: soma("liquidouVendasDoMes"),
+    parcelasAnteriores: soma("parcelasAnteriores"),
+    totalRecebido: soma("totalRecebido"),
+    contratos,
+    ticketMedio: contratos > 0 ? vendido / contratos : null,
+  };
 }
 
 /** Meses AAAA-MM tocados por `inicio..fim` (AAAA-MM-DD), na ordem, cruzando a virada do ano se preciso. */
