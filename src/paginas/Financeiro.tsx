@@ -14,9 +14,9 @@ import {
   METODOS_PAGAMENTO_CANONICOS,
   PRODUTOS_CANONICOS,
   serieMensal,
+  resumoDoAno,
   totaisDoPeriodo,
   totalDeLinhas,
-  totalYtd,
   type ItemCanonico,
   type LinhaAgrupada,
 } from "../lib/agregacoes-financeiro";
@@ -101,9 +101,9 @@ export function Financeiro() {
 
   // A Financeiro busca sempre o ANO INTEIRO do período selecionado — o
   // recorte pra dia/semana/mês/ano acontece em memória (ver `limitesPeriodo`
-  // e as agregações abaixo). Isso é o que sustenta o card 4 (YTD) e a série
-  // mensal sem uma segunda requisição.
-  // No Customizado (`inicio..fim`) vale o ano do fim — é ele que fecha o YTD.
+  // e as agregações abaixo). Isso é o que sustenta o card 4 (bruto vendido no
+  // ano) e a série mensal sem uma segunda requisição.
+  // No Customizado (`inicio..fim`) vale o ano do fim — é ele que fecha o ano.
   const anoAlvo = granularidade === "ano" ? periodo : granularidade === "custom" ? limitesPeriodo(granularidade, periodo).fim.slice(0, 4) : periodo.slice(0, 4);
 
   const carregar = useCallback(async () => {
@@ -165,7 +165,9 @@ export function Financeiro() {
   });
 
   const totais = totaisDoPeriodo(vendasAno, inicio, fim);
-  const ytd = totalYtd(vendasAno, fim);
+  const hojeMes = new Date().toISOString().slice(0, 7);
+  const mesLimite = hojeMes < `${anoAlvo}-12` ? hojeMes : `${anoAlvo}-12`;
+  const anoResumo = resumoDoAno(vendasAno, anoAlvo, mesLimite);
   const serie = serieMensal(vendasAno, anoAlvo);
 
   const closersCanonicos: ItemCanonico[] = estado.closers.map((c) => ({ chave: c.id, rotulo: c.nome }));
@@ -182,7 +184,7 @@ export function Financeiro() {
         <CardKpi label="Contrato bruto vendido" value={formatarMoeda(totais.vendido)} pct={null} legenda={LEGENDA_SEM_META} />
         <CardKpi label="Recebimento bruto" value={formatarMoeda(totais.pago)} pct={null} legenda={LEGENDA_SEM_META} />
         <CardKpi label="Liquidou na conta" value={formatarMoeda(totais.liquido)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Bruto vendido no ano (YTD)" value={formatarMoeda(ytd)} pct={null} legenda={LEGENDA_SEM_META} />
+        <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda={LEGENDA_SEM_META} />
       </section>
 
       {/*

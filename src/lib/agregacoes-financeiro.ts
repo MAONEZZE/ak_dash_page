@@ -190,9 +190,53 @@ export function totaisDoPeriodo(vendas: VendaFinanceiro[], inicio: string, fim: 
   };
 }
 
-/** Card 4 (YTD): Σ valor_bruto_contrato de todo `vendas` (o ano inteiro buscado) com data_venda até `ate` (inclusive, AAAA-MM-DD). */
-export function totalYtd(vendas: VendaFinanceiro[], ate: string): number {
-  return vendas.reduce((acc, v) => (v.data_venda.slice(0, 10) <= ate ? acc + v.valor_bruto_contrato : acc), 0);
+export interface ResumoAno {
+  brutoNoAno: number;
+  pagoNoAno: number;
+  liquidoNoAno: number;
+  descontosMedios: number | null;
+  aReceber: number;
+  restanteSemData: number;
+}
+
+/**
+ * Números do ano como na planilha. `pagoNoAno`/`liquidoNoAno` são o recebido
+ * nos meses do `ano`, de QUALQUER venda; `brutoNoAno`, `aReceber` e
+ * `restanteSemData` olham só as vendas com `data_venda` no `ano`.
+ * `aReceber` = bruto − pago até o mês `ate` (AAAA-MM, inclusive);
+ * `restanteSemData` = bruto − pago do ano.
+ */
+export function resumoDoAno(vendas: VendaFinanceiro[], ano: string, ate: string): ResumoAno {
+  let pagoNoAno = 0;
+  let liquidoNoAno = 0;
+  for (const v of vendas) {
+    for (const r of v.recebimentos) {
+      if (r.mes.startsWith(ano)) {
+        pagoNoAno += r.pago;
+        liquidoNoAno += r.liquido;
+      }
+    }
+  }
+
+  const doAno = vendas.filter((v) => v.data_venda.startsWith(ano));
+  const brutoNoAno = doAno.reduce((acc, v) => acc + v.valor_bruto_contrato, 0);
+  let aReceber = 0;
+  let restanteSemData = 0;
+  for (const v of doAno) {
+    const pagoAteMes = v.recebimentos.reduce((acc, r) => (r.mes <= ate ? acc + r.pago : acc), 0);
+    const pagoDoAno = v.recebimentos.reduce((acc, r) => (r.mes.startsWith(ano) ? acc + r.pago : acc), 0);
+    aReceber += Math.max(0, v.valor_bruto_contrato - pagoAteMes);
+    restanteSemData += Math.max(0, v.valor_bruto_contrato - pagoDoAno);
+  }
+
+  return {
+    brutoNoAno,
+    pagoNoAno,
+    liquidoNoAno,
+    descontosMedios: pagoNoAno > 0 ? 1 - liquidoNoAno / pagoNoAno : null,
+    aReceber,
+    restanteSemData,
+  };
 }
 
 export interface PontoSerieMensal {

@@ -8,11 +8,11 @@ import {
   chaveMetodoPagamento,
   mesesDoPeriodo,
   METODOS_PAGAMENTO_CANONICOS,
+  resumoDoAno,
   serieMensal,
   tetoElastico,
   totaisDoPeriodo,
   totalDeLinhas,
-  totalYtd,
 } from "../src/lib/agregacoes-financeiro";
 import type { VendaFinanceiro } from "../src/lib/tipos-api";
 
@@ -298,14 +298,49 @@ describe("totaisDoPeriodo", () => {
   });
 });
 
-describe("totalYtd", () => {
-  it("soma valor_bruto_contrato de jan até a data `ate`, inclusive", () => {
+describe("resumoDoAno", () => {
+  it("resumoDoAno calcula pago, líquido, carteira, bruto, descontos e restante sem data", () => {
     const vendas = [
-      venda({ data_venda: "2026-02-10T00:00:00", valor_bruto_contrato: 100 }),
-      venda({ data_venda: "2026-05-31T00:00:00", valor_bruto_contrato: 200 }),
-      venda({ data_venda: "2026-06-01T00:00:00", valor_bruto_contrato: 400 }), // depois do corte
+      venda({
+        id: 1,
+        data_venda: "2026-04-16T00:00:00",
+        valor_bruto_contrato: 120000,
+        recebimentos: [
+          { mes: "2026-04", pago: 10000, liquido: 9000 },
+          { mes: "2026-05", pago: 10000, liquido: 9000 },
+          { mes: "2026-06", pago: 10000, liquido: 9000 },
+          { mes: "2026-07", pago: 10000, liquido: 9000 },
+          { mes: "2026-08", pago: 10000, liquido: 9000 },
+          { mes: "2026-09", pago: 10000, liquido: 9000 },
+        ],
+      }),
+      venda({
+        id: 2,
+        data_venda: "2026-10-05T00:00:00",
+        valor_bruto_contrato: 10000,
+        recebimentos: [
+          { mes: "2026-10", pago: 4000, liquido: 3000 },
+          { mes: "2026-11", pago: 6000, liquido: 5400 },
+        ],
+      }),
+      venda({
+        id: 3,
+        data_venda: "2025-12-01T00:00:00",
+        valor_bruto_contrato: 50000,
+        recebimentos: [{ mes: "2026-01", pago: 5000, liquido: 4500 }],
+      }),
     ];
-    expect(totalYtd(vendas, "2026-05-31")).toBe(300);
+    const resumo = resumoDoAno(vendas, "2026", "2026-10");
+
+    expect(resumo).toMatchObject({
+      brutoNoAno: 130000,
+      pagoNoAno: 75000,
+      liquidoNoAno: 66900,
+      aReceber: 66000,
+      restanteSemData: 60000,
+    });
+    expect(resumo.descontosMedios).toBeCloseTo(1 - 66900 / 75000, 10);
+    expect(resumoDoAno([venda({ data_venda: "2026-03-01T00:00:00", valor_bruto_contrato: 1000, recebimentos: [] })], "2026", "2026-10").descontosMedios).toBeNull();
   });
 });
 

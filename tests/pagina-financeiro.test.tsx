@@ -89,7 +89,7 @@ describe("página Financeiro", () => {
     await waitFor(() => expect(screen.getByText("Contrato bruto vendido")).toBeTruthy());
     expect(screen.getByText("Recebimento bruto")).toBeTruthy();
     expect(screen.getByText("Liquidou na conta")).toBeTruthy();
-    expect(screen.getByText("Bruto vendido no ano (YTD)")).toBeTruthy();
+    expect(screen.getByText("Bruto vendido no ano")).toBeTruthy();
 
     // 100000 + 5000 = 105000, formatado em BRL
     expect(screen.getAllByText(/R\$\s*105\.000,00/).length).toBeGreaterThan(0);
