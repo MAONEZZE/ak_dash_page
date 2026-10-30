@@ -312,7 +312,7 @@ export interface VendaFinanceiro {
   taxa_pgto_2: number;
   /** Líquido do segundo pagamento — soma com liquido_entrada pro líquido total da venda. 0 sem segundo pagamento. */
   liquido_pgto_2: number;
-  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Entra como linha própria em "Como entrou o dinheiro" (agrupa por forma, não por venda). */
+  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Não entra em "Como entrou o dinheiro": o calendário não diz a forma de cada parcela, então todo o recebido vai para metodo_pagamento (igual à planilha). */
   forma_pgto_2: string | null;
   /** FK dash.users.id do closer. Agrupar por ESTE campo, não por `closer` — dois ids podem compartilhar o mesmo nome (ex. dois "Jonathan" cadastrados). */
   user_closer: number | null;
