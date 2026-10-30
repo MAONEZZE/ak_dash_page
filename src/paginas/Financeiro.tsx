@@ -212,6 +212,28 @@ export function Financeiro() {
         />
         <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda="valor dos contratos assinados no ano" />
       </section>
+      <section aria-label="No ano" className="glass-panel grid grid-cols-2 gap-3 rounded-[24px] px-[21px] py-4 sm:grid-cols-3 xl:grid-cols-5">
+        <div>
+          <p className="text-sm text-muted">Pago acumulado no ano</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.pagoNoAno)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Líquido no ano</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.liquidoNoAno)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Descontos médios</p>
+          <p className="text-xl font-semibold">{anoResumo.descontosMedios === null ? "—" : `${Math.round(anoResumo.descontosMedios * 100)}%`}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Ainda a receber</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.aReceber)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Restante sem data</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.restanteSemData)}</p>
+        </div>
+      </section>
 
       {/*
         * O grid de baixo é `grid-cols-3` (metodo/closer/produto). Este aqui

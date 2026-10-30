@@ -159,4 +159,27 @@ describe("página Financeiro", () => {
       }
     }
   });
+
+  it("faixa no ano mostra pago, líquido, descontos médios, carteira e restante sem data", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-28T12:00:00Z"));
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+    montar("/?granularidade=mes&periodo=2026-09");
+
+    await waitFor(() => expect(screen.getByRole("region", { name: "No ano" })).toBeTruthy());
+    const regiao = screen.getByRole("region", { name: "No ano" });
+
+    // Confere cada valor dentro do par (div) do seu próprio rótulo: "Ainda a receber" e "Restante sem data" têm o mesmo valor.
+    const pares: [string, RegExp][] = [
+      ["Pago acumulado no ano", /^R\$\s*100\.000,00$/],
+      ["Líquido no ano", /^R\$\s*90\.000,00$/],
+      ["Descontos médios", /^10%$/],
+      ["Ainda a receber", /^R\$\s*5\.000,00$/],
+      ["Restante sem data", /^R\$\s*5\.000,00$/],
+    ];
+    for (const [rotulo, valor] of pares) {
+      const par = within(regiao).getByText(rotulo).closest("div")!;
+      expect(within(par).getByText(valor)).toBeTruthy();
+    }
+  });
 });
