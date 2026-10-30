@@ -3,7 +3,7 @@
 // Smoke test de página: renderiza a Financeiro de ponta a ponta (fetch mockado
 // + agregações reais) e confere que ela não quebra e mostra os números certos
 // pra cima da fixture de 3 vendas de docs/contract/fixtures/financeiro.example.json.
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buscarFinanceiro } from "../src/lib/api";
@@ -66,14 +66,19 @@ const DADO: RespostaFinanceiro = {
 
 const CLOSERS: Pessoa[] = [{ id: "1", nome: "Jacob", cargo: "closer", email: "jacob@x.com", imagem_url: null }];
 
+const VENDAS_COM_RECEBIMENTO: RespostaFinanceiro["vendas"] = [
+  { ...VENDAS[0], recebimentos: [{ mes: "2026-09", pago: 100000, liquido: 90000 }] },
+  { ...VENDAS[1], valor_bruto_contrato: 5000, recebimentos: [] },
+];
+
 vi.mock("../src/lib/api", () => ({
   buscarFinanceiro: vi.fn(async () => DADO),
   buscarPessoas: vi.fn(async () => CLOSERS),
 }));
 
-function montar() {
+function montar(rota = "/?granularidade=mes&periodo=2026-09") {
   return render(
-    <MemoryRouter initialEntries={["/?granularidade=mes&periodo=2026-09"]}>
+    <MemoryRouter initialEntries={[rota]}>
       <AtualizacaoProvider>
         <Financeiro />
       </AtualizacaoProvider>
@@ -82,7 +87,10 @@ function montar() {
 }
 
 describe("página Financeiro", () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it("renderiza os 4 cards, os gráficos e as 4 tabelas sem quebrar", async () => {
     montar();
@@ -114,15 +122,41 @@ describe("página Financeiro", () => {
   });
 
   it("cards mostram ticket médio, parte do recebido vinda de contrato do mês e descontos", async () => {
-    const vendas: RespostaFinanceiro["vendas"] = [
-      { ...VENDAS[0], recebimentos: [{ mes: "2026-09", pago: 100000, liquido: 90000 }] },
-      { ...VENDAS[1], valor_bruto_contrato: 5000, recebimentos: [] },
-    ];
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas });
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
     montar();
 
     await waitFor(() => expect(screen.getByText(/ticket médio R\$\s*52\.500,00 · 2 contratos fechados/)).toBeTruthy());
     expect(screen.getByText(/R\$\s*100\.000,00 veio de contrato fechado no período/)).toBeTruthy();
     expect(screen.getByText(/R\$\s*10\.000,00 de taxas de maquininha e imposto/)).toBeTruthy();
+  });
+
+  it("em dia ou semana os recebimentos mostram travessão com a legenda de só por mês", async () => {
+    // Em dia/semana o período é sempre o corrente (ver `useFiltrosAtuais`), então fixa-se a data de hoje em 12/09.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 8, 12, 12));
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+    montar("/?granularidade=dia&periodo=2026-09-12");
+
+    await waitFor(() => expect(screen.getByText("Contrato bruto vendido")).toBeTruthy());
+
+    const cardVendido = screen.getByText("Contrato bruto vendido").closest("article")!;
+    expect(within(cardVendido).getByText(/^R\$\s*100\.000,00$/)).toBeTruthy();
+
+    for (const rotulo of ["Recebimento bruto", "Liquidou na conta"]) {
+      const card = screen.getByText(rotulo).closest("article")!;
+      expect(within(card).getByText("—")).toBeTruthy();
+    }
+    expect(screen.getAllByText("Recebimentos só por mês")).toHaveLength(2);
+
+    const colunas = ["Pago no mês", "Líquido no mês", "Pago pelo cliente", "Taxa (R$)", "Líquido na conta", "% de taxa"];
+    for (const titulo of colunas) {
+      for (const cabecalho of screen.getAllByRole("columnheader", { name: titulo })) {
+        const th = cabecalho as HTMLTableCellElement;
+        const tabela = th.closest("table")!;
+        const celulas = Array.from(tabela.querySelectorAll("tbody tr, tfoot tr")).map((tr) => tr.children[th.cellIndex]?.textContent);
+        expect(celulas.length).toBeGreaterThan(0);
+        expect(celulas.every((texto) => texto === "—")).toBe(true);
+      }
+    }
   });
 });
