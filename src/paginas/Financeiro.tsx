@@ -164,7 +164,7 @@ export function Financeiro() {
     return dia >= inicio && dia <= fim;
   });
 
-  const totais = totaisDoPeriodo(vendasPeriodo);
+  const totais = totaisDoPeriodo(vendasAno, inicio, fim);
   const ytd = totalYtd(vendasAno, fim);
   const serie = serieMensal(vendasAno, anoAlvo);
 

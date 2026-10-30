@@ -139,20 +139,55 @@ export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
 
 export interface TotaisFinanceiro {
   vendido: number;
+  contratos: number;
+  ticketMedio: number | null;
   pago: number;
+  pagoDeVendasDoPeriodo: number;
   liquido: number;
+  descontos: number;
 }
 
-/** Somas simples do período já recortado — cards 1/2/3. Pago/Líquido somam os dois pagamentos da venda (ver `agruparPor`). */
-export function totaisDoPeriodo(vendas: VendaFinanceiro[]): TotaisFinanceiro {
-  return vendas.reduce(
-    (acc, v) => ({
-      vendido: acc.vendido + v.valor_bruto_contrato,
-      pago: acc.pago + v.valor_entrada + v.valor_pgto_2,
-      liquido: acc.liquido + v.liquido_entrada + v.liquido_pgto_2,
-    }),
-    { vendido: 0, pago: 0, liquido: 0 },
+/** Recebimentos de uma venda cujo `mes` está em `meses` — a planilha conta o dinheiro pelo mês do recebimento, não pela data da venda. */
+function recebidoNosMeses(venda: VendaFinanceiro, meses: Set<string>): { pago: number; liquido: number } {
+  return venda.recebimentos.reduce(
+    (acc, r) => (meses.has(r.mes) ? { pago: acc.pago + r.pago, liquido: acc.liquido + r.liquido } : acc),
+    { pago: 0, liquido: 0 },
   );
+}
+
+/**
+ * Cards 1/2/3 como na planilha: `vendido`/contratos/ticket são das vendas com
+ * `data_venda` em `inicio..fim`; `pago`/`liquido` são o recebido nos meses do
+ * período, de QUALQUER venda; `pagoDeVendasDoPeriodo` é o pago só das vendas do período.
+ */
+export function totaisDoPeriodo(vendas: VendaFinanceiro[], inicio: string, fim: string): TotaisFinanceiro {
+  const meses = new Set(mesesDoPeriodo(inicio, fim));
+  const doPeriodo = vendas.filter((v) => {
+    const dia = v.data_venda.slice(0, 10);
+    return dia >= inicio && dia <= fim;
+  });
+
+  const vendido = doPeriodo.reduce((acc, v) => acc + v.valor_bruto_contrato, 0);
+  const contratos = doPeriodo.length;
+  const pagoDeVendasDoPeriodo = doPeriodo.reduce((acc, v) => acc + recebidoNosMeses(v, meses).pago, 0);
+
+  let pago = 0;
+  let liquido = 0;
+  for (const v of vendas) {
+    const recebido = recebidoNosMeses(v, meses);
+    pago += recebido.pago;
+    liquido += recebido.liquido;
+  }
+
+  return {
+    vendido,
+    contratos,
+    ticketMedio: contratos > 0 ? vendido / contratos : null,
+    pago,
+    pagoDeVendasDoPeriodo,
+    liquido,
+    descontos: pago - liquido,
+  };
 }
 
 /** Card 4 (YTD): Σ valor_bruto_contrato de todo `vendas` (o ano inteiro buscado) com data_venda até `ate` (inclusive, AAAA-MM-DD). */

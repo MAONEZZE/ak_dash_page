@@ -139,14 +139,6 @@ describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_
     expect(linha.liquido).toBe(900);
   });
 
-  it("totaisDoPeriodo (cards Pago/Líquido) também soma os dois pagamentos", () => {
-    const vendas = [venda({ valor_entrada: 30000, liquido_entrada: 27000, valor_pgto_2: 30000, liquido_pgto_2: 21737.7 })];
-    const totais = totaisDoPeriodo(vendas);
-
-    expect(totais.pago).toBe(60000);
-    expect(totais.liquido).toBeCloseTo(48737.7, 2);
-  });
-
   it("serieMensal soma os dois pagamentos no mês da venda", () => {
     const vendas = [
       venda({ data_venda: "2026-03-10T00:00:00", valor_entrada: 30000, liquido_entrada: 27000, valor_pgto_2: 30000, liquido_pgto_2: 21737.7 }),
@@ -230,7 +222,7 @@ describe("totalDeLinhas", () => {
 
     expect(total.bruto).toBe(930000);
     expect(total.vendas).toBe(2);
-    expect(total.bruto).toBe(totaisDoPeriodo(vendas).vendido);
+    expect(total.bruto).toBe(totaisDoPeriodo(vendas, "2026-08-01", "2026-08-31").vendido);
   });
 
   it("ticket médio é recalculado sobre o total, não a soma dos tickets médios das linhas", () => {
@@ -260,6 +252,49 @@ describe("imposto/taxa", () => {
     const [linha] = agruparPor([v], () => ({ chave: "x", rotulo: "x" }), []);
 
     expect(linha.pago - linha.imposto - linha.taxa).toBeCloseTo(v.liquido_entrada, 2);
+  });
+});
+
+describe("totaisDoPeriodo", () => {
+  it("totaisDoPeriodo separa vendido do período e recebido dos meses, como os cards da planilha", () => {
+    const vendas = [
+      venda({
+        id: 1,
+        data_venda: "2026-09-10T00:00:00",
+        valor_bruto_contrato: 40000,
+        recebimentos: [{ mes: "2026-09", pago: 10000, liquido: 9000 }],
+      }),
+      venda({ id: 2, data_venda: "2026-09-20T00:00:00", valor_bruto_contrato: 20000, recebimentos: [] }),
+      venda({
+        id: 3,
+        data_venda: "2026-04-16T00:00:00",
+        valor_bruto_contrato: 120000,
+        recebimentos: [
+          { mes: "2026-09", pago: 10000, liquido: 8500 },
+          { mes: "2026-08", pago: 10000, liquido: 9000 },
+        ],
+      }),
+    ];
+
+    expect(totaisDoPeriodo(vendas, "2026-09-01", "2026-09-30")).toEqual({
+      vendido: 60000,
+      contratos: 2,
+      ticketMedio: 30000,
+      pago: 20000,
+      pagoDeVendasDoPeriodo: 10000,
+      liquido: 17500,
+      descontos: 2500,
+    });
+  });
+
+  it("período sem venda: contratos 0 e ticketMedio null", () => {
+    const vendas = [
+      venda({ data_venda: "2026-09-10T00:00:00", valor_bruto_contrato: 40000, recebimentos: [{ mes: "2026-09", pago: 10000, liquido: 9000 }] }),
+    ];
+    const totais = totaisDoPeriodo(vendas, "2026-11-01", "2026-11-30");
+
+    expect(totais.contratos).toBe(0);
+    expect(totais.ticketMedio).toBeNull();
   });
 });
 
