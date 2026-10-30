@@ -147,56 +147,33 @@ describe("agruparPor", () => {
   });
 });
 
-describe("segundo pagamento (valor_pgto_2/taxa_pgto_2/liquido_pgto_2/forma_pgto_2)", () => {
-  describe("agruparPorFormaPagamento — 'Como entrou o dinheiro'", () => {
-    it("uma venda com um só pagamento vira uma única linha, igual agruparPor", () => {
-      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, imposto: 0.1, taxa: 0, liquido_entrada: 90 })];
-      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
+describe("agruparPorFormaPagamento — 'Como entrou o dinheiro'", () => {
+  it("agruparPorFormaPagamento joga todo o recebido do mês na forma da entrada", () => {
+    const vendas = [
+      venda({
+        id: 1,
+        metodo_pagamento: "PIX",
+        forma_pgto_2: "Cartão",
+        valor_pgto_2: 5000,
+        recebimentos: [{ mes: "2026-09", pago: 15000, liquido: 12500 }],
+      }),
+      venda({
+        id: 2,
+        metodo_pagamento: "",
+        recebimentos: [{ mes: "2026-09", pago: 1000, liquido: 900 }],
+      }),
+      venda({
+        id: 3,
+        metodo_pagamento: "Cartão",
+        recebimentos: [{ mes: "2026-08", pago: 9999, liquido: 9000 }],
+      }),
+    ];
+    const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS, "2026-09-01", "2026-09-30");
 
-      const pix = linhas.find((l) => l.chave === "PIX")!;
-      expect(pix.pago).toBe(100);
-      expect(pix.liquido).toBe(90);
-      expect(linhas.reduce((acc, l) => acc + l.vendas, 0)).toBe(1);
-    });
-
-    it("uma venda com forma_pgto_2 DIFERENTE de metodo_pagamento vira DUAS linhas — uma por forma", () => {
-      const vendas = [
-        venda({
-          metodo_pagamento: "PIX",
-          valor_entrada: 30000,
-          imposto: 0.1,
-          taxa: 0,
-          liquido_entrada: 27000,
-          forma_pgto_2: "Cartão",
-          valor_pgto_2: 30000,
-          taxa_pgto_2: 0.1949,
-          liquido_pgto_2: 21737.7,
-        }),
-      ];
-      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
-
-      const pix = linhas.find((l) => l.chave === "PIX")!;
-      const cartao = linhas.find((l) => l.chave === "Cartão")!;
-      expect(pix.pago).toBe(30000);
-      expect(pix.liquido).toBe(27000);
-      expect(cartao.pago).toBe(30000);
-      expect(cartao.liquido).toBeCloseTo(21737.7, 2);
-    });
-
-    it("forma_pgto_2 vazia/ausente com valor_pgto_2 > 0 vira 'Não informado'", () => {
-      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, valor_pgto_2: 50, forma_pgto_2: null })];
-      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
-
-      const naoInformado = linhas.find((l) => l.chave === "Não informado")!;
-      expect(naoInformado.pago).toBe(50);
-    });
-
-    it("sem segundo pagamento (valor_pgto_2 = 0), gera só a linha do metodo_pagamento", () => {
-      const vendas = [venda({ metodo_pagamento: "PIX", valor_entrada: 100, valor_pgto_2: 0 })];
-      const linhas = agruparPorFormaPagamento(vendas, METODOS_PAGAMENTO_CANONICOS);
-
-      expect(linhas.reduce((acc, l) => acc + l.vendas, 0)).toBe(1);
-    });
+    expect(linhas.find((l) => l.chave === "PIX")).toMatchObject({ pago: 15000, liquido: 12500 });
+    expect(linhas.find((l) => l.chave === "Cartão")).toMatchObject({ pago: 0, liquido: 0 });
+    expect(linhas.find((l) => l.chave === "Não informado")).toMatchObject({ pago: 1000, liquido: 900 });
+    expect(linhas.map((l) => l.rotulo)).toEqual(METODOS_PAGAMENTO_CANONICOS.map((c) => c.rotulo));
   });
 });
 

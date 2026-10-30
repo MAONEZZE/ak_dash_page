@@ -158,10 +158,6 @@ export function Financeiro() {
 
   const vendasAno = estado.dado.vendas;
   const { inicio, fim } = limitesPeriodo(granularidade, periodo);
-  const vendasPeriodo = vendasAno.filter((v) => {
-    const dia = v.data_venda.slice(0, 10);
-    return dia >= inicio && dia <= fim;
-  });
 
   const totais = totaisDoPeriodo(vendasAno, inicio, fim);
   const hojeMes = new Date().toISOString().slice(0, 7);
@@ -172,7 +168,7 @@ export function Financeiro() {
   const closersCanonicos: ItemCanonico[] = estado.closers.map((c) => ({ chave: c.id, rotulo: c.nome }));
 
   const porCanal = tabelaComTotal(agruparPor(vendasAno, chaveCanal, CANAIS_CANONICOS, inicio, fim));
-  const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasPeriodo, METODOS_PAGAMENTO_CANONICOS));
+  const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasAno, METODOS_PAGAMENTO_CANONICOS, inicio, fim));
   const porCloser = tabelaComTotal(agruparPor(vendasAno, chaveCloser, closersCanonicos, inicio, fim));
   const porProduto = tabelaComTotal(agruparPor(vendasAno, chaveProduto, PRODUTOS_CANONICOS, inicio, fim));
 
