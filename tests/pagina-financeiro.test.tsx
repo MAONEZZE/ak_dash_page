@@ -6,6 +6,7 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { buscarFinanceiro } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { Financeiro } from "../src/paginas/Financeiro";
 import type { Pessoa, RespostaFinanceiro } from "../src/lib/tipos-api";
@@ -110,5 +111,18 @@ describe("página Financeiro", () => {
     expect(screen.getByText("Não informado")).toBeTruthy();
     expect(screen.getByText("Sem closer definido")).toBeTruthy();
     expect(screen.getByText("Sem canal")).toBeTruthy();
+  });
+
+  it("cards mostram ticket médio, parte do recebido vinda de contrato do mês e descontos", async () => {
+    const vendas: RespostaFinanceiro["vendas"] = [
+      { ...VENDAS[0], recebimentos: [{ mes: "2026-09", pago: 100000, liquido: 90000 }] },
+      { ...VENDAS[1], valor_bruto_contrato: 5000, recebimentos: [] },
+    ];
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas });
+    montar();
+
+    await waitFor(() => expect(screen.getByText(/ticket médio R\$\s*52\.500,00 · 2 contratos fechados/)).toBeTruthy());
+    expect(screen.getByText(/R\$\s*100\.000,00 veio de contrato fechado no período/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s*10\.000,00 de taxas de maquininha e imposto/)).toBeTruthy();
   });
 });

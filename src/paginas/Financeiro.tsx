@@ -27,7 +27,6 @@ import { limitesPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import type { Pessoa, RespostaFinanceiro } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
-const LEGENDA_SEM_META = "Meta não cadastrada";
 
 interface Estado {
   dado: RespostaFinanceiro | null;
@@ -176,10 +175,22 @@ export function Financeiro() {
     <div className="flex flex-col gap-5">
       <AvisoFontes avisos={estado.dado.avisos} />
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CardKpi label="Contrato bruto vendido" value={formatarMoeda(totais.vendido)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Recebimento bruto" value={formatarMoeda(totais.pago)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Liquidou na conta" value={formatarMoeda(totais.liquido)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda={LEGENDA_SEM_META} />
+        <CardKpi
+          label="Contrato bruto vendido"
+          value={formatarMoeda(totais.vendido)}
+          pct={null}
+          legenda={
+            totais.contratos === 0 ? "nenhum contrato fechado no período" : `ticket médio ${formatarMoeda(totais.ticketMedio!)} · ${totais.contratos} contratos fechados`
+          }
+        />
+        <CardKpi
+          label="Recebimento bruto"
+          value={formatarMoeda(totais.pago)}
+          pct={null}
+          legenda={`${formatarMoeda(totais.pagoDeVendasDoPeriodo)} veio de contrato fechado no período`}
+        />
+        <CardKpi label="Liquidou na conta" value={formatarMoeda(totais.liquido)} pct={null} legenda={`${formatarMoeda(totais.descontos)} de taxas de maquininha e imposto`} />
+        <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda="valor dos contratos assinados no ano" />
       </section>
 
       {/*
