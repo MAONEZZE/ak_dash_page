@@ -231,4 +231,30 @@ describe("página Financeiro", () => {
     expect(linhaDe("Nº de contratos fechados").children[colunaSet].textContent).toBe("2");
     expect(linhaDe("Ticket médio").children[cabecalhos.indexOf("Jan/26")].textContent).toBe("—");
   });
+
+  it("tabela por canal mostra percentual do bruto e as tabelas seguem as colunas da planilha", async () => {
+    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+    montar("/?granularidade=mes&periodo=2026-09");
+
+    await waitFor(() => expect(screen.getByText("Por canal")).toBeTruthy());
+
+    const cabecalhosDe = (titulo: string) => {
+      const tabela = within(screen.getByText(titulo).closest("article")!).getByRole("table");
+      return within(tabela)
+        .getAllByRole("columnheader")
+        .slice(1)
+        .map((th) => th.textContent);
+    };
+
+    const porCanal = within(screen.getByText("Por canal").closest("article")!);
+    expect(cabecalhosDe("Por canal")).toEqual(["Bruto vendido", "Nº vendas", "% do bruto", "Pago no mês"]);
+    const linhasCanal = Array.from(porCanal.getByRole("table").querySelectorAll("tbody tr"));
+    const linhaCanal = (rotulo: string) => linhasCanal.find((tr) => tr.children[0].textContent === rotulo)!;
+    expect(linhaCanal("Instagram").children[3].textContent).toBe("95%");
+    expect(linhaCanal("Sem canal").children[3].textContent).toBe("5%");
+
+    expect(cabecalhosDe("Como entrou o dinheiro")).toEqual(["Pago pelo cliente", "Taxa (R$)", "Líquido na conta", "% de taxa"]);
+    expect(cabecalhosDe("Desempenho por produto")).toEqual(["Bruto vendido", "Nº vendas", "Ticket médio", "Pago no mês"]);
+    expect(cabecalhosDe("Desempenho por closer")).toEqual(["Bruto vendido", "Nº vendas", "Pago no mês", "Líquido no mês"]);
+  });
 });

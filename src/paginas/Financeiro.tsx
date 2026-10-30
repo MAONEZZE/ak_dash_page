@@ -40,10 +40,11 @@ interface Estado {
 const ESTADO_INICIAL: Estado = { dado: null, closers: [], carregando: true, erro: null };
 
 // Colunas que leem `pago`/`liquido` mostram "—" quando `recebimentosPorMes` é false (dia/semana).
-function colunasCanal(recebimentosPorMes: boolean): ColunaAgrupada[] {
+function colunasCanal(recebimentosPorMes: boolean, brutoTotal: number): ColunaAgrupada[] {
   return [
     { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
     { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
+    { titulo: "% do bruto", valor: (l) => formatarPercentual(l.bruto, brutoTotal) },
     { titulo: "Pago no mês", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago) : "—") },
   ];
 }
@@ -268,7 +269,7 @@ export function Financeiro() {
           titulo="Por canal"
           colunaRotulo="Canal"
           linhas={porCanal.linhas}
-          colunas={colunasCanal(recebimentosPorMes)}
+          colunas={colunasCanal(recebimentosPorMes, porCanal.total.bruto)}
           total={porCanal.total}
           tamanho="compacto"
         />
