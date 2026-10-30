@@ -4,6 +4,7 @@ import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { GraficoLinhasFinanceiro } from "../componentes/GraficoLinhasFinanceiro";
 import { TabelaAgrupada, type ColunaAgrupada } from "../componentes/TabelaAgrupada";
+import { TabelaMesAMes } from "../componentes/TabelaMesAMes";
 import {
   agruparPor,
   agruparPorFormaPagamento,
@@ -14,9 +15,10 @@ import {
   METODOS_PAGAMENTO_CANONICOS,
   PRODUTOS_CANONICOS,
   serieMensal,
+  resumoDoAno,
+  totalSerie,
   totaisDoPeriodo,
   totalDeLinhas,
-  totalYtd,
   type ItemCanonico,
   type LinhaAgrupada,
 } from "../lib/agregacoes-financeiro";
@@ -27,7 +29,6 @@ import { limitesPeriodo, useFiltrosAtuais } from "../lib/periodo";
 import type { Pessoa, RespostaFinanceiro } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
-const LEGENDA_SEM_META = "Meta não cadastrada";
 
 interface Estado {
   dado: RespostaFinanceiro | null;
@@ -38,33 +39,42 @@ interface Estado {
 
 const ESTADO_INICIAL: Estado = { dado: null, closers: [], carregando: true, erro: null };
 
-const COLUNAS_CANAL: ColunaAgrupada[] = [
-  { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
-  { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
-  { titulo: "Pago no mês", valor: (l) => formatarMoeda(l.pago) },
-];
+// Colunas que leem `pago`/`liquido` mostram "—" quando `recebimentosPorMes` é false (dia/semana).
+function colunasCanal(recebimentosPorMes: boolean, brutoTotal: number): ColunaAgrupada[] {
+  return [
+    { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
+    { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
+    { titulo: "% do bruto", valor: (l) => formatarPercentual(l.bruto, brutoTotal) },
+    { titulo: "Pago no mês", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago) : "—") },
+  ];
+}
 
-const COLUNAS_METODO: ColunaAgrupada[] = [
-  { titulo: "Pago pelo cliente", valor: (l) => formatarMoeda(l.pago) },
-  { titulo: "Imposto (R$)", valor: (l) => formatarMoeda(l.imposto) },
-  { titulo: "Taxa (R$)", valor: (l) => formatarMoeda(l.taxa) },
-  { titulo: "Líquido na conta", valor: (l) => formatarMoeda(l.liquido) },
-  { titulo: "% de taxa", valor: (l) => formatarPercentual(l.pago - l.liquido, l.pago) },
-];
+function colunasMetodo(recebimentosPorMes: boolean): ColunaAgrupada[] {
+  return [
+    { titulo: "Pago pelo cliente", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago) : "—") },
+    { titulo: "Taxa (R$)", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago - l.liquido) : "—") },
+    { titulo: "Líquido na conta", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.liquido) : "—") },
+    { titulo: "% de taxa", valor: (l) => (recebimentosPorMes ? formatarPercentual(l.pago - l.liquido, l.pago) : "—") },
+  ];
+}
 
-const COLUNAS_CLOSER: ColunaAgrupada[] = [
-  { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
-  { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
-  { titulo: "Pago no mês", valor: (l) => formatarMoeda(l.pago) },
-  { titulo: "Líquido no mês", valor: (l) => formatarMoeda(l.liquido) },
-];
+function colunasCloser(recebimentosPorMes: boolean): ColunaAgrupada[] {
+  return [
+    { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
+    { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
+    { titulo: "Pago no mês", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago) : "—") },
+    { titulo: "Líquido no mês", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.liquido) : "—") },
+  ];
+}
 
-const COLUNAS_PRODUTO: ColunaAgrupada[] = [
-  { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
-  { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
-  { titulo: "Ticket médio", valor: (l) => formatarMoeda(l.vendas > 0 ? l.bruto / l.vendas : 0) },
-  { titulo: "Pago no mês", valor: (l) => formatarMoeda(l.pago) },
-];
+function colunasProduto(recebimentosPorMes: boolean): ColunaAgrupada[] {
+  return [
+    { titulo: "Bruto vendido", valor: (l) => formatarMoeda(l.bruto) },
+    { titulo: "Nº vendas", valor: (l) => formatarNumero(l.vendas) },
+    { titulo: "Ticket médio", valor: (l) => formatarMoeda(l.vendas > 0 ? l.bruto / l.vendas : 0) },
+    { titulo: "Pago no mês", valor: (l) => (recebimentosPorMes ? formatarMoeda(l.pago) : "—") },
+  ];
+}
 
 function tabelaComTotal(linhas: LinhaAgrupada[]): { linhas: LinhaAgrupada[]; total: LinhaAgrupada } {
   return { linhas, total: totalDeLinhas(linhas) };
@@ -101,9 +111,9 @@ export function Financeiro() {
 
   // A Financeiro busca sempre o ANO INTEIRO do período selecionado — o
   // recorte pra dia/semana/mês/ano acontece em memória (ver `limitesPeriodo`
-  // e as agregações abaixo). Isso é o que sustenta o card 4 (YTD) e a série
-  // mensal sem uma segunda requisição.
-  // No Customizado (`inicio..fim`) vale o ano do fim — é ele que fecha o YTD.
+  // e as agregações abaixo). Isso é o que sustenta o card 4 (bruto vendido no
+  // ano) e a série mensal sem uma segunda requisição.
+  // No Customizado (`inicio..fim`) vale o ano do fim — é ele que fecha o ano.
   const anoAlvo = granularidade === "ano" ? periodo : granularidade === "custom" ? limitesPeriodo(granularidade, periodo).fim.slice(0, 4) : periodo.slice(0, 4);
 
   const carregar = useCallback(async () => {
@@ -159,30 +169,73 @@ export function Financeiro() {
 
   const vendasAno = estado.dado.vendas;
   const { inicio, fim } = limitesPeriodo(granularidade, periodo);
-  const vendasPeriodo = vendasAno.filter((v) => {
-    const dia = v.data_venda.slice(0, 10);
-    return dia >= inicio && dia <= fim;
-  });
 
-  const totais = totaisDoPeriodo(vendasPeriodo);
-  const ytd = totalYtd(vendasAno, fim);
+  // o calendário da planilha é mensal; num dia ou semana o mês inteiro enganaria
+  const recebimentosPorMes = granularidade !== "dia" && granularidade !== "semana";
+  const totais = totaisDoPeriodo(vendasAno, inicio, fim);
+  const hojeMes = new Date().toISOString().slice(0, 7);
+  const mesLimite = hojeMes < `${anoAlvo}-12` ? hojeMes : `${anoAlvo}-12`;
+  const anoResumo = resumoDoAno(vendasAno, anoAlvo, mesLimite);
   const serie = serieMensal(vendasAno, anoAlvo);
 
   const closersCanonicos: ItemCanonico[] = estado.closers.map((c) => ({ chave: c.id, rotulo: c.nome }));
 
-  const porCanal = tabelaComTotal(agruparPor(vendasPeriodo, chaveCanal, CANAIS_CANONICOS));
-  const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasPeriodo, METODOS_PAGAMENTO_CANONICOS));
-  const porCloser = tabelaComTotal(agruparPor(vendasPeriodo, chaveCloser, closersCanonicos));
-  const porProduto = tabelaComTotal(agruparPor(vendasPeriodo, chaveProduto, PRODUTOS_CANONICOS));
+  const porCanal = tabelaComTotal(agruparPor(vendasAno, chaveCanal, CANAIS_CANONICOS, inicio, fim));
+  const porMetodo = tabelaComTotal(agruparPorFormaPagamento(vendasAno, METODOS_PAGAMENTO_CANONICOS, inicio, fim));
+  const porCloser = tabelaComTotal(agruparPor(vendasAno, chaveCloser, closersCanonicos, inicio, fim));
+  const porProduto = tabelaComTotal(agruparPor(vendasAno, chaveProduto, PRODUTOS_CANONICOS, inicio, fim));
 
   return (
     <div className="flex flex-col gap-5">
       <AvisoFontes avisos={estado.dado.avisos} />
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CardKpi label="Contrato bruto vendido" value={formatarMoeda(totais.vendido)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Recebimento bruto" value={formatarMoeda(totais.pago)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Liquidou na conta" value={formatarMoeda(totais.liquido)} pct={null} legenda={LEGENDA_SEM_META} />
-        <CardKpi label="Bruto vendido no ano (YTD)" value={formatarMoeda(ytd)} pct={null} legenda={LEGENDA_SEM_META} />
+      <section aria-label="Indicadores do período" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <CardKpi
+          label="Contrato bruto vendido"
+          value={formatarMoeda(totais.vendido)}
+          pct={null}
+          legenda={
+            totais.contratos === 0 ? "nenhum contrato fechado no período" : `ticket médio ${formatarMoeda(totais.ticketMedio!)} · ${totais.contratos} contratos fechados`
+          }
+        />
+        <CardKpi
+          label="Recebimento bruto"
+          value={recebimentosPorMes ? formatarMoeda(totais.pago) : "—"}
+          pct={null}
+          legenda={
+            recebimentosPorMes
+              ? `${formatarMoeda(totais.pagoDeVendasDoPeriodo)} veio de contrato fechado no período`
+              : "Recebimentos só por mês"
+          }
+        />
+        <CardKpi
+          label="Liquidou na conta"
+          value={recebimentosPorMes ? formatarMoeda(totais.liquido) : "—"}
+          pct={null}
+          legenda={recebimentosPorMes ? `${formatarMoeda(totais.descontos)} de taxas de maquininha e imposto` : "Recebimentos só por mês"}
+        />
+        <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda="valor dos contratos assinados no ano" />
+      </section>
+      <section aria-label="No ano" className="glass-panel grid grid-cols-2 gap-3 rounded-[24px] px-[21px] py-4 sm:grid-cols-3 xl:grid-cols-5">
+        <div>
+          <p className="text-sm text-muted">Pago acumulado no ano</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.pagoNoAno)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Líquido no ano</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.liquidoNoAno)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Descontos médios</p>
+          <p className="text-xl font-semibold">{anoResumo.descontosMedios === null ? "—" : `${Math.round(anoResumo.descontosMedios * 100)}%`}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Ainda a receber</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.aReceber)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted">Restante sem data</p>
+          <p className="text-xl font-semibold">{formatarMoeda(anoResumo.restanteSemData)}</p>
+        </div>
       </section>
 
       {/*
@@ -202,10 +255,10 @@ export function Financeiro() {
           />
           <div className="border-t border-line" />
           <GraficoLinhasFinanceiro
-            titulo="Pago × Líquido"
+            titulo="Total recebido × Liquidou"
             series={[
-              { rotulo: "Pago", valores: serie.map((p) => p.pago), cor: "brand" },
-              { rotulo: "Líquido", valores: serie.map((p) => p.liquido), cor: "closer", tracejada: true },
+              { rotulo: "Total recebido", valores: serie.map((p) => p.totalRecebido), cor: "brand" },
+              { rotulo: "Liquidou", valores: serie.map((p) => p.liquidouVendasDoMes), cor: "closer", tracejada: true },
             ]}
             piso={300_000}
             multiploTeto={100_000}
@@ -216,10 +269,14 @@ export function Financeiro() {
           titulo="Por canal"
           colunaRotulo="Canal"
           linhas={porCanal.linhas}
-          colunas={COLUNAS_CANAL}
+          colunas={colunasCanal(recebimentosPorMes, porCanal.total.bruto)}
           total={porCanal.total}
           tamanho="compacto"
         />
+      </section>
+
+      <section>
+        <TabelaMesAMes pontos={serie} total={totalSerie(serie)} ano={anoAlvo} />
       </section>
 
       <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -227,7 +284,7 @@ export function Financeiro() {
           titulo="Como entrou o dinheiro"
           colunaRotulo="Forma de pagamento"
           linhas={porMetodo.linhas}
-          colunas={COLUNAS_METODO}
+          colunas={colunasMetodo(recebimentosPorMes)}
           total={porMetodo.total}
           tamanho="grande"
         />
@@ -235,7 +292,7 @@ export function Financeiro() {
           titulo="Desempenho por closer"
           colunaRotulo="Closer"
           linhas={porCloser.linhas}
-          colunas={COLUNAS_CLOSER}
+          colunas={colunasCloser(recebimentosPorMes)}
           total={porCloser.total}
           tamanho="grande"
         />
@@ -243,7 +300,7 @@ export function Financeiro() {
           titulo="Desempenho por produto"
           colunaRotulo="Produto"
           linhas={porProduto.linhas}
-          colunas={COLUNAS_PRODUTO}
+          colunas={colunasProduto(recebimentosPorMes)}
           tamanho="grande"
           total={porProduto.total}
         />

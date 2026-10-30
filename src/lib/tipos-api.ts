@@ -1,8 +1,9 @@
 /**
  * Contrato BFF (ak_dash) <-> Frontend (ak_dash_page).
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
- * Fonte única de dado: Supabase (dash.vw_metricas, dash.metricas_metas,
- * dash.metricas_faturamento, dash.cliente_faturamento, dash.users). Escopo:
+ * Fonte única de dado: Supabase (dash2.vw_metricas, dash2.metas,
+ * dash2.users/dash2.user_cargos, dash2.metricas_faturamento,
+ * dash2.cliente_faturamento). Escopo:
  * /pessoas, /comercial/seller, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
  * demais KPIs da página Financeiro (inadimplência, margem, despesas,
  * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
@@ -276,8 +277,18 @@ export interface CardFinanceiro {
   realizado: number;
 }
 
+/** Um mês do calendário de recebimentos da planilha (colunas PAGO/LÍQUIDO da BASE_VENDAS). */
+export interface RecebimentoMes {
+  /** AAAA-MM */
+  mes: string;
+  pago: number;
+  liquido: number;
+}
+
 export interface VendaFinanceiro {
   id: number;
+  /** ID da coluna A da BASE_VENDAS; null em venda antiga sem correspondência. */
+  id_planilha: number | null;
   /** metricas_faturamento.data_venda cru (ex. "2026-01-26T00:00:00") — cortar os 10 primeiros caracteres antes de formatarData. */
   data_venda: string;
   /** cliente_faturamento.nome via id_cliente; null sem id_cliente ou sem cliente correspondente. */
@@ -301,12 +312,14 @@ export interface VendaFinanceiro {
   taxa_pgto_2: number;
   /** Líquido do segundo pagamento — soma com liquido_entrada pro líquido total da venda. 0 sem segundo pagamento. */
   liquido_pgto_2: number;
-  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Entra como linha própria em "Como entrou o dinheiro" (agrupa por forma, não por venda). */
+  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Não entra em "Como entrou o dinheiro": o calendário não diz a forma de cada parcela, então todo o recebido vai para metodo_pagamento (igual à planilha). */
   forma_pgto_2: string | null;
   /** FK dash.users.id do closer. Agrupar por ESTE campo, não por `closer` — dois ids podem compartilhar o mesmo nome (ex. dois "Jonathan" cadastrados). */
   user_closer: number | null;
   /** dash.users.nome via user_closer — inclui closer inativo (saiu do time mas vendeu no período); null sem user_closer ou sem correspondente. */
   closer: string | null;
+  /** Calendário nos meses do período pedido — base de pago/líquido/recebido. */
+  recebimentos: RecebimentoMes[];
 }
 
 export interface RespostaFinanceiro {
