@@ -203,7 +203,7 @@ export function Financeiro() {
           pct={null}
           legenda={
             recebimentosPorMes
-              ? `${formatarMoeda(totais.pagoDeVendasDoPeriodo)} veio de contrato fechado no período`
+              ? `${formatarMoeda(totais.pagoDeVendasDoPeriodo)} contrato fechado no período`
               : "Recebimentos só por mês"
           }
         />
@@ -211,7 +211,7 @@ export function Financeiro() {
           label="Liquidou na conta"
           value={recebimentosPorMes ? formatarMoeda(totais.liquido) : "—"}
           pct={null}
-          legenda={recebimentosPorMes ? `${formatarMoeda(totais.descontos)} de taxas de maquininha e imposto` : "Recebimentos só por mês"}
+          legenda={recebimentosPorMes ? `${formatarMoeda(totais.descontos)} de taxas e imposto` : "Recebimentos só por mês"}
         />
         <CardKpi label="Bruto vendido no ano" value={formatarMoeda(anoResumo.brutoNoAno)} pct={null} legenda="valor dos contratos assinados no ano" />
       </section>

@@ -128,8 +128,8 @@ describe("página Financeiro", () => {
     montar();
 
     await waitFor(() => expect(screen.getByText(/ticket médio R\$\s*52\.500,00 · 2 contratos fechados/)).toBeTruthy());
-    expect(screen.getByText(/R\$\s*100\.000,00 veio de contrato fechado no período/)).toBeTruthy();
-    expect(screen.getByText(/R\$\s*10\.000,00 de taxas de maquininha e imposto/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s*100\.000,00 contrato fechado no período/)).toBeTruthy();
+    expect(screen.getByText(/R\$\s*10\.000,00 de taxas e imposto/)).toBeTruthy();
   });
 
   it("em dia ou semana os recebimentos mostram travessão com a legenda de só por mês", async () => {
