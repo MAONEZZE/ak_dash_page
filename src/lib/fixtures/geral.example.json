@@ -156,24 +156,59 @@
       "pendentes": 17
     }
   ],
-  "contas_dripify": [
+  "logs": [
     {
-      "conta": "Jacob",
-      "conexoes_aceitas": 40,
-      "numeros_captados": 30
+      "data": "2026-09-14",
+      "hora": "18:18:00",
+      "usuario": "Jennifer Pamplona",
+      "atividade": "Números Captados",
+      "cliente": "Isaque Costa"
     },
     {
-      "conta": "Jonathan",
-      "conexoes_aceitas": 36,
-      "numeros_captados": 12
+      "data": "2026-09-14",
+      "hora": "15:20:00",
+      "usuario": "Thalyson",
+      "atividade": "Indicações",
+      "cliente": "Valdir Pandolfi"
     },
     {
-      "conta": "Alex",
-      "conexoes_aceitas": 28,
-      "numeros_captados": 9
+      "data": "2026-09-13",
+      "hora": null,
+      "usuario": null,
+      "atividade": "Indicações",
+      "cliente": null
     }
   ],
   "pessoas": [
+    {
+      "id_user": 20,
+      "nome": "Ana",
+      "cargo": "seller",
+      "rotulo": "Ana",
+      "imagem_url": null,
+      "pontuacao": 43,
+      "posicao": 1,
+      "metricas": [
+        {
+          "metrica": "fups",
+          "nome_exibicao": "FUPs",
+          "realizado": 12,
+          "meta": null
+        },
+        {
+          "metrica": "numeros_captados",
+          "nome_exibicao": "Números Captados",
+          "realizado": 21,
+          "meta": null
+        },
+        {
+          "metrica": "indicacoes",
+          "nome_exibicao": "Indicações",
+          "realizado": 2,
+          "meta": null
+        }
+      ]
+    },
     {
       "id_user": 9,
       "nome": "Nathan",
@@ -464,7 +499,7 @@
   ],
   "avisos": [],
   "termometro": {
-    "realizado": 199999.5,
+    "realizado": 152000,
     "meta": 380000
   }
 }

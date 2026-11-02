@@ -81,17 +81,17 @@ function Cena({ temp }: { temp: Temperatura }) {
 const ICONE_BULBO: Record<Temperatura, typeof Flame> = { frio: Snowflake, medio: Droplet, quente: Flame };
 
 /**
- * Faturamento do mês corrente contra a meta de faturamento — independente do
- * filtro de data da página. O mercúrio sobe até a meta; passou dela, o tubo
+ * Liquidado do período do filtro de data contra a meta (R$ 380 mil por mês
+ * que o período toca — ver `montar_termometro` no BFF). O mercúrio sobe até a meta; passou dela, o tubo
  * fica cheio e o percentual mostra quanto passou. A cor e a cena de fundo
  * seguem a temperatura (ver `temperatura`).
  */
 export function Termometro({ dado }: { dado: DadoTermometro | null }) {
   if (!dado || dado.meta <= 0) {
     return (
-      <article className="card-pastel pastel-verde-escuro flex min-h-0 min-w-0 flex-1 flex-col rounded-[24px] p-[clamp(10px,1.4vh,18px)]" aria-label="Termômetro de faturamento">
+      <article className="card-pastel pastel-verde-escuro flex min-h-0 min-w-0 flex-1 flex-col rounded-[24px] p-[clamp(10px,1.4vh,18px)]" aria-label="Termômetro de liquidado">
         <span className="text-[clamp(13px,1.55vh,22px)] font-semibold uppercase leading-none tracking-[0.13em] text-muted">Termômetro</span>
-        <p className="mt-2 text-[clamp(13px,1.6vh,24px)] text-muted">Sem dado de faturamento.</p>
+        <p className="mt-2 text-[clamp(13px,1.6vh,24px)] text-muted">Sem dado de liquidado.</p>
       </article>
     );
   }
@@ -105,7 +105,7 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
   return (
     <article
       className="card-pastel pastel-verde-escuro relative flex min-h-0 min-w-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] overflow-hidden rounded-[24px] p-[clamp(10px,1.4vh,18px)]"
-      aria-label="Termômetro de faturamento"
+      aria-label="Termômetro de liquidado"
       data-temperatura={temp}
     >
       {/* Brilho da temperatura no meio do card: quase branco, puxado pra cor da temperatura. */}
@@ -141,7 +141,7 @@ export function Termometro({ dado }: { dado: DadoTermometro | null }) {
         </div>
         <div
           role="meter"
-          aria-label={`Faturamento do mês: ${formatarMoeda(dado.realizado)} de ${formatarMoeda(dado.meta)}`}
+          aria-label={`Liquidado do período: ${formatarMoeda(dado.realizado)} de ${formatarMoeda(dado.meta)}`}
           aria-valuenow={dado.realizado}
           aria-valuemin={0}
           aria-valuemax={dado.meta}

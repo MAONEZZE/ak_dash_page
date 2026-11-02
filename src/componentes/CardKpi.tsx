@@ -64,10 +64,17 @@ interface CardKpiProps {
  * Moeda formatada pelo Intl leva espaço inquebrável depois do "R$", então o
  * número nunca quebra linha: valor longo encolhe com a largura do card (1, 2
  * ou 4 colunas) em vez de ser cortado pelo overflow. Valor curto fica em 50px.
+ *
+ * O teto em vw sai de "largura útil do card ÷ largura do texto" no ponto mais
+ * estreito de cada grade (360px, 640px e 1280px) — "R$ 1.234.567,89" mede
+ * 7,2em na Bricolage 800 —, por isso um passo por faixa de comprimento: um
+ * único 3vw cortava moeda na casa do milhão no Financeiro.
  */
 function escalaValorPadrao(value: string): string {
   if (value.length <= 8) return "text-[50px]";
-  return "text-[clamp(28px,11vw,50px)] sm:text-[clamp(28px,6vw,50px)] xl:text-[clamp(28px,3vw,50px)]";
+  if (value.length <= 12) return "text-[clamp(20px,12vw,50px)] sm:text-[clamp(20px,5.8vw,50px)] xl:text-[clamp(20px,2.9vw,50px)]";
+  if (value.length <= 15) return "text-[clamp(18px,10vw,50px)] sm:text-[clamp(18px,5vw,50px)] xl:text-[clamp(18px,2.6vw,50px)]";
+  return "text-[clamp(16px,9vw,50px)] sm:text-[clamp(16px,4.5vw,50px)] xl:text-[clamp(16px,2.3vw,50px)]";
 }
 
 export function CardKpi({

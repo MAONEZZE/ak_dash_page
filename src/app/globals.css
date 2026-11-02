@@ -62,7 +62,7 @@
   --color-perigo-dark: #f28b82;
   --color-atencao-dark: #f2c94c;
 
-  /* Termômetro de faturamento da Geral: frio (gelo) e quente (fogo). O médio usa --color-warn-barra. */
+  /* Termômetro de liquidado da Geral: frio (gelo) e quente (fogo). O médio usa --color-warn-barra. */
   --color-gelo: #3b8fd6;
   --color-fogo: #ef6c1a;
   /* Partículas do termômetro: quase brancas, só puxadas pro azul / laranja. */
@@ -638,7 +638,7 @@ body {
 }
 
 /*
- * Termômetro de faturamento da Geral (Termometro.tsx): neve caindo no frio,
+ * Termômetro de liquidado da Geral (Termometro.tsx): neve caindo no frio,
  * neve derretendo em gotas no médio, chamas subindo no quente. Só transform e
  * opacity — barato na TV. Com reduced-motion o bloco global zera a duração e
  * os ícones ficam parados onde estão.

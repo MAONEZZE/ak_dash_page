@@ -8,6 +8,7 @@ interface Props {
 }
 
 const TITULO: Record<Cargo, string> = { seller: "Ranking Seller", sdr: "Ranking SDR", closer: "Ranking Closer" };
+const SELO: Record<Cargo, string> = { seller: "Seller", sdr: "SDR", closer: "Closer" };
 const COR_SELO: Record<Cargo, string> = { seller: "bg-warn-bg text-warn", sdr: "bg-ok-bg text-sdr", closer: "bg-closer-bg text-closer" };
 
 /** Ordem visual 2º | 1º | 3º, com o degrau do 1º mais alto. */
@@ -63,7 +64,7 @@ export function RankingPodio({ cargo, pessoas }: Props) {
         <span
           className={`rounded-full px-2.5 py-1 text-[clamp(11px,1.3vh,18px)] font-bold uppercase leading-none tracking-[0.06em] ${COR_SELO[cargo]}`}
         >
-          {cargo === "sdr" ? "SDR" : "Closer"}
+          {SELO[cargo]}
         </span>
       </div>
       {ranking.length === 0 ? (
