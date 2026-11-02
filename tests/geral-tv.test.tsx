@@ -8,6 +8,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import geral from "../src/lib/fixtures/geral.example.json";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
+import { formatarDiaMesEvento, formatarNumero } from "../src/lib/formato";
 import { SomProvider } from "../src/lib/som";
 import { Geral } from "../src/paginas/Geral";
 
@@ -71,16 +72,23 @@ describe("Geral — layout da TV", () => {
     expect(screen.queryByRole("article", { name: "Ranking Closer" })).toBeNull();
   });
 
-  it("Eventos do mês numa tabela só, de até 10 linhas", async () => {
+  it("Eventos do mês mostra título, data, inscritos, aprovados e pendentes", async () => {
     montar();
     const tabela = await screen.findByRole("table", { name: "Eventos do mês" });
     // fixture tem 10 eventos (+1 linha de cabeçalho)
     expect(within(tabela).getAllByRole("row")).toHaveLength(11);
     expect(screen.queryByRole("table", { name: "Eventos do mês (cont.)" })).toBeNull();
-    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Data", "In.", "Ap.", "P."]);
+    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Evento", "Data", "In.", "Ap.", "P."]);
     const [, primeira] = within(tabela).getAllByRole("row");
     const e = geral.eventos[0];
-    expect(within(primeira).getAllByRole("cell").slice(1).map((c) => c.textContent)).toEqual([e.inscritos, e.aprovados, e.pendentes].map(String));
+    expect(within(primeira).getAllByRole("cell")).toHaveLength(5);
+    expect(within(primeira).getAllByRole("cell").map((c) => c.textContent)).toEqual([
+      e.titulo,
+      formatarDiaMesEvento(e.data),
+      formatarNumero(e.inscritos),
+      formatarNumero(e.aprovados),
+      formatarNumero(e.pendentes),
+    ]);
   });
 
   it("Logs: uma linha por log com usuário, atividade e cliente", async () => {
