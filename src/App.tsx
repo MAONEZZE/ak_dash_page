@@ -6,7 +6,7 @@ import { useAuth } from "./lib/auth";
 import { CalendarioIntervalo, formatarDataCurta } from "./componentes/CalendarioIntervalo";
 import { PillSquad } from "./componentes/PillSquad";
 import { formatarHora } from "./lib/formato";
-import { useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
+import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
 import type { Granularidade } from "./lib/tipos-api";
 import { Comercial } from "./paginas/Comercial";
@@ -132,18 +132,19 @@ function PillPeriodo() {
 
 const MES_ROTULO = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
 
-/** Seletor de mês com setas (`‹ Setembro 2026 ›`) — só aparece sob granularidade Mês. */
-function PillPeriodoNavegavel() {
+/** Seletor de mês com setas (`‹ Setembro 2026 ›`), habilitado sob granularidade Mês. */
+function PillPeriodoNavegavel({ habilitado }: { habilitado: boolean }) {
   const { mes, podeVoltar, podeAvancar, voltar, avancar } = useNavegarMes();
-  const [ano, mesNum] = mes.split("-").map(Number);
+  const mesExibido = habilitado ? mes : paraPeriodo("mes", new Date());
+  const [ano, mesNum] = mesExibido.split("-").map(Number);
   const rotulo = MES_ROTULO.format(new Date(ano, mesNum - 1, 1));
 
   return (
-    <div className="glass-pill flex items-center gap-1 p-1" role="group" aria-label="Mês">
+    <div className="glass-pill flex items-center gap-1 p-1" role="group" aria-label="Mês" aria-disabled={!habilitado}>
       <button
         type="button"
         onClick={voltar}
-        disabled={!podeVoltar}
+        disabled={!habilitado || !podeVoltar}
         aria-label="Mês anterior"
         className="pill !px-0 disabled:pointer-events-none disabled:opacity-40"
       >
@@ -155,7 +156,7 @@ function PillPeriodoNavegavel() {
       <button
         type="button"
         onClick={avancar}
-        disabled={!podeAvancar}
+        disabled={!habilitado || !podeAvancar}
         aria-label="Próximo mês"
         className="pill !px-0 disabled:pointer-events-none disabled:opacity-40"
       >
@@ -327,7 +328,7 @@ export default function App() {
               <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
                 <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
                   <PillNav />
-                  {granularidade === "mes" && <PillPeriodoNavegavel />}
+                  <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
                   <PillPeriodo />
                   {PAGINAS_COM_SQUAD.includes(location.pathname) && <PillSquad />}
                 </div>
