@@ -55,18 +55,18 @@ describe("Geral — layout da TV", () => {
       ["Reuniões Agendadas", "xl:col-start-2 xl:row-start-1"],
       ["Ranking Seller", "xl:col-start-2 xl:row-start-2"],
       ["Inscrições Realizadas", "xl:col-start-3 xl:row-start-1"],
-      ["Confrarias do mês", "xl:col-start-3 xl:row-start-2"],
+      ["Eventos do mês", "xl:col-start-3 xl:row-start-2"],
       ["Oportunidade", "xl:col-start-4 xl:row-start-1"],
       ["Logs", "xl:col-start-4 xl:row-start-2"],
     ]);
   });
 
-  it("Confrarias numa tabela só, de até 10 linhas", async () => {
+  it("Eventos do mês numa tabela só, de até 10 linhas", async () => {
     montar();
-    const tabela = await screen.findByRole("table", { name: "Confrarias do mês" });
-    // fixture tem 10 Confrarias (+1 linha de cabeçalho)
+    const tabela = await screen.findByRole("table", { name: "Eventos do mês" });
+    // fixture tem 10 eventos (+1 linha de cabeçalho)
     expect(within(tabela).getAllByRole("row")).toHaveLength(11);
-    expect(screen.queryByRole("table", { name: "Confrarias do mês (cont.)" })).toBeNull();
+    expect(screen.queryByRole("table", { name: "Eventos do mês (cont.)" })).toBeNull();
     expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Data", "In.", "Ap.", "P."]);
     const [, primeira] = within(tabela).getAllByRole("row");
     const e = geral.eventos[0];
