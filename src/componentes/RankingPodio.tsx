@@ -56,7 +56,7 @@ export function RankingPodio({ cargo, pessoas }: Props) {
 
   return (
     <article
-      className="card-pastel pastel-verde-escuro rounded-[24px] flex min-h-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] p-[clamp(10px,1.4vh,18px)]"
+      className="card-pastel pastel-verde-escuro rounded-[24px] flex min-h-[320px] min-[1201px]:min-h-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] p-[clamp(10px,1.4vh,18px)]"
       aria-label={TITULO[cargo]}
     >
       <div className="flex items-center justify-between gap-2">

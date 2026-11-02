@@ -237,6 +237,33 @@ describe("página Time — grade", () => {
     }
   });
 
+  it("layout desktop reserva uma coluna sticky aos rankings e mantém o fluxo no mobile", async () => {
+    montar();
+    const time = await screen.findByRole("region", { name: "Time" });
+    const rankings = await screen.findByRole("complementary", { name: "Rankings do time" });
+    const wrapper = time.parentElement as HTMLElement;
+
+    expect(wrapper).toBe(rankings.parentElement);
+    expect(wrapper.className).toContain("min-[1201px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]");
+    expect(time.className).toContain("min-[1201px]:grid-cols-2");
+    expect(time.className).not.toContain("min-[1201px]:grid-cols-3");
+    expect([...wrapper.children].indexOf(time)).toBeLessThan([...wrapper.children].indexOf(rankings));
+    expect(rankings.className).toContain("min-[1201px]:sticky");
+    expect(rankings.className).toContain("min-[1201px]:top-0");
+    expect(rankings.className).toContain("min-[1201px]:h-[calc(var(--card-h)*2+12px)]");
+    expect(rankings.className).toContain("min-[1201px]:min-h-0");
+    expect(rankings.classList.contains("sticky")).toBe(false);
+    expect(rankings.classList.contains("top-0")).toBe(false);
+
+    const podiums = within(rankings).getAllByRole("article");
+    expect(podiums).toHaveLength(3);
+    for (const podium of podiums) {
+      expect(podium.className).toContain("min-h-[320px]");
+      expect(podium.className).toContain("min-[1201px]:min-h-0");
+      expect(podium.className).toContain("flex-1");
+    }
+  });
+
   it("quem não tem meta nenhuma continua na grade, com as métricas abertas", async () => {
     montar();
     await aguardarPessoaNaGrade("Davi");

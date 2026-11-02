@@ -396,28 +396,33 @@ export function Time() {
     >
       <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
       {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
-      {cards.length > 0 && (
-        <section
-          aria-label="Time"
-          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-3"
+      <div className="grid grid-cols-1 gap-3 min-[1201px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] min-[1201px]:items-start">
+        {cards.length > 0 && (
+          <section
+            aria-label="Time"
+            className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-2"
+          >
+            {cards.map(({ grupo, indiceAtivo, metricas }) => (
+              <CardPessoaTime
+                key={grupo.chave}
+                grupo={grupo}
+                indiceAtivo={indiceAtivo}
+                metricas={metricas}
+                destacado={destacado === grupo.chave}
+                aoTrocarCargo={(i) => setCargoEscolhido((atual) => ({ ...atual, [grupo.chave]: i }))}
+              />
+            ))}
+          </section>
+        )}
+        <aside
+          aria-label="Rankings do time"
+          className="flex flex-col gap-3 min-[1201px]:sticky min-[1201px]:top-0 min-[1201px]:h-[calc(var(--card-h)*2+12px)] min-[1201px]:min-h-0"
         >
-          {cards.map(({ grupo, indiceAtivo, metricas }) => (
-            <CardPessoaTime
-              key={grupo.chave}
-              grupo={grupo}
-              indiceAtivo={indiceAtivo}
-              metricas={metricas}
-              destacado={destacado === grupo.chave}
-              aoTrocarCargo={(i) => setCargoEscolhido((atual) => ({ ...atual, [grupo.chave]: i }))}
-            />
+          {cargosFiltrados.map((cargo) => (
+            <RankingPodio key={cargo} cargo={cargo} pessoas={pessoasPorCargo[cargo]} />
           ))}
-        </section>
-      )}
-      <aside aria-label="Rankings do time">
-        {cargosFiltrados.map((cargo) => (
-          <RankingPodio key={cargo} cargo={cargo} pessoas={pessoasPorCargo[cargo]} />
-        ))}
-      </aside>
+        </aside>
+      </div>
     </div>
   );
 }
