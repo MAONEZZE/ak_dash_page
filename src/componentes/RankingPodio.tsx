@@ -1,10 +1,10 @@
-import { formatarNumero } from "../lib/formato";
-import type { Cargo, PessoaGeral } from "../lib/tipos-api";
+import { formatarNumero, nomeExibicao } from "../lib/formato";
+import type { Cargo, PessoaComercial } from "../lib/tipos-api";
 import { Avatar } from "./Avatar";
 
 interface Props {
   cargo: Cargo;
-  pessoas: PessoaGeral[];
+  pessoas: PessoaComercial[];
 }
 
 const TITULO: Record<Cargo, string> = { seller: "Ranking Seller", sdr: "Ranking SDR", closer: "Ranking Closer" };
@@ -26,13 +26,14 @@ const TAMANHO_AVATAR: Record<number, string> = {
   3: "clamp(44px,5.6vh,92px)",
 };
 
-function Degrau({ pessoa, posicao }: { pessoa: PessoaGeral; posicao: number }) {
+function Degrau({ pessoa, posicao }: { pessoa: PessoaComercial; posicao: number }) {
+  const nome = nomeExibicao(pessoa.nome, pessoa.email);
   return (
     <div className={`flex min-w-0 flex-1 flex-col items-center justify-end gap-[clamp(2px,0.4vh,6px)] text-center ${ORDEM_VISUAL[posicao]}`}>
-      <Avatar nome={pessoa.rotulo} imagemUrl={pessoa.imagem_url} tamanho={TAMANHO_AVATAR[posicao]} />
-      <span className="line-clamp-1 max-w-full text-[clamp(13px,1.6vh,24px)] font-bold leading-tight tracking-tight">{pessoa.rotulo}</span>
+      <Avatar nome={nome} imagemUrl={pessoa.imagem_url} tamanho={TAMANHO_AVATAR[posicao]} />
+      <span className="line-clamp-1 max-w-full text-[clamp(13px,1.6vh,24px)] font-bold leading-tight tracking-tight">{nome}</span>
       <span className="text-[clamp(12px,1.45vh,22px)] font-bold leading-none text-muted">
-        {pessoa.pontuacao === null ? "—" : formatarNumero(Math.round(pessoa.pontuacao))} pts
+        {formatarNumero(Math.round(pessoa.pontuacao_total!))} pts
       </span>
       <div
         className={`flex w-full items-start justify-center rounded-t-lg pt-1 font-display text-[clamp(14px,1.8vh,28px)] font-extrabold leading-none text-surface ${COR_DEGRAU[posicao]} ${ALTURA_DEGRAU[posicao]}`}
@@ -44,19 +45,18 @@ function Degrau({ pessoa, posicao }: { pessoa: PessoaGeral; posicao: number }) {
 }
 
 /**
- * Pódio top 3 de um cargo. Pontuação = realizado × peso por cargo (calculada
- * no BFF, `app/pontuacao.py`): todo mundo do cargo entra no ranking, com meta
- * ou sem. O card estica até a altura que o pai der, com o pódio no pé.
+ * Pódio top 3. Usa a classificação e pontuação comercial calculadas no BFF.
+ * O card estica até a altura que o pai der, com o pódio no pé.
  */
 export function RankingPodio({ cargo, pessoas }: Props) {
   const ranking = pessoas
-    .filter((p): p is PessoaGeral & { posicao: number } => p.cargo === cargo && p.posicao !== null)
+    .filter((p): p is PessoaComercial & { posicao: number; pontuacao_total: number } => p.posicao !== null && p.pontuacao_total !== null)
     .sort((a, b) => a.posicao - b.posicao)
     .slice(0, 3);
 
   return (
     <article
-      className="glass-panel flex min-h-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] rounded-[24px] p-[clamp(10px,1.4vh,18px)]"
+      className="card-pastel pastel-verde-escuro rounded-[24px] flex min-h-0 flex-1 flex-col gap-[clamp(6px,1vh,14px)] p-[clamp(10px,1.4vh,18px)]"
       aria-label={TITULO[cargo]}
     >
       <div className="flex items-center justify-between gap-2">
