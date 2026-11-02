@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 //
-// Termômetro de faturamento da Geral: a temperatura (cor + cena de neve,
+// Termômetro de liquidado da Geral: a temperatura (cor + cena de neve,
 // neve derretendo ou fogo) sai do % da meta — frio < 40, médio 40–79,
 // quente ≥ 80, inclusive acima de 100%.
 import { cleanup, render, screen } from "@testing-library/react";
@@ -11,7 +11,7 @@ afterEach(() => cleanup());
 
 function temperaturaCom(realizado: number): string | null {
   render(<Termometro dado={{ realizado, meta: 380_000 }} />);
-  return screen.getByRole("article", { name: "Termômetro de faturamento" }).getAttribute("data-temperatura");
+  return screen.getByRole("article", { name: "Termômetro de liquidado" }).getAttribute("data-temperatura");
 }
 
 describe("Termometro", () => {
@@ -33,6 +33,6 @@ describe("Termometro", () => {
 
   it("sem dado não quebra", () => {
     render(<Termometro dado={null} />);
-    expect(screen.getByText("Sem dado de faturamento.")).toBeTruthy();
+    expect(screen.getByText("Sem dado de liquidado.")).toBeTruthy();
   });
 });

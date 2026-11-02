@@ -3,8 +3,8 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { RankingPodio } from "../componentes/RankingPodio";
-import { TabelaDripify } from "../componentes/TabelaDripify";
 import { EVENTOS_POR_TABELA, TabelaEventos } from "../componentes/TabelaEventos";
+import { TabelaLogs } from "../componentes/TabelaLogs";
 import { Termometro } from "../componentes/Termometro";
 import { buscarGeral } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
@@ -16,16 +16,18 @@ import type { CardGeral, RespostaGeral } from "../lib/tipos-api";
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
 /**
- * Uma grade de 4 colunas × 4 linhas (decisão do usuário, 2026-10-05):
+ * Uma grade de 4 colunas × 4 linhas (decisão do usuário, 2026-10-05; Ligações
+ * Realizadas virou o Ranking Seller e Contas Dripify virou Logs em 2026-11-02):
  *
  *   Faturamento  | Reuniões Agendadas  | Inscrições Realizadas | Oportunidade
- *   Liquidado    | Ligações Realizadas | Confrarias do mês     | Contas Dripify
+ *   Liquidado    | Ranking Seller      | Confrarias do mês     | Logs
  *   Termômetro   | Ranking SDR         |        ↓              |        ↓
  *        ↓       | Ranking Closer      |        ↓              |        ↓
  *
  * As duas primeiras linhas têm a altura dos cards (tipografia em vh) e as duas
- * últimas dividem o resto da tela — é o que alinha os cards entre colunas e
- * deixa cada ranking com metade do que sobra. Na TV (1920×1080) a página
+ * últimas dividem o resto da tela — é o que alinha os cards entre colunas. Os
+ * três rankings vivem numa célula só, das linhas 2 a 4, e dividem essa altura
+ * em três: um pódio não cabe na altura de um card. Na TV (1920×1080) a página
  * inteira cabe sem rolagem. Abaixo de xl a posição explícita some e os itens
  * empilham na ordem do DOM: coluna 1, 2, 3, 4.
  */
@@ -35,24 +37,21 @@ const POSICAO = {
   liquidado: "xl:col-start-1 xl:row-start-2",
   termometro: "xl:col-start-1 xl:row-start-3 xl:row-span-2",
   reunioes_agendadas: "xl:col-start-2 xl:row-start-1",
-  ligacoes_realizadas: "xl:col-start-2 xl:row-start-2",
-  ranking_sdr: "xl:col-start-2 xl:row-start-3",
-  ranking_closer: "xl:col-start-2 xl:row-start-4",
+  rankings: "xl:col-start-2 xl:row-start-2 xl:row-span-3",
   inscricoes_realizadas: "xl:col-start-3 xl:row-start-1",
   eventos_1: "xl:col-start-3 xl:row-start-2 xl:row-span-3",
   oportunidade: "xl:col-start-4 xl:row-start-1",
-  dripify: "xl:col-start-4 xl:row-start-2 xl:row-span-3",
+  logs: "xl:col-start-4 xl:row-start-2 xl:row-span-3",
 } as const;
 /** Abaixo de xl a página rola: tabela, ranking e termômetro ganham altura mínima própria. */
 const ALTURA_MOBILE = "min-h-[480px] xl:min-h-0";
-const ALTURA_MOBILE_RANKING = "min-h-[300px] xl:min-h-0";
+const ALTURA_MOBILE_RANKINGS = "min-h-[900px] gap-2 xl:min-h-0";
 
 /** Tom pastel de cada KPI (decisão do usuário, 2026-10-05) — ver .card-pastel em globals.css. */
 const PASTEL: Partial<Record<keyof typeof POSICAO, string>> = {
   faturamento: "pastel-verde-escuro",
   liquidado: "pastel-verde-escuro",
   reunioes_agendadas: "pastel-verde",
-  ligacoes_realizadas: "pastel-verde",
   inscricoes_realizadas: "pastel-verde",
   oportunidade: "pastel-verde",
 };
@@ -135,7 +134,7 @@ export function Geral() {
 
   const cards = estado.dado?.cards ?? [];
   const eventos = estado.dado?.eventos ?? [];
-  const contasDripify = estado.dado?.contas_dripify ?? [];
+  const logs = estado.dado?.logs ?? [];
   const pessoas = estado.dado?.pessoas ?? [];
   const diasUteis = estado.dado?.dias_uteis ?? { decorridos: 0, total: 0 };
 
@@ -183,22 +182,20 @@ export function Geral() {
             </Celula>
 
             {card("reunioes_agendadas")}
-            {card("ligacoes_realizadas")}
-            <Celula posicao={POSICAO.ranking_sdr} className={ALTURA_MOBILE_RANKING}>
+            <Celula posicao={POSICAO.rankings} className={ALTURA_MOBILE_RANKINGS}>
+              <RankingPodio cargo="seller" pessoas={pessoas} />
               <RankingPodio cargo="sdr" pessoas={pessoas} />
-            </Celula>
-            <Celula posicao={POSICAO.ranking_closer} className={ALTURA_MOBILE_RANKING}>
               <RankingPodio cargo="closer" pessoas={pessoas} />
             </Celula>
 
             {card("inscricoes_realizadas")}
             <Celula posicao={POSICAO.eventos_1} className={ALTURA_MOBILE}>
-              <TabelaEventos titulo="Confrarias do mês" eventos={eventos.slice(0, EVENTOS_POR_TABELA)} vazio="Nenhuma Confraria neste mês." />
+              <TabelaEventos titulo="Eventos do mês" eventos={eventos.slice(0, EVENTOS_POR_TABELA)} vazio="Nenhuma Confraria neste mês." />
             </Celula>
 
             {card("oportunidade")}
-            <Celula posicao={POSICAO.dripify} className={ALTURA_MOBILE}>
-              <TabelaDripify titulo="Contas Dripify" contas={contasDripify} vazio="Sem dados do Dripify no período." />
+            <Celula posicao={POSICAO.logs} className={ALTURA_MOBILE}>
+              <TabelaLogs titulo="Logs" logs={logs} vazio="Nenhum log no período." />
             </Celula>
           </section>
         </>

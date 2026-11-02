@@ -207,7 +207,8 @@ export interface PessoaGeral {
   pontuacao: number | null;
   posicao: number | null;
   /**
-   * Colunas da tabela pro cargo — SDR: numeros_captados, ligacoes_realizadas,
+   * Colunas da tabela pro cargo — Seller: fups, numeros_captados, indicacoes;
+   * SDR: numeros_captados, ligacoes_realizadas,
    * reunioes_agendadas, indicacoes, inscricoes_realizadas; Closer:
    * reunioes_realizadas, liquidado, reunioes_agendadas, indicacoes,
    * inscricoes_realizadas.
@@ -231,15 +232,21 @@ export interface EventoGeral {
   pendentes: number;
 }
 
-/** Uma conta do LinkedIn (`dash.metricas_dripify`) com a soma do período pedido. */
-export interface ContaDripify {
-  /** `users.nome` do dono da conta — inclui closers e pessoas inativas. */
-  conta: string;
-  conexoes_aceitas: number;
-  numeros_captados: number;
+/** Uma linha da aba Logs da planilha `PLANILHA_LOGS_ID` (`dash2.logs_pipedrive`). */
+export interface LogAtividade {
+  /** YYYY-MM-DD */
+  data: string;
+  /** HH:MM:SS */
+  hora: string | null;
+  /** "Usuario da ação" */
+  usuario: string | null;
+  /** "Atividade feita" */
+  atividade: string;
+  /** "Nome do Cliente" */
+  cliente: string | null;
 }
 
-/** Faturamento do mês corrente (fora do filtro de data) contra a meta fixa de faturamento. */
+/** Liquidado do período pedido contra R$ 380 mil × meses que o período toca. SEGUE o filtro de data. */
 export interface Termometro {
   realizado: number;
   meta: number;
@@ -255,8 +262,8 @@ export interface RespostaGeral {
   cards: CardGeral[];
   /** Confrarias do mês corrente (até 10), em data crescente. Ignora o período da página. */
   eventos: EventoGeral[];
-  /** Contas do Dripify, da maior pra menor em conexões aceitas. SEGUE o período da página. */
-  contas_dripify: ContaDripify[];
+  /** Os 10 logs mais recentes, do mais novo pro mais antigo. SEGUE o período da página. */
+  logs: LogAtividade[];
   pessoas: PessoaGeral[];
   termometro: Termometro | null;
   /** Inclui `fonte_indisponivel:<tabela>` quando uma consulta ao banco falhou. */

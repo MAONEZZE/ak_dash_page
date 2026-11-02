@@ -51,15 +51,13 @@ describe("Geral — layout da TV", () => {
     expect(itens).toEqual([
       ["Faturamento", "xl:col-start-1 xl:row-start-1"],
       ["Liquidado", "xl:col-start-1 xl:row-start-2"],
-      ["Termômetro de faturamento", "xl:col-start-1 xl:row-start-3"],
+      ["Termômetro de liquidado", "xl:col-start-1 xl:row-start-3"],
       ["Reuniões Agendadas", "xl:col-start-2 xl:row-start-1"],
-      ["Ligações Realizadas", "xl:col-start-2 xl:row-start-2"],
-      ["Ranking SDR", "xl:col-start-2 xl:row-start-3"],
-      ["Ranking Closer", "xl:col-start-2 xl:row-start-4"],
+      ["Ranking Seller", "xl:col-start-2 xl:row-start-2"],
       ["Inscrições Realizadas", "xl:col-start-3 xl:row-start-1"],
       ["Confrarias do mês", "xl:col-start-3 xl:row-start-2"],
       ["Oportunidade", "xl:col-start-4 xl:row-start-1"],
-      ["Contas Dripify", "xl:col-start-4 xl:row-start-2"],
+      ["Logs", "xl:col-start-4 xl:row-start-2"],
     ]);
   });
 
@@ -75,25 +73,35 @@ describe("Geral — layout da TV", () => {
     expect(within(primeira).getAllByRole("cell").slice(1).map((c) => c.textContent)).toEqual([e.inscritos, e.aprovados, e.pendentes].map(String));
   });
 
-  it("Contas Dripify: uma linha por conta com conexões aceitas e números captados", async () => {
+  it("Logs: uma linha por log com usuário, atividade e cliente", async () => {
     montar();
-    const tabela = await screen.findByRole("table", { name: "Contas Dripify" });
-    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Conta", "Conexões Aceitas", "Números Captados"]);
-    const [, jacob] = within(tabela).getAllByRole("row");
-    expect(within(jacob).getAllByRole("cell").map((c) => c.textContent)).toEqual(["Jacob", "40", "30"]);
+    const tabela = await screen.findByRole("table", { name: "Logs" });
+    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Usuário", "Atividade", "Cliente"]);
+    const [, primeira, , semUsuario] = within(tabela).getAllByRole("row");
+    expect(within(primeira).getAllByRole("cell").map((c) => c.textContent)).toEqual(["Jennifer Pamplona", "Números Captados", "Isaque Costa"]);
+    expect(within(semUsuario).getAllByRole("cell").map((c) => c.textContent)).toEqual(["—", "Indicações", "—"]);
+  });
+
+  it("ligações realizadas não é mais card da Geral", async () => {
+    montar();
+    await screen.findByRole("region", { name: "Visão geral" });
+    expect(screen.queryByText("Ligações Realizadas")).toBeNull();
   });
 
   it("um ranking por cargo, sem botão de troca", async () => {
     montar();
-    const sdr = await screen.findByRole("article", { name: "Ranking SDR" });
+    const seller = await screen.findByRole("article", { name: "Ranking Seller" });
+    expect(within(seller).getByText("Ana")).toBeTruthy();
+    expect(within(seller).getByText("Seller")).toBeTruthy();
+    const sdr = screen.getByRole("article", { name: "Ranking SDR" });
     const closer = screen.getByRole("article", { name: "Ranking Closer" });
     expect(within(sdr).queryByRole("button")).toBeNull();
     expect(within(sdr).getByText("1º").parentElement?.textContent).not.toBe(within(closer).getByText("1º").parentElement?.textContent);
   });
 
-  it("termômetro mostra o faturamento do mês contra a meta", async () => {
+  it("termômetro mostra o liquidado do mês contra a meta", async () => {
     montar();
-    const termometro = await screen.findByRole("article", { name: "Termômetro de faturamento" });
+    const termometro = await screen.findByRole("article", { name: "Termômetro de liquidado" });
     // fixture: R$ 152.000 de R$ 380.000 = 40% → médio
     expect(within(termometro).getByRole("meter").getAttribute("aria-valuenow")).toBe("152000");
     expect(within(termometro).getByRole("meter").getAttribute("aria-valuemax")).toBe("380000");
