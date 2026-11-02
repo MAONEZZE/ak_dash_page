@@ -321,22 +321,17 @@ export default function App() {
           <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col">
             <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
               {/*
-               * Navbar: marca à esquerda, páginas + filtro de data (+ função, na Comercial/Time) no centro, som + menu à direita.
-               * Abaixo de lg os filtros descem pra uma segunda linha inteira — no celular
-               * as três colunas não cabem e os segmentados se sobrepunham à marca.
+               * Navbar: páginas + filtros no centro, som + menu à direita.
+               * Abaixo de lg os filtros descem pra uma segunda linha inteira.
                */}
-              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2.5 lg:grid-cols-[auto_1fr_auto]">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-[26px] font-extrabold tracking-tight">akeel</span>
-                  <span className="inline-block size-[7px] rounded-full bg-brand" />
-                </div>
-                <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1">
+              <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
+                <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
                   <PillNav />
                   {granularidade === "mes" && <PillPeriodoNavegavel />}
                   <PillPeriodo />
                   {PAGINAS_COM_SQUAD.includes(location.pathname) && <PillSquad />}
                 </div>
-                <div className="flex items-center justify-end gap-2">
+                <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
                   <BotaoSom />
                   <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
                 </div>

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // O filtro de função (Todos/Sellers/SDRs/Closers) mora no header, logo à direita
 // do filtro de data — e só nas páginas que filtram por função (Comercial e Time).
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -37,6 +37,14 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
+  it("navbar autenticada não exibe a marca akeel", async () => {
+    await montar("/comercial");
+    const header = screen.getByRole("banner");
+
+    expect(within(header).queryByText("akeel", { exact: true })).toBeNull();
+    expect(header.querySelector(".bg-brand")).toBeNull();
+  });
+
   it.each(["/comercial", "/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
     await montar(rota);
     const header = screen.getByRole("banner");
