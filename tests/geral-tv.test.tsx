@@ -44,21 +44,31 @@ describe("Geral — layout da TV", () => {
     expect(grade.className).toContain("xl:grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)]");
   });
 
-  it("cada item na coluna/linha combinada, e no DOM na ordem coluna 1→4 (ordem do celular)", async () => {
+  it("empilha os KPIs claros, estende Eventos e Logs e não renderiza rankings", async () => {
     montar();
     const grade = await screen.findByRole("region", { name: "Visão geral" });
-    const itens = [...grade.children].map((c) => [rotulo(c), c.className.match(/xl:col-start-\d xl:row-start-\d/)?.[0]]);
-    expect(itens).toEqual([
-      ["Faturamento", "xl:col-start-1 xl:row-start-1"],
-      ["Liquidado", "xl:col-start-1 xl:row-start-2"],
-      ["Termômetro de liquidado", "xl:col-start-1 xl:row-start-3"],
-      ["Reuniões Agendadas", "xl:col-start-2 xl:row-start-1"],
-      ["Ranking Seller", "xl:col-start-2 xl:row-start-2"],
-      ["Inscrições Realizadas", "xl:col-start-3 xl:row-start-1"],
-      ["Eventos do mês", "xl:col-start-3 xl:row-start-2"],
-      ["Oportunidade", "xl:col-start-4 xl:row-start-1"],
-      ["Logs", "xl:col-start-4 xl:row-start-2"],
+    expect([...grade.children].map(rotulo)).toEqual([
+      "Faturamento",
+      "Liquidado",
+      "Termômetro de liquidado",
+      "Reuniões Agendadas",
+      "Inscrições Realizadas",
+      "Oportunidade",
+      "Eventos do mês",
+      "Logs",
     ]);
+    const classe = (label: string) => [...grade.children].find((c) => rotulo(c) === label)?.className ?? "";
+    expect(classe("Faturamento")).toContain("xl:col-start-1 xl:row-start-1");
+    expect(classe("Liquidado")).toContain("xl:col-start-1 xl:row-start-2");
+    expect(classe("Termômetro de liquidado")).toContain("xl:col-start-1 xl:row-start-3 xl:row-span-2");
+    expect(classe("Reuniões Agendadas")).toContain("xl:col-start-2 xl:row-start-1");
+    expect(classe("Inscrições Realizadas")).toContain("xl:col-start-2 xl:row-start-2");
+    expect(classe("Oportunidade")).toContain("xl:col-start-2 xl:row-start-3");
+    expect(classe("Eventos do mês")).toContain("xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:row-span-2");
+    expect(classe("Logs")).toContain("xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:row-span-2");
+    expect(screen.queryByRole("article", { name: "Ranking Seller" })).toBeNull();
+    expect(screen.queryByRole("article", { name: "Ranking SDR" })).toBeNull();
+    expect(screen.queryByRole("article", { name: "Ranking Closer" })).toBeNull();
   });
 
   it("Eventos do mês numa tabela só, de até 10 linhas", async () => {
@@ -86,17 +96,6 @@ describe("Geral — layout da TV", () => {
     montar();
     await screen.findByRole("region", { name: "Visão geral" });
     expect(screen.queryByText("Ligações Realizadas")).toBeNull();
-  });
-
-  it("um ranking por cargo, sem botão de troca", async () => {
-    montar();
-    const seller = await screen.findByRole("article", { name: "Ranking Seller" });
-    expect(within(seller).getByText("Ana")).toBeTruthy();
-    expect(within(seller).getByText("Seller")).toBeTruthy();
-    const sdr = screen.getByRole("article", { name: "Ranking SDR" });
-    const closer = screen.getByRole("article", { name: "Ranking Closer" });
-    expect(within(sdr).queryByRole("button")).toBeNull();
-    expect(within(sdr).getByText("1º").parentElement?.textContent).not.toBe(within(closer).getByText("1º").parentElement?.textContent);
   });
 
   it("termômetro mostra o liquidado do mês contra a meta", async () => {
