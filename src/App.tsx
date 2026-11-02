@@ -330,7 +330,7 @@ export default function App() {
                   <PillNav />
                   <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
                   <PillPeriodo />
-                  {PAGINAS_COM_SQUAD.includes(location.pathname) && <PillSquad />}
+                  <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
                 </div>
                 <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
                   <BotaoSom />

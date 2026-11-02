@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 // O filtro de função (Todos/Sellers/SDRs/Closers) mora no header, logo à direita
 // do filtro de data — e só nas páginas que filtram por função (Comercial e Time).
-import { cleanup, render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/paginas/Comercial", () => ({ Comercial: () => <div>pagina-comercial</div> }));
@@ -20,12 +20,18 @@ vi.mock("../src/lib/supabase", () => ({
 const { AuthProvider } = await import("../src/lib/auth");
 const App = (await import("../src/App")).default;
 
+function BuscaAtual() {
+  const { search } = useLocation();
+  return <span data-testid="busca-atual">{search}</span>;
+}
+
 async function montar(rota: string) {
   render(
     <MemoryRouter initialEntries={[rota]}>
       <AuthProvider>
         <App />
       </AuthProvider>
+      <BuscaAtual />
     </MemoryRouter>,
   );
   await screen.findByRole("group", { name: "Período" });
@@ -82,8 +88,33 @@ describe("filtro de função no header", () => {
     expect(grupos.indexOf(funcao)).toBe(grupos.indexOf(periodo) + 1);
   });
 
-  it("não aparece nas páginas que não filtram por função", async () => {
-    await montar("/financeiro");
-    expect(screen.queryByRole("group", { name: "Função" })).toBeNull();
+  it.each([
+    ["/comercial", true],
+    ["/time", true],
+    ["/geral", false],
+    ["/financeiro", false],
+  ] as const)("filtro de função permanece visível e só habilita em Comercial e Time (%s)", async (rota, habilitado) => {
+    cleanup();
+    await montar(rota);
+    const header = screen.getByRole("banner");
+    const periodo = screen.getByRole("group", { name: "Período" });
+    const funcao = screen.getByRole("group", { name: "Função" });
+    const botao = within(funcao).getByRole("button");
+
+    expect(header.contains(funcao)).toBe(true);
+    const grupos = Array.from(header.querySelectorAll('[role="group"]'));
+    expect(grupos.indexOf(funcao)).toBe(grupos.indexOf(periodo) + 1);
+    expect(botao.disabled).toBe(!habilitado);
+
+    const buscaAntes = screen.getByTestId("busca-atual").textContent;
+    fireEvent.click(botao);
+    if (habilitado) {
+      expect(botao.getAttribute("aria-expanded")).toBe("true");
+      expect(within(funcao).getAllByRole("checkbox")).toHaveLength(3);
+    } else {
+      expect(botao.getAttribute("aria-expanded")).toBe("false");
+      expect(within(funcao).queryByRole("checkbox")).toBeNull();
+      expect(screen.getByTestId("busca-atual").textContent).toBe(buscaAntes);
+    }
   });
 });

@@ -6,7 +6,7 @@ import { SQUADS, useCargosFiltrados, useDefinirCargos } from "../lib/squad";
  * Filtro de função da Comercial e da Time — fica no header, à direita do filtro
  * de data. Combobox com uma checkbox por cargo; o último marcado não desmarca.
  */
-export function PillSquad() {
+export function PillSquad({ disabled = false }: { disabled?: boolean }) {
   const cargos = useCargosFiltrados();
   const definirCargos = useDefinirCargos();
   const [aberto, setAberto] = useState(false);
@@ -35,17 +35,19 @@ export function PillSquad() {
       <div className="glass-pill flex p-1">
         <button
           type="button"
+          disabled={disabled}
           onClick={() => setAberto((a) => !a)}
           aria-haspopup="true"
           aria-expanded={aberto}
+          aria-disabled={disabled}
           aria-label={`Função: ${rotulo}`}
-          className="pill pill-ativo inline-flex items-center gap-1.5"
+          className="pill pill-ativo inline-flex items-center gap-1.5 disabled:pointer-events-none disabled:opacity-45"
         >
           {rotulo}
           <ChevronDown className={`size-4 transition-transform ${aberto ? "rotate-180" : ""}`} aria-hidden />
         </button>
       </div>
-      {aberto && (
+      {!disabled && aberto && (
         <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-48 overflow-hidden rounded-2xl glass-flutuante py-1">
           {SQUADS.map((s) => {
             const marcado = cargos.includes(s.id);
