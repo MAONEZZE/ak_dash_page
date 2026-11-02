@@ -104,6 +104,11 @@ function montar(url = "/time") {
   );
 }
 
+async function aguardarPessoaNaGrade(nome: string) {
+  const grade = await screen.findByRole("region", { name: "Time" });
+  return within(grade).findByText(nome);
+}
+
 function card(id: string): HTMLElement {
   const el = document.getElementById(`pessoa-${id}`);
   if (!el) throw new Error(`card de ${id} não renderizado`);
@@ -137,25 +142,25 @@ afterEach(() => {
 describe("página Time — métricas do card", () => {
   it("SDR mostra só as métricas da aba Dashboard, na ordem da planilha", async () => {
     montar();
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     expect(rotulos(card("9"))).toEqual(["Inscrições Realizadas", "Indicações", "Reuniões Agendadas"]);
   });
 
   it("closer mostra só as métricas da aba Dashboard, na ordem da planilha", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     expect(rotulos(card("7"))).toEqual(["Reuniões Agendadas", "Reuniões Realizadas", "Indicações", "Inscrições Realizadas"]);
   });
 
   it("pessoa sem e-mail aparece, com o card identificado pelo id", async () => {
     montar();
-    await screen.findByText("Juca");
+    await aguardarPessoaNaGrade("Juca");
     expect(card("11").textContent).toContain("Juca");
   });
 
   it("cada card traz a foto da pessoa", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     const fotos = Array.from(document.querySelectorAll("[id^='pessoa-'] img")).map((img) => img.getAttribute("src"));
     expect(fotos.sort()).toEqual([
       "https://exemplo/11.png",
@@ -168,7 +173,7 @@ describe("página Time — métricas do card", () => {
 
   it("métrica com meta: valor / meta, barra e Falta/% na cor do terço da meta", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     const carla = card("7");
 
     const indicacoes = within(carla).getByRole("group", { name: "Indicações" });
@@ -195,7 +200,7 @@ describe("página Time — métricas do card", () => {
 
   it("métrica sem meta: \"Meta aberta\", valor / 0 e barra cheia azul", async () => {
     montar();
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     const agendadas = within(card("9")).getByRole("group", { name: "Reuniões Agendadas" });
 
     expect(within(agendadas).getByText("Meta aberta")).toBeTruthy();
@@ -209,30 +214,53 @@ describe("página Time — métricas do card", () => {
 });
 
 describe("página Time — grade", () => {
+  it.each([
+    ["/time", ["Ranking Seller", "Ranking SDR", "Ranking Closer"]],
+    ["/time?squad=sdr,closer", ["Ranking SDR", "Ranking Closer"]],
+    ["/time?squad=closer", ["Ranking Closer"]],
+  ])("renderiza somente os rankings dos cargos selecionados (%s)", async (url, esperados) => {
+    montar(url);
+    const rankings = await screen.findByRole("complementary", { name: "Rankings do time" });
+    const articles = within(rankings).getAllByRole("article");
+    const rotulosEsperados = esperados as string[];
+
+    expect(articles.map((article) => article.getAttribute("aria-label"))).toEqual(rotulosEsperados);
+    expect(within(rankings).queryByRole("article", { name: "Ranking Seller" }) !== null).toBe(rotulosEsperados.includes("Ranking Seller"));
+    expect(within(rankings).queryByRole("article", { name: "Ranking SDR" }) !== null).toBe(rotulosEsperados.includes("Ranking SDR"));
+    expect(within(rankings).queryByRole("article", { name: "Ranking Closer" }) !== null).toBe(rotulosEsperados.includes("Ranking Closer"));
+
+    if (rotulosEsperados.includes("Ranking SDR")) {
+      expect(within(within(rankings).getByRole("article", { name: "Ranking SDR" })).getByText("Nathan")).toBeTruthy();
+    }
+    if (rotulosEsperados.includes("Ranking Closer")) {
+      expect(within(within(rankings).getByRole("article", { name: "Ranking Closer" })).getByText("Carla")).toBeTruthy();
+    }
+  });
+
   it("quem não tem meta nenhuma continua na grade, com as métricas abertas", async () => {
     montar();
-    await screen.findByText("Davi");
+    await aguardarPessoaNaGrade("Davi");
     // meta "0.00" (numeric como string) vira 0: valor / 0, não some.
     expect(within(card("8")).getByRole("group", { name: "Reuniões Realizadas" }).textContent).toContain("1 / 0");
   });
 
   it("filtro de função mostra só o cargo escolhido", async () => {
     montar("/time?squad=sdr");
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     expect(ordemDosCards().sort()).toEqual(["11", "2", "9"]);
     expect(screen.queryByText("Carla")).toBeNull();
   });
 
   it("filtro de função com Sellers e SDRs mostra só esses cargos", async () => {
     montar("/time?squad=seller,sdr");
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     expect(ordemDosCards().sort()).toEqual(["11", "2", "9"]);
     expect(screen.queryByText("Carla")).toBeNull();
   });
 
   it("com filtro de função, quem tem dois cargos aparece sem toggle", async () => {
     montar("/time?squad=closer");
-    await screen.findByText("Jonathan");
+    await aguardarPessoaNaGrade("Jonathan");
     const jonathan = card("2");
     expect(within(jonathan).queryByRole("button")).toBeNull();
     expect(rotulos(jonathan)).toEqual(["Reuniões Realizadas"]);
@@ -240,8 +268,8 @@ describe("página Time — grade", () => {
 
   it("quem é SDR e Closer vira um card só; o toggle troca as métricas", async () => {
     montar();
-    await screen.findByText("Jonathan");
-    expect(screen.getAllByText("Jonathan")).toHaveLength(1);
+    await aguardarPessoaNaGrade("Jonathan");
+    expect(within(screen.getByRole("region", { name: "Time" })).getAllByText("Jonathan")).toHaveLength(1);
     const jonathan = card("2");
     const botaoSdr = within(jonathan).getByRole("button", { name: "SDR" });
     const botaoCloser = within(jonathan).getByRole("button", { name: "Closer" });
@@ -259,13 +287,13 @@ describe("página Time — grade", () => {
 
   it("publica os dias úteis do período pro cabeçalho", async () => {
     montar();
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     await waitFor(() => expect(screen.getByTestId("dias-uteis").textContent).toBe("10/22"));
   });
 
   it("sem título da página", async () => {
     montar();
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
   });
 });
@@ -273,27 +301,27 @@ describe("página Time — grade", () => {
 describe("página Time — métricas no verde", () => {
   it("subtítulo conta metas batidas e no verde", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     expect(card("7").textContent).toContain("1 meta batida · 2 no verde");
     expect(card("9").textContent).toContain("0 metas batidas · 1 no verde");
   });
 
   it("anel mostra X/Y no verde, contando só as métricas com meta", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     expect(within(card("9")).getByRole("img", { name: "1 de 2 metas no verde" }).textContent).toBe("1/2");
     expect(within(card("7")).getByRole("img", { name: "2 de 4 metas no verde" }).textContent).toBe("2/4");
   });
 
   it("ordena os cards pela proporção de métricas no verde, da maior pra menor", async () => {
     montar();
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
     expect(ordemDosCards()).toEqual(["2", "9", "7", "11", "8"]);
   });
 
   it("o toggle de cargo também troca o anel e a posição", async () => {
     montar();
-    await screen.findByText("Jonathan");
+    await aguardarPessoaNaGrade("Jonathan");
     fireEvent.click(within(card("2")).getByRole("button", { name: "Closer" }));
     expect(within(card("2")).getByRole("img", { name: "0 de 1 metas no verde" })).toBeTruthy();
     expect(ordemDosCards()).toEqual(["9", "7", "2", "11", "8"]);
@@ -304,7 +332,7 @@ describe("página Time — chegada pela Comercial (#pessoa-…)", () => {
   it("rola até o card do hash, centralizado, e destaca por ~2,4s", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     montar("/time?squad=todos#pessoa-7");
-    await screen.findByText("Carla");
+    await aguardarPessoaNaGrade("Carla");
 
     // O destaque é conferido no mesmo ciclo do scroll: com shouldAdvanceTime o
     // relógio falso anda junto com o real, e um intervalo longo entre as duas
@@ -326,13 +354,13 @@ describe("página Time — chegada pela Comercial (#pessoa-…)", () => {
   it("sem animação de rolagem quando o sistema pede movimento reduzido", async () => {
     vi.stubGlobal("matchMedia", (consulta: string) => ({ matches: consulta.includes("reduce"), media: consulta }));
     montar("/time#pessoa-9");
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledWith({ block: "center" }));
   });
 
   it("hash de alguém que não tem card não rola nada", async () => {
     montar("/time#pessoa-999");
-    await screen.findByText("Nathan");
+    await aguardarPessoaNaGrade("Nathan");
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });

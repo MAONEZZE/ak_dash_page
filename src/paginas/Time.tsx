@@ -4,6 +4,7 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { ProgressBar } from "../componentes/ProgressBar";
+import { RankingPodio } from "../componentes/RankingPodio";
 import { RodapeAtingimento } from "../componentes/RodapeAtingimento";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { statusDoAtingimento } from "../lib/atingimento";
@@ -359,6 +360,11 @@ export function Time() {
       return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? verdes / comMeta : -1 };
     })
     .sort((a, b) => b.proporcao - a.proporcao);
+  const pessoasPorCargo: Record<Cargo, PessoaComercial[]> = {
+    seller: seller.dado?.pessoas ?? [],
+    sdr: sdr.dado?.pessoas ?? [],
+    closer: closer.dado?.pessoas ?? [],
+  };
 
   const destacado = useDestaqueDoHash(cards.map((c) => c.grupo.chave).join(","));
 
@@ -407,6 +413,11 @@ export function Time() {
           ))}
         </section>
       )}
+      <aside aria-label="Rankings do time">
+        {cargosFiltrados.map((cargo) => (
+          <RankingPodio key={cargo} cargo={cargo} pessoas={pessoasPorCargo[cargo]} />
+        ))}
+      </aside>
     </div>
   );
 }
