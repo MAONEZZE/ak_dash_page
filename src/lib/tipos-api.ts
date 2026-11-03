@@ -230,6 +230,8 @@ export interface EventoGeral {
   aprovados: number;
   /** Subconjunto de `inscritos` — só `pending`. */
   pendentes: number;
+  /** Subconjunto de `inscritos` — só `rejected`. */
+  rejeitados: number;
 }
 
 /** Uma linha da aba Logs da planilha `PLANILHA_LOGS_ID` (`dash2.logs_pipedrive`). */

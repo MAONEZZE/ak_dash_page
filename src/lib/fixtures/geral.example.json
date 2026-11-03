@@ -72,7 +72,8 @@
       "capacidade": 120,
       "inscritos": 77,
       "aprovados": 48,
-      "pendentes": 26
+      "pendentes": 26,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000002",
@@ -81,7 +82,8 @@
       "capacidade": 120,
       "inscritos": 74,
       "aprovados": 46,
-      "pendentes": 25
+      "pendentes": 25,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000003",
@@ -90,7 +92,8 @@
       "capacidade": 120,
       "inscritos": 71,
       "aprovados": 44,
-      "pendentes": 24
+      "pendentes": 24,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000004",
@@ -99,7 +102,8 @@
       "capacidade": 120,
       "inscritos": 68,
       "aprovados": 42,
-      "pendentes": 23
+      "pendentes": 23,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000005",
@@ -108,7 +112,8 @@
       "capacidade": 120,
       "inscritos": 65,
       "aprovados": 40,
-      "pendentes": 22
+      "pendentes": 22,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000006",
@@ -117,7 +122,8 @@
       "capacidade": 120,
       "inscritos": 62,
       "aprovados": 38,
-      "pendentes": 21
+      "pendentes": 21,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000007",
@@ -126,7 +132,8 @@
       "capacidade": 120,
       "inscritos": 59,
       "aprovados": 36,
-      "pendentes": 20
+      "pendentes": 20,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000008",
@@ -135,7 +142,8 @@
       "capacidade": 120,
       "inscritos": 56,
       "aprovados": 34,
-      "pendentes": 19
+      "pendentes": 19,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000009",
@@ -144,7 +152,8 @@
       "capacidade": 120,
       "inscritos": 53,
       "aprovados": 32,
-      "pendentes": 18
+      "pendentes": 18,
+      "rejeitados": 3
     },
     {
       "id": "00000000-0000-4000-8000-000000000010",
@@ -153,7 +162,8 @@
       "capacidade": 120,
       "inscritos": 50,
       "aprovados": 30,
-      "pendentes": 17
+      "pendentes": 17,
+      "rejeitados": 3
     }
   ],
   "logs": [

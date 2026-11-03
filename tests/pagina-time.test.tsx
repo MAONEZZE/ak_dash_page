@@ -237,6 +237,18 @@ describe("página Time — grade", () => {
     }
   });
 
+  it("ranking sozinho tem a altura de um card de pessoa; dois ou mais dividem as duas linhas", async () => {
+    montar("/time?squad=closer");
+    const sozinho = await screen.findByRole("complementary", { name: "Rankings do time" });
+    expect(sozinho.className).toContain("min-[1201px]:h-[var(--card-h)]");
+    expect(sozinho.className).not.toContain("min-[1201px]:h-[calc(var(--card-h)*2+12px)]");
+    cleanup();
+
+    montar("/time?squad=sdr,closer");
+    const dois = await screen.findByRole("complementary", { name: "Rankings do time" });
+    expect(dois.className).toContain("min-[1201px]:h-[calc(var(--card-h)*2+12px)]");
+  });
+
   it("layout desktop reserva uma coluna sticky aos rankings e mantém o fluxo no mobile", async () => {
     montar();
     const time = await screen.findByRole("region", { name: "Time" });

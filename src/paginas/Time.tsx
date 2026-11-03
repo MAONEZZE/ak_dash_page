@@ -113,8 +113,12 @@ function u(px: number): string {
  */
 const ALTURA_CONTEUDO = 316;
 const LARGURA_CONTEUDO = 392;
-/** Cabeçalho do app (68) + paddings do <main> (44) + o gap entre as duas linhas de cards (12) + arredondamento. */
-const RESERVA_VERTICAL_PX = 128;
+/**
+ * Cabeçalho do app (79, com a borda) + paddings do <main> (44) + o gap entre as
+ * duas linhas de cards (12) + arredondamento. Se faltar 1px aqui, o <main> ganha
+ * barra de rolagem mesmo com tudo cabendo na tela.
+ */
+const RESERVA_VERTICAL_PX = 136;
 
 const VARIAVEIS_TV = {
   "--card-h": `calc((100vh - ${RESERVA_VERTICAL_PX}px) / 2)`,
@@ -414,9 +418,12 @@ export function Time() {
             ))}
           </section>
         )}
+        {/* Ranking sozinho fica do tamanho de um card de pessoa; dois ou três dividem a altura das duas linhas. */}
         <aside
           aria-label="Rankings do time"
-          className="flex flex-col gap-3 min-[1201px]:sticky min-[1201px]:top-0 min-[1201px]:h-[calc(var(--card-h)*2+12px)] min-[1201px]:min-h-0"
+          className={`flex flex-col gap-3 min-[1201px]:sticky min-[1201px]:top-0 min-[1201px]:min-h-0 ${
+            cargosFiltrados.length === 1 ? "min-[1201px]:h-[var(--card-h)]" : "min-[1201px]:h-[calc(var(--card-h)*2+12px)]"
+          }`}
         >
           {cargosFiltrados.map((cargo) => (
             <RankingPodio key={cargo} cargo={cargo} pessoas={pessoasPorCargo[cargo]} />

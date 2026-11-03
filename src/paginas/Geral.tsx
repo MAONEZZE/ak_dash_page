@@ -2,7 +2,7 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
-import { EVENTOS_POR_TABELA, TabelaEventos } from "../componentes/TabelaEventos";
+import { TabelaEventos } from "../componentes/TabelaEventos";
 import { TabelaLogs } from "../componentes/TabelaLogs";
 import { Termometro } from "../componentes/Termometro";
 import { buscarGeral } from "../lib/api";
@@ -18,15 +18,20 @@ const INTERVALO_AUTO_REFRESH_MS = 60_000;
  * Uma grade de 4 colunas × 4 linhas (decisão do usuário, 2026-10-05; em
  * 2026-11-02 Eventos e Logs passaram a ocupar as duas colunas da direita):
  *
- *   Faturamento  | Reuniões Agendadas  | Eventos do mês        |        →
- *   Liquidado    | Inscrições Realizadas |      ↓              |        →
- *   Termômetro   | Oportunidade        | Logs                  |        →
- *        ↓       |        ↓            |      ↓                 |        →
+ *   Faturamento  | Reuniões Agendadas    | Eventos do mês (metade de cima)  →
+ *   Liquidado    | Inscrições Realizadas |      ↓                           →
+ *   Termômetro   | Oportunidade          | Logs (metade de baixo)           →
+ *        ↓       |                       |      ↓                           →
  *
- * Na TV (1920×1080) a página inteira cabe sem rolagem. Abaixo de xl a posição
- * explícita some e os itens empilham na ordem do DOM: coluna 1, 2, Eventos, Logs.
+ * As três primeiras linhas têm a altura natural dos KPIs; o Termômetro fica com
+ * o resto. Eventos e Logs vivem numa coluna própria (LATERAL) que atravessa as
+ * 4 linhas e divide a altura meio a meio: assim as linhas das tabelas não
+ * esticam os KPIs.
+ *
+ * Na TV (1920×1080) a página inteira cabe sem rolagem. Abaixo de xl a LATERAL
+ * vira `contents` e os itens empilham na ordem do DOM: coluna 1, 2, Eventos, Logs.
  */
-const GRADE = "grid grid-cols-1 gap-2 sm:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-4 xl:grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)]";
+const GRADE = "grid grid-cols-1 gap-2 sm:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-4 xl:grid-rows-[auto_auto_auto_minmax(0,1fr)]";
 const POSICAO = {
   faturamento: "xl:col-start-1 xl:row-start-1",
   liquidado: "xl:col-start-1 xl:row-start-2",
@@ -34,9 +39,10 @@ const POSICAO = {
   reunioes_agendadas: "xl:col-start-2 xl:row-start-1",
   inscricoes_realizadas: "xl:col-start-2 xl:row-start-2",
   oportunidade: "xl:col-start-2 xl:row-start-3",
-  eventos: "xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:row-span-2",
-  logs: "xl:col-start-3 xl:col-span-2 xl:row-start-3 xl:row-span-2",
+  eventos: "xl:min-h-0 xl:flex-1 xl:basis-0",
+  logs: "xl:min-h-0 xl:flex-1 xl:basis-0",
 } as const;
+const LATERAL = "contents xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:row-span-4 xl:flex xl:min-h-0 xl:flex-col xl:gap-2";
 /** Abaixo de xl a página rola: tabelas e termômetro ganham altura mínima própria. */
 const ALTURA_MOBILE = "min-h-[480px] xl:min-h-0";
 
@@ -71,9 +77,15 @@ function metaCard(c: CardGeral): string {
 function Esqueleto() {
   return (
     <section className={GRADE}>
-      {Object.entries(POSICAO).map(([chave, posicao]) => (
-        <CardEsqueleto key={chave} className={`h-full min-h-[104px] ${posicao}`} />
-      ))}
+      {Object.entries(POSICAO)
+        .filter(([chave]) => chave !== "eventos" && chave !== "logs")
+        .map(([chave, posicao]) => (
+          <CardEsqueleto key={chave} className={`h-full min-h-[104px] ${posicao}`} />
+        ))}
+      <div className={LATERAL}>
+        <CardEsqueleto className={`h-full min-h-[104px] ${POSICAO.eventos}`} />
+        <CardEsqueleto className={`h-full min-h-[104px] ${POSICAO.logs}`} />
+      </div>
     </section>
   );
 }
@@ -177,13 +189,15 @@ export function Geral() {
             {card("inscricoes_realizadas")}
             {card("oportunidade")}
 
-            <Celula posicao={POSICAO.eventos} className={ALTURA_MOBILE}>
-              <TabelaEventos titulo="Eventos do mês" eventos={eventos.slice(0, EVENTOS_POR_TABELA)} vazio="Nenhuma Confraria neste mês." />
-            </Celula>
+            <div className={LATERAL}>
+              <Celula posicao={POSICAO.eventos} className={ALTURA_MOBILE}>
+                <TabelaEventos titulo="Eventos do mês" eventos={eventos} vazio="Nenhuma Confraria neste mês." />
+              </Celula>
 
-            <Celula posicao={POSICAO.logs} className={ALTURA_MOBILE}>
-              <TabelaLogs titulo="Logs" logs={logs} vazio="Nenhum log no período." />
-            </Celula>
+              <Celula posicao={POSICAO.logs} className={ALTURA_MOBILE}>
+                <TabelaLogs titulo="Logs" logs={logs} vazio="Nenhum log no período." />
+              </Celula>
+            </div>
           </section>
         </>
       )}
