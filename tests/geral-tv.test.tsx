@@ -8,6 +8,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import geral from "../src/lib/fixtures/geral.example.json";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
+import { formatarDiaMesEvento, formatarNumero } from "../src/lib/formato";
 import { SomProvider } from "../src/lib/som";
 import { Geral } from "../src/paginas/Geral";
 
@@ -34,51 +35,77 @@ function rotulo(celula: Element): string | null | undefined {
 }
 
 describe("Geral — layout da TV", () => {
-  it("página sem rolagem: a grade fica com a tela e as duas últimas linhas dividem o resto", async () => {
+  it("página sem rolagem: a grade fica com a tela, KPIs na altura natural e o Termômetro com o resto", async () => {
     const { container } = montar();
     const grade = await screen.findByRole("region", { name: "Visão geral" });
 
     expect((container.firstElementChild as HTMLElement).className).toContain("xl:overflow-hidden");
     expect(grade.className).toContain("xl:flex-1");
     expect(grade.className).toContain("xl:grid-cols-4");
-    expect(grade.className).toContain("xl:grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)]");
+    expect(grade.className).toContain("xl:grid-rows-[auto_auto_auto_minmax(0,1fr)]");
   });
 
-  it("cada item na coluna/linha combinada, e no DOM na ordem coluna 1→4 (ordem do celular)", async () => {
+  it("empilha os KPIs claros, estende Eventos e Logs e não renderiza rankings", async () => {
     montar();
     const grade = await screen.findByRole("region", { name: "Visão geral" });
-    const itens = [...grade.children].map((c) => [rotulo(c), c.className.match(/xl:col-start-\d xl:row-start-\d/)?.[0]]);
-    expect(itens).toEqual([
-      ["Faturamento", "xl:col-start-1 xl:row-start-1"],
-      ["Liquidado", "xl:col-start-1 xl:row-start-2"],
-      ["Termômetro de liquidado", "xl:col-start-1 xl:row-start-3"],
-      ["Reuniões Agendadas", "xl:col-start-2 xl:row-start-1"],
-      ["Ranking Seller", "xl:col-start-2 xl:row-start-2"],
-      ["Inscrições Realizadas", "xl:col-start-3 xl:row-start-1"],
-      ["Confrarias do mês", "xl:col-start-3 xl:row-start-2"],
-      ["Oportunidade", "xl:col-start-4 xl:row-start-1"],
-      ["Logs", "xl:col-start-4 xl:row-start-2"],
+    // Eventos e Logs vêm dentro da coluna lateral, que é o último filho da grade.
+    const lateral = grade.lastElementChild as HTMLElement;
+    const celulas = [...[...grade.children].slice(0, -1), ...lateral.children];
+    expect(celulas.map(rotulo)).toEqual([
+      "Faturamento",
+      "Liquidado",
+      "Termômetro de liquidado",
+      "Reuniões Agendadas",
+      "Inscrições Realizadas",
+      "Oportunidade",
+      "Eventos do mês",
+      "Logs",
+    ]);
+    const classe = (label: string) => celulas.find((c) => rotulo(c) === label)?.className ?? "";
+    expect(classe("Faturamento")).toContain("xl:col-start-1 xl:row-start-1");
+    expect(classe("Liquidado")).toContain("xl:col-start-1 xl:row-start-2");
+    expect(classe("Termômetro de liquidado")).toContain("xl:col-start-1 xl:row-start-3 xl:row-span-2");
+    expect(classe("Reuniões Agendadas")).toContain("xl:col-start-2 xl:row-start-1");
+    expect(classe("Inscrições Realizadas")).toContain("xl:col-start-2 xl:row-start-2");
+    expect(classe("Oportunidade")).toContain("xl:col-start-2 xl:row-start-3");
+    expect(lateral.className).toContain("xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:row-span-4");
+    expect(lateral.className).toContain("xl:flex-col");
+    expect(lateral.classList.contains("contents")).toBe(true);
+    // Metade da lateral pra cada um.
+    expect(classe("Eventos do mês")).toContain("xl:flex-1 xl:basis-0");
+    expect(classe("Logs")).toContain("xl:flex-1 xl:basis-0");
+    expect(screen.queryByRole("article", { name: "Ranking Seller" })).toBeNull();
+    expect(screen.queryByRole("article", { name: "Ranking SDR" })).toBeNull();
+    expect(screen.queryByRole("article", { name: "Ranking Closer" })).toBeNull();
+  });
+
+  it("Eventos do mês mostra título, data, inscritos, aprovados, pendentes e rejeitados", async () => {
+    montar();
+    const tabela = await screen.findByRole("table", { name: "Eventos do mês" });
+    // fixture tem 10 eventos: todos renderizados (+1 linha de cabeçalho); o que não cabe no card rola
+    expect(within(tabela).getAllByRole("row")).toHaveLength(11);
+    expect(within(tabela).getByRole("rowgroup").className).toContain("overflow-y-auto");
+    expect(screen.queryByRole("table", { name: "Eventos do mês (cont.)" })).toBeNull();
+    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Evento", "Data", "In.", "Ap.", "P.", "R."]);
+    const [, primeira] = within(tabela).getAllByRole("row");
+    const e = geral.eventos[0];
+    expect(within(primeira).getAllByRole("cell")).toHaveLength(6);
+    expect(within(primeira).getAllByRole("cell").map((c) => c.textContent)).toEqual([
+      e.titulo,
+      formatarDiaMesEvento(e.data),
+      formatarNumero(e.inscritos),
+      formatarNumero(e.aprovados),
+      formatarNumero(e.pendentes),
+      formatarNumero(e.rejeitados),
     ]);
   });
 
-  it("Confrarias numa tabela só, de até 10 linhas", async () => {
-    montar();
-    const tabela = await screen.findByRole("table", { name: "Confrarias do mês" });
-    // fixture tem 10 Confrarias (+1 linha de cabeçalho)
-    expect(within(tabela).getAllByRole("row")).toHaveLength(11);
-    expect(screen.queryByRole("table", { name: "Confrarias do mês (cont.)" })).toBeNull();
-    expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Data", "In.", "Ap.", "P."]);
-    const [, primeira] = within(tabela).getAllByRole("row");
-    const e = geral.eventos[0];
-    expect(within(primeira).getAllByRole("cell").slice(1).map((c) => c.textContent)).toEqual([e.inscritos, e.aprovados, e.pendentes].map(String));
-  });
-
-  it("Logs: uma linha por log com usuário, atividade e cliente", async () => {
+  it("Logs: uma linha por log com o primeiro nome do usuário, atividade e cliente", async () => {
     montar();
     const tabela = await screen.findByRole("table", { name: "Logs" });
     expect(within(tabela).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["Usuário", "Atividade", "Cliente"]);
     const [, primeira, , semUsuario] = within(tabela).getAllByRole("row");
-    expect(within(primeira).getAllByRole("cell").map((c) => c.textContent)).toEqual(["Jennifer Pamplona", "Números Captados", "Isaque Costa"]);
+    expect(within(primeira).getAllByRole("cell").map((c) => c.textContent)).toEqual(["Jennifer", "Números Captados", "Isaque Costa"]);
     expect(within(semUsuario).getAllByRole("cell").map((c) => c.textContent)).toEqual(["—", "Indicações", "—"]);
   });
 
@@ -86,17 +113,6 @@ describe("Geral — layout da TV", () => {
     montar();
     await screen.findByRole("region", { name: "Visão geral" });
     expect(screen.queryByText("Ligações Realizadas")).toBeNull();
-  });
-
-  it("um ranking por cargo, sem botão de troca", async () => {
-    montar();
-    const seller = await screen.findByRole("article", { name: "Ranking Seller" });
-    expect(within(seller).getByText("Ana")).toBeTruthy();
-    expect(within(seller).getByText("Seller")).toBeTruthy();
-    const sdr = screen.getByRole("article", { name: "Ranking SDR" });
-    const closer = screen.getByRole("article", { name: "Ranking Closer" });
-    expect(within(sdr).queryByRole("button")).toBeNull();
-    expect(within(sdr).getByText("1º").parentElement?.textContent).not.toBe(within(closer).getByText("1º").parentElement?.textContent);
   });
 
   it("termômetro mostra o liquidado do mês contra a meta", async () => {

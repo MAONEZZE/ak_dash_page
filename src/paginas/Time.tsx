@@ -4,6 +4,7 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { ProgressBar } from "../componentes/ProgressBar";
+import { RankingPodio } from "../componentes/RankingPodio";
 import { RodapeAtingimento } from "../componentes/RodapeAtingimento";
 import { buscarComercialCloser, buscarComercialSdr, buscarComercialSeller } from "../lib/api";
 import { statusDoAtingimento } from "../lib/atingimento";
@@ -112,8 +113,12 @@ function u(px: number): string {
  */
 const ALTURA_CONTEUDO = 316;
 const LARGURA_CONTEUDO = 392;
-/** Cabeçalho do app (68) + paddings do <main> (44) + o gap entre as duas linhas de cards (12) + arredondamento. */
-const RESERVA_VERTICAL_PX = 128;
+/**
+ * Cabeçalho do app (79, com a borda) + paddings do <main> (44) + o gap entre as
+ * duas linhas de cards (12) + arredondamento. Se faltar 1px aqui, o <main> ganha
+ * barra de rolagem mesmo com tudo cabendo na tela.
+ */
+const RESERVA_VERTICAL_PX = 136;
 
 const VARIAVEIS_TV = {
   "--card-h": `calc((100vh - ${RESERVA_VERTICAL_PX}px) / 2)`,
@@ -359,6 +364,11 @@ export function Time() {
       return { grupo, indiceAtivo, metricas, proporcao: comMeta > 0 ? verdes / comMeta : -1 };
     })
     .sort((a, b) => b.proporcao - a.proporcao);
+  const pessoasPorCargo: Record<Cargo, PessoaComercial[]> = {
+    seller: seller.dado?.pessoas ?? [],
+    sdr: sdr.dado?.pessoas ?? [],
+    closer: closer.dado?.pessoas ?? [],
+  };
 
   const destacado = useDestaqueDoHash(cards.map((c) => c.grupo.chave).join(","));
 
@@ -390,23 +400,36 @@ export function Time() {
     >
       <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
       {grupos.length === 0 && <p className="text-xl text-muted">Nenhuma pessoa com dado lançado neste período.</p>}
-      {cards.length > 0 && (
-        <section
-          aria-label="Time"
-          className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-3"
+      <div className="grid grid-cols-1 gap-3 min-[1201px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] min-[1201px]:items-start">
+        {cards.length > 0 && (
+          <section
+            aria-label="Time"
+            className="grid grid-cols-1 gap-3 min-[761px]:grid-cols-2 min-[1201px]:auto-rows-[var(--card-h)] min-[1201px]:grid-cols-2"
+          >
+            {cards.map(({ grupo, indiceAtivo, metricas }) => (
+              <CardPessoaTime
+                key={grupo.chave}
+                grupo={grupo}
+                indiceAtivo={indiceAtivo}
+                metricas={metricas}
+                destacado={destacado === grupo.chave}
+                aoTrocarCargo={(i) => setCargoEscolhido((atual) => ({ ...atual, [grupo.chave]: i }))}
+              />
+            ))}
+          </section>
+        )}
+        {/* Ranking sozinho fica do tamanho de um card de pessoa; dois ou três dividem a altura das duas linhas. */}
+        <aside
+          aria-label="Rankings do time"
+          className={`flex flex-col gap-3 min-[1201px]:sticky min-[1201px]:top-0 min-[1201px]:min-h-0 ${
+            cargosFiltrados.length === 1 ? "min-[1201px]:h-[var(--card-h)]" : "min-[1201px]:h-[calc(var(--card-h)*2+12px)]"
+          }`}
         >
-          {cards.map(({ grupo, indiceAtivo, metricas }) => (
-            <CardPessoaTime
-              key={grupo.chave}
-              grupo={grupo}
-              indiceAtivo={indiceAtivo}
-              metricas={metricas}
-              destacado={destacado === grupo.chave}
-              aoTrocarCargo={(i) => setCargoEscolhido((atual) => ({ ...atual, [grupo.chave]: i }))}
-            />
+          {cargosFiltrados.map((cargo) => (
+            <RankingPodio key={cargo} cargo={cargo} pessoas={pessoasPorCargo[cargo]} />
           ))}
-        </section>
-      )}
+        </aside>
+      </div>
     </div>
   );
 }
