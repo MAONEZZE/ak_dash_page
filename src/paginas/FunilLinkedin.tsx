@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
+import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilEscada } from "../componentes/FunilEscada";
+import { GraficoBarrasContas } from "../componentes/GraficoBarrasContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
+import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
-import { somarContas, formatarTaxa, taxasLinkedin, umaCasa } from "../lib/funil";
+import { COLUNAS_LINKEDIN, diasUteisRestantes, linhaLinkedin, somarContas, formatarTaxa, taxasLinkedin, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -128,6 +131,32 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         <CardKpi label="InMails enviados" value={formatarNumero(m.in_mails)} />
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />
       </section>
+      <TabelaContasFunil
+        titulo="Por LinkedIn"
+        rotuloConta="LinkedIn"
+        colunas={COLUNAS_LINKEDIN}
+        linhas={dado.contas.map((c) => linhaLinkedin(c.nome, c.metricas))}
+        total={linhaLinkedin("TOTAL", somarContas(dado.contas, null))}
+        destacada={conta}
+      />
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <GraficoBarrasContas
+          titulo="Volume por LinkedIn"
+          orientacao="horizontal"
+          formato="numero"
+          ordenar="crescente"
+          dados={dado.contas.map((c) => ({ nome: c.nome, valor: c.metricas.conexoes_enviadas }))}
+          destacada={conta}
+        />
+        <GraficoBarrasContas
+          titulo="Taxa de conversão por LinkedIn"
+          orientacao="vertical"
+          formato="taxa"
+          dados={dado.contas.map((c) => ({ nome: c.nome, valor: taxasLinkedin(c.metricas).conversaoTotal }))}
+          destacada={conta}
+        />
+      </section>
+      <BlocoDashboardFunil dashboard={dado.dashboard} diasUteisRestantes={diasUteisRestantes(new Date())} />
     </>
   );
 }

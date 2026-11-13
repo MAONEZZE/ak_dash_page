@@ -78,6 +78,47 @@ export interface LinhaFunil {
   valores: Record<string, number | null>;
 }
 
+export const COLUNAS_LINKEDIN: ColunaFunil[] = [
+  { chave: "conexoes_enviadas", rotulo: "Conexões Enviadas", tipo: "numero" },
+  { chave: "aceitacao", rotulo: "% Aceitação", tipo: "taxa" },
+  { chave: "conexoes_aceitas", rotulo: "Conexões Aceitas", tipo: "numero" },
+  { chave: "abordados", rotulo: "% Abordados", tipo: "taxa" },
+  { chave: "mensagens_abordagem", rotulo: "Mensagem de Abordagem", tipo: "numero" },
+  { chave: "resposta", rotulo: "% Resposta", tipo: "taxa" },
+  { chave: "respondidos", rotulo: "Respondidos", tipo: "numero" },
+  { chave: "conversaoNumero", rotulo: "% Conversão em número", tipo: "taxa" },
+  { chave: "numeros_captados", rotulo: "Números Captados", tipo: "numero" },
+  { chave: "conversaoTotal", rotulo: "Conversão total", tipo: "taxa" },
+  { chave: "abordagens", rotulo: "Abordagens", tipo: "numero" },
+  { chave: "in_mails", rotulo: "InMails Enviados", tipo: "numero" },
+  { chave: "fups", rotulo: "Follow-ups", tipo: "numero" },
+  { chave: "follows_abordagem", rotulo: "Follow de abordagem", tipo: "numero" },
+];
+
+/** Linha da tabela LinkedIn: contadores da conta + taxas calculadas. */
+export function linhaLinkedin(nome: string, m: MetricasConta): LinhaFunil {
+  const t = taxasLinkedin(m);
+  return {
+    nome,
+    valores: {
+      conexoes_enviadas: m.conexoes_enviadas,
+      aceitacao: t.aceitacao,
+      conexoes_aceitas: m.conexoes_aceitas,
+      abordados: t.abordados,
+      mensagens_abordagem: m.mensagens_abordagem,
+      resposta: t.resposta,
+      respondidos: m.respondidos,
+      conversaoNumero: t.conversaoNumero,
+      numeros_captados: m.numeros_captados,
+      conversaoTotal: t.conversaoTotal,
+      abordagens: m.abordagens,
+      in_mails: m.in_mails,
+      fups: m.fups,
+      follows_abordagem: m.follows_abordagem,
+    },
+  };
+}
+
 export const COLUNAS_INSTAGRAM: ColunaFunil[] = [
   { chave: "abordagens", rotulo: "Abordagens", tipo: "numero" },
   { chave: "resposta", rotulo: "% Resposta", tipo: "taxa" },
