@@ -49,3 +49,14 @@ export function umaCasa(v: number | null): string {
   if (v === null) return "—";
   return UMA_CASA.format(v);
 }
+
+export interface ColunaFunil {
+  chave: string;
+  rotulo: string;
+  tipo: "numero" | "taxa";
+}
+
+export interface LinhaFunil {
+  nome: string;
+  valores: Record<string, number | null>;
+}
