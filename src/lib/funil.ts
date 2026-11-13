@@ -36,6 +36,23 @@ export function taxasLinkedin(m: MetricasConta): TaxasLinkedin {
   };
 }
 
+export interface TaxasInstagram {
+  resposta: number | null;
+  conversaoNumero: number | null;
+  conversaoTotal: number | null;
+  fupsPorAbordagem: number | null;
+}
+
+/** Taxas do funil Instagram (frações 0–1, exceto `fupsPorAbordagem`, razão simples). */
+export function taxasInstagram(m: MetricasConta): TaxasInstagram {
+  return {
+    resposta: razao(m.respondidos, m.abordagens),
+    conversaoNumero: razao(m.numeros_captados, m.respondidos),
+    conversaoTotal: razao(m.numeros_captados, m.abordagens),
+    fupsPorAbordagem: razao(m.fups, m.abordagens),
+  };
+}
+
 const UMA_CASA = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /** Formata fração como porcentagem pt-BR com 1 casa ("58,0%"); `null` vira "—". */

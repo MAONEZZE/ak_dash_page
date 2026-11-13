@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { formatarTaxa, somarContas, taxasLinkedin, umaCasa } from "../src/lib/funil";
+import { formatarTaxa, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
 import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "../src/lib/tipos-api";
 
 function metricas(parcial: Partial<MetricasConta>): MetricasConta {
@@ -56,4 +56,18 @@ it("taxasLinkedin bate com o painel da planilha e devolve null em divisão por z
   expect(z.followsPorAbordagem).toBeNull();
   expect(formatarTaxa(null)).toBe("—");
   expect(umaCasa(null)).toBe("—");
+});
+
+it("taxasInstagram calcula resposta, conversão e follow-ups por abordagem", () => {
+  const m = metricas({ abordagens: 200, respondidos: 50, numeros_captados: 10, fups: 300 });
+
+  const t = taxasInstagram(m);
+
+  expect(t).toEqual({ resposta: 0.25, conversaoNumero: 0.2, conversaoTotal: 0.05, fupsPorAbordagem: 1.5 });
+
+  const z = taxasInstagram(metricas({ respondidos: 5, numeros_captados: 2, fups: 3 }));
+
+  expect(z.resposta).toBeNull();
+  expect(z.conversaoTotal).toBeNull();
+  expect(z.fupsPorAbordagem).toBeNull();
 });
