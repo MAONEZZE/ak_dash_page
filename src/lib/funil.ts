@@ -9,3 +9,43 @@ export function somarContas(contas: ContaFunil[], conta: string | null): Metrica
   }
   return soma;
 }
+
+/** Razão parte ÷ total; `null` quando o total é zero (divisão indefinida). */
+export function razao(parte: number, total: number): number | null {
+  return total === 0 ? null : parte / total;
+}
+
+export interface TaxasLinkedin {
+  aceitacao: number | null;
+  abordados: number | null;
+  resposta: number | null;
+  conversaoNumero: number | null;
+  conversaoTotal: number | null;
+  followsPorAbordagem: number | null;
+}
+
+/** Taxas do funil LinkedIn como na planilha (frações 0–1, exceto `followsPorAbordagem`, razão simples). */
+export function taxasLinkedin(m: MetricasConta): TaxasLinkedin {
+  return {
+    aceitacao: razao(m.conexoes_aceitas, m.conexoes_enviadas),
+    abordados: razao(m.mensagens_abordagem, m.conexoes_aceitas),
+    resposta: razao(m.respondidos, m.mensagens_abordagem),
+    conversaoNumero: razao(m.numeros_captados, m.respondidos),
+    conversaoTotal: razao(m.numeros_captados, m.conexoes_enviadas),
+    followsPorAbordagem: razao(m.follows_abordagem, m.mensagens_abordagem),
+  };
+}
+
+const UMA_CASA = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Formata fração como porcentagem pt-BR com 1 casa ("58,0%"); `null` vira "—". */
+export function formatarTaxa(v: number | null): string {
+  if (v === null) return "—";
+  return UMA_CASA.format(v * 100) + "%";
+}
+
+/** Formata número com 1 casa pt-BR ("0,8"); `null` vira "—". */
+export function umaCasa(v: number | null): string {
+  if (v === null) return "—";
+  return UMA_CASA.format(v);
+}

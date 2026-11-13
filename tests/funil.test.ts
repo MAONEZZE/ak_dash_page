@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { somarContas } from "../src/lib/funil";
+import { formatarTaxa, somarContas, taxasLinkedin, umaCasa } from "../src/lib/funil";
 import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "../src/lib/tipos-api";
 
 function metricas(parcial: Partial<MetricasConta>): MetricasConta {
@@ -24,4 +24,36 @@ it("somarContas soma todas as contas e filtra pela conta escolhida", () => {
   expect(inexistente.conexoes_enviadas).toBe(764);
   expect(inexistente.numeros_captados).toBe(38);
   expect(Object.keys(todas).sort()).toEqual([...METRICAS_CONTA].sort());
+});
+
+it("taxasLinkedin bate com o painel da planilha e devolve null em divisão por zero", () => {
+  const totais = metricas({
+    conexoes_enviadas: 1621,
+    conexoes_aceitas: 940,
+    mensagens_abordagem: 840,
+    follows_abordagem: 713,
+    respondidos: 482,
+    numeros_captados: 89,
+  });
+  const zeros = metricas({});
+
+  const t = taxasLinkedin(totais);
+
+  expect(formatarTaxa(t.aceitacao)).toBe("58,0%");
+  expect(formatarTaxa(t.abordados)).toBe("89,4%");
+  expect(formatarTaxa(t.resposta)).toBe("57,4%");
+  expect(formatarTaxa(t.conversaoNumero)).toBe("18,5%");
+  expect(formatarTaxa(t.conversaoTotal)).toBe("5,5%");
+  expect(umaCasa(t.followsPorAbordagem)).toBe("0,8");
+
+  const z = taxasLinkedin(zeros);
+
+  expect(z.aceitacao).toBeNull();
+  expect(z.abordados).toBeNull();
+  expect(z.resposta).toBeNull();
+  expect(z.conversaoNumero).toBeNull();
+  expect(z.conversaoTotal).toBeNull();
+  expect(z.followsPorAbordagem).toBeNull();
+  expect(formatarTaxa(null)).toBe("—");
+  expect(umaCasa(null)).toBe("—");
 });
