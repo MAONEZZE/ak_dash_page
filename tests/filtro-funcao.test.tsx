@@ -11,7 +11,7 @@ function Espia() {
   return <span data-testid="busca">{decodeURIComponent(search)}</span>;
 }
 
-function montar(rota = "/comercial") {
+function montar(rota = "/time") {
   render(
     <MemoryRouter initialEntries={[rota]}>
       <PillSquad />
@@ -52,21 +52,21 @@ describe("filtro de função", () => {
   });
 
   it("lê a seleção da querystring, inclusive o formato antigo de um cargo só", () => {
-    const botao = montar("/comercial?squad=sdr");
+    const botao = montar("/time?squad=sdr");
     expect(botao.textContent).toContain("SDRs");
     fireEvent.click(botao);
     expect(marcadas()).toEqual(["SDRs"]);
   });
 
   it("o último cargo marcado não pode ser desmarcado", () => {
-    montar("/comercial?squad=sdr");
+    montar("/time?squad=sdr");
     fireEvent.click(screen.getByRole("button", { name: /Função/ }));
     const sdr = screen.getByRole("checkbox", { name: "SDRs" }) as HTMLInputElement;
     expect(sdr.disabled).toBe(true);
   });
 
   it("marcar os três volta pra 'Todos' e tira o filtro da querystring", () => {
-    const botao = montar("/comercial?squad=seller,sdr");
+    const botao = montar("/time?squad=seller,sdr");
     fireEvent.click(botao);
     fireEvent.click(screen.getByRole("checkbox", { name: "Closers" }));
 

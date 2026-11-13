@@ -39,7 +39,7 @@ const NAV_ITENS = [
 ];
 
 /** Páginas que filtram por função (Todos/Sellers/SDRs/Closers). */
-const PAGINAS_COM_SQUAD = ["/comercial", "/time"];
+const PAGINAS_COM_SQUAD = ["/time"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },

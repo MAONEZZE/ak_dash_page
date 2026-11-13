@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // O filtro de função (Todos/Sellers/SDRs/Closers) mora no header, logo à direita
-// do filtro de data — e só nas páginas que filtram por função (Comercial e Time).
+// do filtro de data — e só nas páginas que filtram por função (Time).
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -97,7 +97,7 @@ describe("filtro de função no header", () => {
     }
   });
 
-  it.each(["/time", "/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
+  it.each(["/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
     await montar(rota);
     const header = screen.getByRole("banner");
     const periodo = screen.getByRole("group", { name: "Período" });
@@ -110,10 +110,11 @@ describe("filtro de função no header", () => {
 
   it.each([
     ["/time", true],
-    ["/time", true],
+    ["/funil-linkedin", false],
+    ["/funil-instagram", false],
     ["/geral", false],
     ["/financeiro", false],
-  ] as const)("filtro de função permanece visível e só habilita em Comercial e Time (%s)", async (rota, habilitado) => {
+  ] as const)("filtro de função permanece visível e só habilita na Time (%s)", async (rota, habilitado) => {
     cleanup();
     await montar(rota);
     const header = screen.getByRole("banner");
