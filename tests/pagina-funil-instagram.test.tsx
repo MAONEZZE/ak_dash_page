@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { buscarFunil } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { FunilInstagram } from "../src/paginas/FunilInstagram";
@@ -47,6 +47,8 @@ const RESPOSTA: RespostaFunil = {
 vi.mock("../src/lib/api", () => ({
   buscarFunil: vi.fn(async () => RESPOSTA),
 }));
+
+beforeEach(() => vi.clearAllMocks());
 
 afterEach(() => cleanup());
 
@@ -94,4 +96,24 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(valorDe("Taxa de resposta")).toBe("25,0%");
 
   expect(screen.getByText("Consolidado de Mary, akeel e Jacob")).toBeTruthy();
+});
+
+it("escolher um perfil filtra funil e cards", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilInstagram />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  const lista = await screen.findByRole("list", { name: "Funil Instagram" });
+  fireEvent.click(within(screen.getByRole("group", { name: "Perfil" })).getByRole("button", { name: "Mary" }));
+
+  const etapas = within(lista).getAllByRole("listitem");
+  expect(etapas[0].textContent).toContain("Abordagens feitas");
+  expect(etapas[0].textContent).toContain("100");
+  expect(etapas[0].textContent).toContain("↓ 30,0% responderam");
+  expect(valorDe("Follow-ups")).toBe("50");
+  expect(buscarFunil).toHaveBeenCalledTimes(1);
 });
