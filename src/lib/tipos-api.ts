@@ -338,3 +338,48 @@ export interface RespostaFinanceiro {
   /** Ordenadas por data_venda decrescente (venda mais recente primeiro). */
   vendas: VendaFinanceiro[];
 }
+
+// ---- /funil/{canal} ----
+
+export type Canal = "linkedin" | "instagram";
+
+export const METRICAS_CONTA = [
+  "conexoes_enviadas",
+  "conexoes_aceitas",
+  "mensagens_abordagem",
+  "abordagens",
+  "follows_abordagem",
+  "respondidos",
+  "in_mails",
+  "fups",
+  "numeros_captados",
+  "indicacoes",
+] as const;
+export type MetricaConta = (typeof METRICAS_CONTA)[number];
+
+export type MetricasConta = Record<MetricaConta, number>;
+
+export interface ContaFunil {
+  id_conta: string;
+  nome: string;
+  metricas: MetricasConta;
+}
+
+export interface DashboardFunil {
+  seller: { id_user: string; nome: string } | null;
+  diario: MetricaTime[];
+  semanal: MetricaTime[];
+  mensal: MetricaTime[];
+}
+
+export interface RespostaFunil {
+  periodo: Periodo;
+  avisos: string[];
+  contas: ContaFunil[];
+  dashboard: DashboardFunil;
+}
+
+export interface ParametrosFunil {
+  granularidade: Granularidade;
+  periodo: string;
+}
