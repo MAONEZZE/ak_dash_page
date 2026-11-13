@@ -1,0 +1,194 @@
+{
+  "periodo": {
+    "granularidade": "mes",
+    "inicio": "2026-11-01",
+    "fim": "2026-11-30"
+  },
+  "avisos": [],
+  "contas": [
+    {
+      "id_conta": "1",
+      "nome": "Jacob",
+      "metricas": {
+        "conexoes_enviadas": 381,
+        "conexoes_aceitas": 253,
+        "mensagens_abordagem": 242,
+        "abordagens": 572,
+        "follows_abordagem": 353,
+        "respondidos": 165,
+        "in_mails": 103,
+        "fups": 19,
+        "numeros_captados": 19,
+        "indicacoes": 0
+      }
+    },
+    {
+      "id_conta": "2",
+      "nome": "Jonathan",
+      "metricas": {
+        "conexoes_enviadas": 383,
+        "conexoes_aceitas": 259,
+        "mensagens_abordagem": 234,
+        "abordagens": 499,
+        "follows_abordagem": 277,
+        "respondidos": 112,
+        "in_mails": 0,
+        "fups": 39,
+        "numeros_captados": 19,
+        "indicacoes": 0
+      }
+    },
+    {
+      "id_conta": "3",
+      "nome": "Alex",
+      "metricas": {
+        "conexoes_enviadas": 165,
+        "conexoes_aceitas": 72,
+        "mensagens_abordagem": 68,
+        "abordagens": 91,
+        "follows_abordagem": 14,
+        "respondidos": 37,
+        "in_mails": 0,
+        "fups": 0,
+        "numeros_captados": 6,
+        "indicacoes": 0
+      }
+    },
+    {
+      "id_conta": "4",
+      "nome": "Mariana",
+      "metricas": {
+        "conexoes_enviadas": 297,
+        "conexoes_aceitas": 139,
+        "mensagens_abordagem": 116,
+        "abordagens": 186,
+        "follows_abordagem": 51,
+        "respondidos": 52,
+        "in_mails": 0,
+        "fups": 40,
+        "numeros_captados": 9,
+        "indicacoes": 0
+      }
+    },
+    {
+      "id_conta": "5",
+      "nome": "Leticia",
+      "metricas": {
+        "conexoes_enviadas": 395,
+        "conexoes_aceitas": 217,
+        "mensagens_abordagem": 180,
+        "abordagens": 217,
+        "follows_abordagem": 18,
+        "respondidos": 116,
+        "in_mails": 0,
+        "fups": 30,
+        "numeros_captados": 36,
+        "indicacoes": 0
+      }
+    }
+  ],
+  "dashboard": {
+    "seller": {
+      "id_user": "4",
+      "nome": "Duda"
+    },
+    "diario": [
+      {
+        "metrica": "fups",
+        "nome_exibicao": "Fups",
+        "meta_periodo": 10,
+        "realizado": 4,
+        "pct_atingimento": 40,
+        "falta_folga": {
+          "tipo": "falta",
+          "valor": 6
+        },
+        "horas_restantes": 5,
+        "media_necessaria": {
+          "valor": 1.5,
+          "unidade": "hora",
+          "situacao": "pendente"
+        },
+        "previsao": null
+      },
+      {
+        "metrica": "numeros_captados",
+        "nome_exibicao": "Números Captados",
+        "meta_periodo": 4,
+        "realizado": 4,
+        "pct_atingimento": 100,
+        "falta_folga": {
+          "tipo": "folga",
+          "valor": 0
+        },
+        "horas_restantes": 5,
+        "media_necessaria": {
+          "valor": null,
+          "unidade": "hora",
+          "situacao": "meta_batida"
+        },
+        "previsao": null
+      }
+    ],
+    "semanal": [
+      {
+        "metrica": "fups",
+        "nome_exibicao": "Fups",
+        "meta_periodo": 50,
+        "realizado": 22,
+        "pct_atingimento": 44,
+        "falta_folga": {
+          "tipo": "falta",
+          "valor": 28
+        },
+        "horas_restantes": null,
+        "media_necessaria": null,
+        "previsao": null
+      },
+      {
+        "metrica": "numeros_captados",
+        "nome_exibicao": "Números Captados",
+        "meta_periodo": 20,
+        "realizado": 21,
+        "pct_atingimento": 105,
+        "falta_folga": {
+          "tipo": "folga",
+          "valor": 1
+        },
+        "horas_restantes": null,
+        "media_necessaria": null,
+        "previsao": null
+      }
+    ],
+    "mensal": [
+      {
+        "metrica": "fups",
+        "nome_exibicao": "Fups",
+        "meta_periodo": 220,
+        "realizado": 40,
+        "pct_atingimento": 18.2,
+        "falta_folga": {
+          "tipo": "falta",
+          "valor": 180
+        },
+        "horas_restantes": null,
+        "media_necessaria": null,
+        "previsao": 78.4
+      },
+      {
+        "metrica": "numeros_captados",
+        "nome_exibicao": "Números Captados",
+        "meta_periodo": 88,
+        "realizado": 9,
+        "pct_atingimento": 10.2,
+        "falta_folga": {
+          "tipo": "falta",
+          "valor": 79
+        },
+        "horas_restantes": null,
+        "media_necessaria": null,
+        "previsao": 17.6
+      }
+    ]
+  }
+}

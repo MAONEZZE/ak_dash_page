@@ -2,15 +2,19 @@ import comercialClosterFixture from "./fixtures/comercial_closer.example.json";
 import comercialSdrFixture from "./fixtures/comercial_sdr.example.json";
 import comercialSellerFixture from "./fixtures/comercial_seller.example.json";
 import financeiroFixture from "./fixtures/financeiro.example.json";
+import funilLinkedinFixture from "./fixtures/funil_linkedin.example.json";
 import geralFixture from "./fixtures/geral.example.json";
 import pessoasFixture from "./fixtures/pessoas.example.json";
 import type {
+  Canal,
   Erro,
   ParametrosComercial,
+  ParametrosFunil,
   ParametrosGeral,
   Pessoa,
   RespostaComercial,
   RespostaFinanceiro,
+  RespostaFunil,
   RespostaGeral,
 } from "./tipos-api";
 import { supabase } from "./supabase";
@@ -183,4 +187,9 @@ export async function buscarGeral(params: ParametrosGeral = {}): Promise<Respost
 export async function buscarFinanceiro(params: ParametrosGeral = {}): Promise<RespostaFinanceiro> {
   if (USA_FIXTURES) return financeiroFixture as RespostaFinanceiro;
   return requisitar<RespostaFinanceiro>("/financeiro", { granularidade: params.granularidade, periodo: params.periodo });
+}
+
+export async function buscarFunil(canal: Canal, params: ParametrosFunil): Promise<RespostaFunil> {
+  if (USA_FIXTURES) return funilLinkedinFixture as RespostaFunil;
+  return requisitar<RespostaFunil>(`/funil/${canal}`, { granularidade: params.granularidade, periodo: params.periodo });
 }
