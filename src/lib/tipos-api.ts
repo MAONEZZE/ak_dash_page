@@ -155,7 +155,7 @@ export type MetricaCloser = (typeof METRICAS_CLOSER)[number];
 
 /**
  * Métricas que a aba "Dashboard" de cada planilha (Sellers, SDRs, Closers)
- * acompanha, na ordem dela — é o que Comercial e Time mostram por cargo.
+ * acompanha, na ordem dela — é o que a Time mostra por cargo.
  * "Onboarding realizado" (Dashboard Closers) ainda não existe no banco.
  */
 export const METRICAS_DASHBOARD: Record<Cargo, readonly string[]> = {
