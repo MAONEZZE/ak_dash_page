@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
+import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilEscada } from "../componentes/FunilEscada";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
+import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
-import { somarContas, formatarTaxa, taxasInstagram, umaCasa } from "../lib/funil";
+import { COLUNAS_INSTAGRAM, diasUteisRestantes, linhaInstagram, somarContas, formatarTaxa, taxasInstagram, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -126,6 +128,15 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         <CardKpi label="Indicações Captadas" value={formatarNumero(m.indicacoes)} />
         <CardKpi label="Taxa de resposta" value={formatarTaxa(t.resposta)} />
       </section>
+      <TabelaContasFunil
+        titulo="Por perfil"
+        rotuloConta="Perfil"
+        colunas={COLUNAS_INSTAGRAM}
+        linhas={dado.contas.map((c) => linhaInstagram(c.nome, c.metricas))}
+        total={linhaInstagram("TOTAL", somarContas(dado.contas, null))}
+        destacada={conta}
+      />
+      <BlocoDashboardFunil dashboard={dado.dashboard} diasUteisRestantes={diasUteisRestantes(new Date())} />
     </>
   );
 }

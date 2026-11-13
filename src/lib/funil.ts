@@ -77,3 +77,50 @@ export interface LinhaFunil {
   nome: string;
   valores: Record<string, number | null>;
 }
+
+export const COLUNAS_INSTAGRAM: ColunaFunil[] = [
+  { chave: "abordagens", rotulo: "Abordagens", tipo: "numero" },
+  { chave: "resposta", rotulo: "% Resposta", tipo: "taxa" },
+  { chave: "respondidos", rotulo: "Respondidos", tipo: "numero" },
+  { chave: "conversaoNumero", rotulo: "% Conversão em número", tipo: "taxa" },
+  { chave: "numeros_captados", rotulo: "Números Captados", tipo: "numero" },
+  { chave: "conversaoTotal", rotulo: "Conversão total", tipo: "taxa" },
+  { chave: "fups", rotulo: "Follow-ups", tipo: "numero" },
+];
+
+/** Linha da tabela Instagram: contadores da conta + taxas calculadas. */
+export function linhaInstagram(nome: string, m: MetricasConta): LinhaFunil {
+  const t = taxasInstagram(m);
+  return {
+    nome,
+    valores: {
+      abordagens: m.abordagens,
+      resposta: t.resposta,
+      respondidos: m.respondidos,
+      conversaoNumero: t.conversaoNumero,
+      numeros_captados: m.numeros_captados,
+      conversaoTotal: t.conversaoTotal,
+      fups: m.fups,
+    },
+  };
+}
+
+/** Dias úteis (seg–sex) entre `inicio` e `fim`, ambos inclusive, em data local. */
+function contarDiasUteis(inicio: Date, fim: Date): number {
+  let n = 0;
+  for (const d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() !== 0 && d.getDay() !== 6) n++;
+  }
+  return n;
+}
+
+/** Dias úteis de amanhã até o domingo da semana ISO de `hoje` (semanal) e até o fim do mês de `hoje` (mensal). */
+export function diasUteisRestantes(hoje: Date): { semanal: number; mensal: number } {
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+  const dia = hoje.getDate();
+  const amanha = new Date(ano, mes, dia + 1);
+  const domingo = new Date(ano, mes, dia + (7 - (hoje.getDay() || 7)));
+  const fimDoMes = new Date(ano, mes + 1, 0);
+  return { semanal: contarDiasUteis(amanha, domingo), mensal: contarDiasUteis(amanha, fimDoMes) };
+}

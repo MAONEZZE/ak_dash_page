@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { buscarFunil } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { FunilInstagram } from "../src/paginas/FunilInstagram";
-import type { MetricasConta, RespostaFunil } from "../src/lib/tipos-api";
+import type { MetricaTime, MetricasConta, RespostaFunil } from "../src/lib/tipos-api";
 
 const ZERO: MetricasConta = {
   conexoes_enviadas: 0,
@@ -116,4 +116,64 @@ it("escolher um perfil filtra funil e cards", async () => {
   expect(etapas[0].textContent).toContain("↓ 30,0% responderam");
   expect(valorDe("Follow-ups")).toBe("50");
   expect(buscarFunil).toHaveBeenCalledTimes(1);
+});
+
+/** Cells de uma linha da tabela, pelo nome do perfil (ou TOTAL). */
+function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
+  const linha = within(tabela).getByRole("cell", { name: nome }).closest("tr") as HTMLElement;
+  return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
+}
+
+it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Dashboard", async () => {
+  const mensal: MetricaTime = {
+    metrica: "numeros_captados",
+    nome_exibicao: "Números Captados",
+    meta_periodo: 441,
+    realizado: 33,
+    pct_atingimento: 7.5,
+    falta_folga: { tipo: "falta", valor: 408 },
+    horas_restantes: null,
+    media_necessaria: { valor: 37.1, unidade: "dia", situacao: "pendente" },
+    previsao: null,
+  };
+  vi.mocked(buscarFunil).mockResolvedValueOnce({ ...RESPOSTA, dashboard: { ...RESPOSTA.dashboard, mensal: [mensal] } });
+  vi.useFakeTimers({ now: new Date(2026, 10, 13, 12), toFake: ["Date"] });
+
+  try {
+    render(
+      <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11&conta=akeel"]}>
+        <AtualizacaoProvider>
+          <FunilInstagram />
+        </AtualizacaoProvider>
+      </MemoryRouter>,
+    );
+
+    const tabela = await screen.findByRole("table", { name: "Por perfil" });
+    expect(within(tabela).getAllByRole("columnheader").map((th) => th.textContent)).toEqual([
+      "Perfil",
+      "Abordagens",
+      "% Resposta",
+      "Respondidos",
+      "% Conversão em número",
+      "Números Captados",
+      "Conversão total",
+      "Follow-ups",
+    ]);
+
+    expect(celulasDaLinha(tabela, "Mary")).toEqual(["Mary", "100", "30,0%", "30", "20,0%", "6", "6,0%", "50"]);
+    expect(celulasDaLinha(tabela, "akeel")).toEqual(["akeel", "100", "20,0%", "20", "20,0%", "4", "4,0%", "150"]);
+    expect(celulasDaLinha(tabela, "Jacob")).toEqual(["Jacob", "0", "—", "0", "—", "0", "—", "0"]);
+    expect(celulasDaLinha(tabela, "TOTAL")).toEqual(["TOTAL", "200", "25,0%", "50", "20,0%", "10", "5,0%", "200"]);
+
+    expect(within(tabela).getByRole("cell", { name: "akeel" }).closest("tr")?.getAttribute("aria-current")).toBe("true");
+    expect(within(tabela).getByRole("cell", { name: "Mary" }).closest("tr")?.getAttribute("aria-current")).toBeNull();
+
+    const tabelaMensal = screen.getByRole("table", { name: "Mensal" });
+    expect(within(tabelaMensal).getByText("441")).toBeTruthy();
+    expect(within(tabelaMensal).getByText("11")).toBeTruthy();
+
+    expect(screen.getByRole("heading", { name: "Dashboard · Lucas" })).toBeTruthy();
+  } finally {
+    vi.useRealTimers();
+  }
 });
