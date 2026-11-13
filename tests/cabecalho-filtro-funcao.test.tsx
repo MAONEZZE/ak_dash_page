@@ -5,7 +5,9 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/paginas/Comercial", () => ({ Comercial: () => <div>pagina-comercial</div> }));
+vi.mock("../src/paginas/FunilLinkedin", () => ({ FunilLinkedin: () => <div>pagina-funil-linkedin</div> }));
+vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pagina-funil-instagram</div> }));
+vi.mock("../src/paginas/Geral", () => ({ Geral: () => <div>pagina-geral</div> }));
 vi.mock("../src/paginas/Time", () => ({ Time: () => <div>pagina-time</div> }));
 vi.mock("../src/paginas/Financeiro", () => ({ Financeiro: () => <div>pagina-financeiro</div> }));
 vi.mock("../src/lib/supabase", () => ({
@@ -43,8 +45,26 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
+  it("navbar lista as cinco páginas na ordem e a raiz abre a Geral", async () => {
+    await montar("/");
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+
+    expect(within(navegacao).getAllByRole("link").map((l) => l.textContent)).toEqual([
+      "Funil LinkedIn",
+      "Funil Instagram",
+      "Geral",
+      "Financeiro",
+      "Time",
+    ]);
+    expect(await screen.findByText("pagina-geral")).toBeTruthy();
+
+    cleanup();
+    await montar("/funil-instagram");
+    expect(screen.getByText("pagina-funil-instagram")).toBeTruthy();
+  });
+
   it("navbar autenticada não exibe a marca akeel", async () => {
-    await montar("/comercial");
+    await montar("/geral");
     const header = screen.getByRole("banner");
 
     expect(within(header).queryByText("akeel", { exact: true })).toBeNull();
@@ -77,7 +97,7 @@ describe("filtro de função no header", () => {
     }
   });
 
-  it.each(["/comercial", "/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
+  it.each(["/time", "/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
     await montar(rota);
     const header = screen.getByRole("banner");
     const periodo = screen.getByRole("group", { name: "Período" });
@@ -89,7 +109,7 @@ describe("filtro de função no header", () => {
   });
 
   it.each([
-    ["/comercial", true],
+    ["/time", true],
     ["/time", true],
     ["/geral", false],
     ["/financeiro", false],

@@ -9,8 +9,9 @@ import { formatarHora } from "./lib/formato";
 import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
 import type { Granularidade } from "./lib/tipos-api";
-import { Comercial } from "./paginas/Comercial";
 import { Financeiro } from "./paginas/Financeiro";
+import { FunilInstagram } from "./paginas/FunilInstagram";
+import { FunilLinkedin } from "./paginas/FunilLinkedin";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
 import { Time } from "./paginas/Time";
@@ -30,10 +31,11 @@ function useTema(): [Tema, () => void] {
 }
 
 const NAV_ITENS = [
+  { rota: "/funil-linkedin", rotulo: "Funil LinkedIn" },
+  { rota: "/funil-instagram", rotulo: "Funil Instagram" },
   { rota: "/geral", rotulo: "Geral" },
-  { rota: "/comercial", rotulo: "Comercial" },
-  { rota: "/time", rotulo: "Time" },
   { rota: "/financeiro", rotulo: "Financeiro" },
+  { rota: "/time", rotulo: "Time" },
 ];
 
 /** Páginas que filtram por função (Todos/Sellers/SDRs/Closers). */
@@ -341,10 +343,11 @@ export default function App() {
 
             <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5 sm:px-6">
               <Routes>
-                <Route path="/login" element={<Navigate to="/comercial" replace />} />
-                <Route path="/" element={<Navigate to="/comercial" replace />} />
+                <Route path="/login" element={<Navigate to="/geral" replace />} />
+                <Route path="/" element={<Navigate to="/geral" replace />} />
+                <Route path="/funil-linkedin" element={<FunilLinkedin />} />
+                <Route path="/funil-instagram" element={<FunilInstagram />} />
                 <Route path="/geral" element={<Geral />} />
-                <Route path="/comercial" element={<Comercial />} />
                 <Route path="/time" element={<Time />} />
                 <Route path="/financeiro" element={<Financeiro />} />
               </Routes>
