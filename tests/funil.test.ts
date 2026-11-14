@@ -1,5 +1,16 @@
 import { expect, it } from "vitest";
-import { formatarTaxa, indiceGargalo, largurasEtapas, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
+import {
+  extremosPorColuna,
+  formatarTaxa,
+  indiceGargalo,
+  largurasEtapas,
+  somarContas,
+  taxasInstagram,
+  taxasLinkedin,
+  umaCasa,
+  type ColunaFunil,
+  type LinhaFunil,
+} from "../src/lib/funil";
 import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "../src/lib/tipos-api";
 
 function metricas(parcial: Partial<MetricasConta>): MetricasConta {
@@ -87,4 +98,20 @@ it("indiceGargalo devolve o índice da menor taxa válida", () => {
   expect(indiceGargalo([0.5, null])).toBeNull();
   expect(indiceGargalo([null, null])).toBeNull();
   expect(indiceGargalo([])).toBeNull();
+});
+
+it("extremosPorColuna aponta melhor e pior conta só nas colunas de taxa com valores distintos", () => {
+  const colunas: ColunaFunil[] = [
+    { chave: "enviadas", rotulo: "Enviadas", tipo: "numero" },
+    { chave: "aceitacao", rotulo: "% Aceitação", tipo: "taxa" },
+    { chave: "resposta", rotulo: "% Resposta", tipo: "taxa" },
+    { chave: "conversao", rotulo: "Conversão", tipo: "taxa" },
+  ];
+  const linhas: LinhaFunil[] = [
+    { nome: "Jacob", valores: { enviadas: 381, aceitacao: 0.664, resposta: 0.5, conversao: 0.05 } },
+    { nome: "Alex", valores: { enviadas: 165, aceitacao: null, resposta: 0.5, conversao: null } },
+    { nome: "Leticia", valores: { enviadas: 395, aceitacao: 0.549, resposta: 0.5, conversao: null } },
+  ];
+
+  expect(extremosPorColuna(colunas, linhas)).toEqual({ aceitacao: { melhor: "Jacob", pior: "Leticia" } });
 });

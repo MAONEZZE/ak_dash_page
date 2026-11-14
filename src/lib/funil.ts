@@ -103,6 +103,28 @@ export interface LinhaFunil {
   valores: Record<string, number | null>;
 }
 
+export type ExtremosColuna = Record<string, { melhor: string; pior: string }>;
+
+/** Melhor e pior conta de cada coluna de taxa com ao menos duas taxas válidas e valores distintos. */
+export function extremosPorColuna(colunas: ColunaFunil[], linhas: LinhaFunil[]): ExtremosColuna {
+  const extremos: ExtremosColuna = {};
+  for (const coluna of colunas) {
+    if (coluna.tipo !== "taxa") continue;
+    const valores = linhas
+      .filter((l) => l.valores[coluna.chave] !== null && l.valores[coluna.chave] !== undefined)
+      .map((l) => ({ nome: l.nome, valor: l.valores[coluna.chave] as number }));
+    if (valores.length < 2) continue;
+    const maior = Math.max(...valores.map((v) => v.valor));
+    const menor = Math.min(...valores.map((v) => v.valor));
+    if (maior === menor) continue;
+    extremos[coluna.chave] = {
+      melhor: valores.find((v) => v.valor === maior)!.nome,
+      pior: valores.find((v) => v.valor === menor)!.nome,
+    };
+  }
+  return extremos;
+}
+
 export const COLUNAS_LINKEDIN: ColunaFunil[] = [
   { chave: "conexoes_enviadas", rotulo: "Conexões Enviadas", tipo: "numero" },
   { chave: "aceitacao", rotulo: "% Aceitação", tipo: "taxa" },
