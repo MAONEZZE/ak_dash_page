@@ -1,5 +1,5 @@
 import { formatarNumero } from "../lib/formato";
-import { formatarTaxa, type ColunaFunil, type LinhaFunil } from "../lib/funil";
+import { extremosPorColuna, formatarTaxa, type ColunaFunil, type ExtremosColuna, type LinhaFunil } from "../lib/funil";
 
 const CABECALHO = "text-[13px] font-semibold uppercase tracking-[0.08em] text-muted";
 
@@ -8,11 +8,19 @@ function formatarValor(coluna: ColunaFunil, valor: number | null): string {
   return valor === null ? "—" : formatarNumero(valor);
 }
 
-function celulas(colunas: ColunaFunil[], linha: LinhaFunil) {
+function celulas(colunas: ColunaFunil[], linha: LinhaFunil, extremos: ExtremosColuna | null) {
   return colunas.map((c) => {
     const valor = linha.valores[c.chave] ?? null;
+    const e = extremos?.[c.chave];
+    const extremo = e ? (e.melhor === linha.nome ? "melhor" : e.pior === linha.nome ? "pior" : undefined) : undefined;
+    const classeExtremo = extremo === "melhor" ? " font-bold text-ok" : extremo === "pior" ? " font-bold text-bad" : "";
     return (
-      <td key={c.chave} className="px-3 py-3 align-middle">
+      <td
+        key={c.chave}
+        data-extremo={extremo}
+        title={extremo === "melhor" ? "Melhor taxa" : extremo === "pior" ? "Pior taxa" : undefined}
+        className={`px-3 py-3 align-middle${classeExtremo}`}
+      >
         {formatarValor(c, valor)}
         {c.tipo === "taxa" && valor !== null && (
           <div data-barra-taxa className="mt-1 h-1 w-full rounded-full bg-track">
@@ -29,6 +37,7 @@ function celulas(colunas: ColunaFunil[], linha: LinhaFunil) {
  * no rodapé. `destacada` marca a conta selecionada no filtro (`aria-current`).
  */
 export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total, destacada }: { titulo: string; rotuloConta: string; colunas: ColunaFunil[]; linhas: LinhaFunil[]; total: LinhaFunil; destacada?: string | null }) {
+  const extremos = extremosPorColuna(colunas, linhas);
   return (
     <article className="glass-panel flex min-w-0 flex-col gap-3 rounded-[24px] p-5">
       <h3 className="text-[15px] font-bold uppercase tracking-[0.13em]">{titulo}</h3>
@@ -52,7 +61,7 @@ export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total,
               return (
                 <tr key={linha.nome} aria-current={ativa ? "true" : undefined} className={`border-b border-line last:border-0 ${ativa ? "bg-surface-2" : ""}`}>
                   <td className="py-3 pr-3 text-[16px] font-bold">{linha.nome}</td>
-                  {celulas(colunas, linha)}
+                  {celulas(colunas, linha, extremos)}
                 </tr>
               );
             })}
@@ -60,7 +69,7 @@ export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total,
           <tfoot>
             <tr className="border-t border-line font-bold">
               <td className="py-3 pr-3">{total.nome}</td>
-              {celulas(colunas, total)}
+              {celulas(colunas, total, null)}
             </tr>
           </tfoot>
         </table>

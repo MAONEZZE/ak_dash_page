@@ -82,3 +82,45 @@ it("células de taxa ganham barrinha proporcional sem mudar o texto", () => {
   expect(barraTotal).not.toBeNull();
   expect((barraTotal.firstElementChild as HTMLElement).style.width).toBe("70%");
 });
+
+it("marca a melhor e a pior conta em cada coluna de taxa, fora a linha TOTAL", () => {
+  const colunas: ColunaFunil[] = [
+    { chave: "enviadas", rotulo: "Conexões Enviadas", tipo: "numero" },
+    { chave: "aceitacao", rotulo: "% Aceitação", tipo: "taxa" },
+  ];
+  const linhas: LinhaFunil[] = [
+    { nome: "Jacob", valores: { enviadas: 381, aceitacao: 0.664 } },
+    { nome: "Alex", valores: { enviadas: 165, aceitacao: 0.436 } },
+    { nome: "Leticia", valores: { enviadas: 395, aceitacao: 0.549 } },
+  ];
+  const total: LinhaFunil = { nome: "TOTAL", valores: { enviadas: 941, aceitacao: 0.9 } };
+
+  const { rerender } = render(
+    <TabelaContasFunil titulo="Por LinkedIn" rotuloConta="LinkedIn" colunas={colunas} linhas={linhas} total={total} />,
+  );
+
+  const tabela = screen.getByRole("table", { name: "Por LinkedIn" });
+
+  const tdJacob = within(tabela).getByRole("row", { name: /Jacob/ }).querySelectorAll("td")[2];
+  expect(tdJacob.getAttribute("data-extremo")).toBe("melhor");
+  expect(tdJacob.getAttribute("title")).toBe("Melhor taxa");
+  expect(tdJacob.textContent).toBe("66,4%");
+
+  const tdAlex = within(tabela).getByRole("row", { name: /Alex/ }).querySelectorAll("td")[2];
+  expect(tdAlex.getAttribute("data-extremo")).toBe("pior");
+  expect(tdAlex.getAttribute("title")).toBe("Pior taxa");
+
+  const tdLeticia = within(tabela).getByRole("row", { name: /Leticia/ }).querySelectorAll("td")[2];
+  expect(tdLeticia.hasAttribute("data-extremo")).toBe(false);
+
+  const tdTotal = within(tabela).getByRole("row", { name: /TOTAL/ }).querySelectorAll("td")[2];
+  expect(tdTotal.hasAttribute("data-extremo")).toBe(false);
+
+  expect(tabela.querySelectorAll("[data-extremo]")).toHaveLength(2);
+
+  rerender(
+    <TabelaContasFunil titulo="Por LinkedIn" rotuloConta="LinkedIn" colunas={colunas} linhas={[linhas[0]]} total={total} />,
+  );
+  const tabelaSem = screen.getByRole("table", { name: "Por LinkedIn" });
+  expect(tabelaSem.querySelectorAll("[data-extremo]")).toHaveLength(0);
+});
