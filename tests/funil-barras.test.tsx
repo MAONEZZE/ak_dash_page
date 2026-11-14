@@ -37,3 +37,33 @@ it("mostra etapas em ordem com barra proporcional, taxa de passagem e nota later
   expect(itens[0].textContent).not.toContain("Follow de abordagem");
   expect(itens[2].textContent).not.toContain("Follow de abordagem");
 });
+
+it("mostra a perda de cada passagem e marca a de menor taxa como maior perda", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "Enviadas", valor: 1621, passagem: { taxa: 0.58, texto: "aceitaram", textoPerda: "não aceitaram" } },
+    { rotulo: "Aceitas", valor: 940, passagem: { taxa: 0.185, texto: "viraram número", textoPerda: "não viraram número" } },
+    { rotulo: "Números", valor: 174, passagem: { taxa: 1.2, texto: "indicaram", textoPerda: "não indicaram" } },
+    { rotulo: "Indicações", valor: 200 },
+  ];
+
+  const { rerender } = render(<FunilBarras titulo="Funil" etapas={etapas} />);
+
+  const lista = screen.getByRole("list", { name: "Funil" });
+  const itens = within(lista).getAllByRole("listitem");
+
+  expect(itens[0].textContent).toContain("−681 não aceitaram");
+  expect(itens[0].textContent).not.toContain("maior perda");
+
+  expect(itens[1].textContent).toContain("−766 não viraram número");
+  expect(itens[1].textContent).toContain("maior perda");
+  expect(itens[1].querySelector("[data-passagem]")?.getAttribute("data-gargalo")).toBe("true");
+
+  expect(itens[2].textContent).not.toContain("não indicaram");
+
+  expect(document.querySelectorAll("[data-gargalo]")).toHaveLength(1);
+
+  rerender(<FunilBarras titulo="Funil" etapas={[etapas[0], { rotulo: "Aceitas", valor: 940 }]} />);
+
+  expect(document.querySelectorAll("[data-gargalo]")).toHaveLength(0);
+  expect(screen.queryByText("maior perda")).toBeNull();
+});
