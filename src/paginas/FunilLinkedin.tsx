@@ -3,12 +3,12 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardKpi } from "../componentes/CardKpi";
-import { FunilEscada } from "../componentes/FunilEscada";
+import { FunilBarras } from "../componentes/FunilBarras";
 import { GraficoBarrasContas } from "../componentes/GraficoBarrasContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
-import { COLUNAS_LINKEDIN, diasUteisRestantes, linhaLinkedin, somarContas, formatarTaxa, taxasLinkedin, umaCasa } from "../lib/funil";
+import { COLUNAS_LINKEDIN, diasUteisRestantes, linhaLinkedin, somarContas, taxasLinkedin, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -89,8 +89,8 @@ export function FunilLinkedin() {
         ) : (
           <>
             <CardEsqueleto className="min-h-[280px]" />
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 4 }, (_, i) => (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }, (_, i) => (
                 <CardEsqueleto key={i} className="min-h-[168px]" />
               ))}
             </section>
@@ -110,13 +110,30 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
   return (
     <>
       <AvisoFontes avisos={dado.avisos} />
-      <FunilEscada
+      <FunilBarras
         titulo="Funil LinkedIn"
+        conversaoTotal={t.conversaoTotal}
         etapas={[
-          { rotulo: "Conexões Enviadas", valor: m.conexoes_enviadas, passagem: { taxa: t.aceitacao, texto: "aceitaram" } },
-          { rotulo: "Conexões Aceitas", valor: m.conexoes_aceitas, passagem: { taxa: t.abordados, texto: "abordados" } },
-          { rotulo: "Mensagem de Abordagem", valor: m.mensagens_abordagem, passagem: { taxa: t.resposta, texto: "responderam" } },
-          { rotulo: "Respondidos", valor: m.respondidos, passagem: { taxa: t.conversaoNumero, texto: "viraram número" } },
+          {
+            rotulo: "Conexões Enviadas",
+            valor: m.conexoes_enviadas,
+            passagem: { taxa: t.aceitacao, texto: "aceitaram", textoPerda: "não aceitaram" },
+          },
+          {
+            rotulo: "Conexões Aceitas",
+            valor: m.conexoes_aceitas,
+            passagem: { taxa: t.abordados, texto: "abordados", textoPerda: "não abordados" },
+          },
+          {
+            rotulo: "Mensagem de Abordagem",
+            valor: m.mensagens_abordagem,
+            passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+          },
+          {
+            rotulo: "Respondidos",
+            valor: m.respondidos,
+            passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+          },
           { rotulo: "Números Captados", valor: m.numeros_captados },
         ]}
         lateral={{
@@ -125,8 +142,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
           aoLadoDe: 2,
         }}
       />
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CardKpi label="Conversão total do funil" value={formatarTaxa(t.conversaoTotal)} />
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <CardKpi label="Abordagens + Follows" value={formatarNumero(m.abordagens)} />
         <CardKpi label="InMails enviados" value={formatarNumero(m.in_mails)} />
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />

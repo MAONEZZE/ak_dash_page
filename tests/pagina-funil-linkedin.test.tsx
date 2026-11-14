@@ -45,6 +45,7 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(etapas[0].textContent).toContain("Conexões Enviadas");
   expect(etapas[0].textContent).toContain("1.621");
   expect(etapas[0].textContent).toContain("↓ 58,0% aceitaram");
+  expect(etapas[0].textContent).toContain("−681 não aceitaram");
   expect(etapas[1].textContent).toContain("Conexões Aceitas");
   expect(etapas[1].textContent).toContain("940");
   expect(etapas[1].textContent).toContain("↓ 89,4% abordados");
@@ -56,10 +57,13 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(etapas[3].textContent).toContain("Respondidos");
   expect(etapas[3].textContent).toContain("482");
   expect(etapas[3].textContent).toContain("↓ 18,5% viraram número");
+  expect(etapas[3].textContent).toContain("−393 não viraram número");
+  expect(etapas[3].textContent).toContain("maior perda");
   expect(etapas[4].textContent).toContain("Números Captados");
   expect(etapas[4].textContent).toContain("89");
 
-  expect(valorDe("Conversão total do funil")).toBe("5,5%");
+  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("5,5%");
+  expect(screen.getAllByRole("article").some((a) => a.querySelector("span")?.textContent === "Conversão total do funil")).toBe(false);
   expect(valorDe("Abordagens + Follows")).toBe("1.565");
   expect(valorDe("InMails enviados")).toBe("103");
   expect(valorDe("Follow-ups")).toBe("128");
