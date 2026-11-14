@@ -44,7 +44,9 @@ const POSICAO = {
 } as const;
 const LATERAL = "contents xl:col-start-3 xl:col-span-2 xl:row-start-1 xl:row-span-4 xl:flex xl:min-h-0 xl:flex-col xl:gap-2";
 /** Abaixo de xl a página rola: tabelas e termômetro ganham altura mínima própria. */
-const ALTURA_MOBILE = "min-h-[480px] xl:min-h-0";
+/** Celular: tabelas na altura do conteúdo; a partir de sm, altura mínima de tela. */
+const ALTURA_MOBILE = "sm:min-h-[480px] xl:min-h-0";
+const ALTURA_TERMOMETRO = "min-h-[380px] sm:min-h-[480px] xl:min-h-0";
 
 /** Tom pastel de cada KPI (decisão do usuário, 2026-10-05) — ver .card-pastel em globals.css. */
 const PASTEL: Partial<Record<keyof typeof POSICAO, string>> = {
@@ -181,7 +183,7 @@ export function Geral() {
           <section className={GRADE} aria-label="Visão geral">
             {card("faturamento")}
             {card("liquidado")}
-            <Celula posicao={POSICAO.termometro} className={ALTURA_MOBILE}>
+            <Celula posicao={POSICAO.termometro} className={ALTURA_TERMOMETRO}>
               <Termometro dado={estado.dado?.termometro ?? null} />
             </Celula>
 

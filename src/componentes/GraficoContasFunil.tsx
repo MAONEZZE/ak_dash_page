@@ -50,6 +50,11 @@ export function GraficoContasFunil({
   const pctX = (i: number) => (n <= 1 ? 50 : (i / (n - 1)) * 100);
   const pctY = (v: number) => (1 - v / teto) * 100;
   const passoRotulo = Math.ceil(n / MAX_ROTULOS_X);
+  // Índices com rótulo no eixo X; no celular (< sm) só uns 5 deles, pra não encavalar.
+  const comRotulo = rotulos.map((_, j) => j).filter((j) => j % passoRotulo === 0 || j === n - 1);
+  const passoCelular = Math.ceil(comRotulo.length / 5);
+  const noCelular = new Set(comRotulo.filter((_, k) => k % passoCelular === 0 && comRotulo.length - 1 - k >= passoCelular / 2));
+  noCelular.add(n - 1);
 
   return (
     <section className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
@@ -146,11 +151,11 @@ export function GraficoContasFunil({
 
         <div className="relative h-5" style={{ marginLeft: LARGURA_EIXO_Y + 8 }}>
           {rotulos.map((rotulo, j) =>
-            j % passoRotulo === 0 || j === n - 1 ? (
+            comRotulo.includes(j) ? (
               <span
                 key={rotulo}
                 data-rotulo-x
-                className="absolute whitespace-nowrap text-[13px] font-semibold text-muted"
+                className={`absolute whitespace-nowrap text-[13px] font-semibold text-muted ${noCelular.has(j) ? "" : "max-sm:hidden"}`}
                 style={{ left: `${pctX(j)}%`, transform: n <= 1 ? "translateX(-50%)" : j === 0 ? "none" : j === n - 1 ? "translateX(-100%)" : "translateX(-50%)" }}
               >
                 {rotulo}

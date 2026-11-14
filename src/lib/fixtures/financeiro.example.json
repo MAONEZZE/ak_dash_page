@@ -35,7 +35,15 @@
       "liquido_pgto_2": 12076.5,
       "forma_pgto_2": "Cartão",
       "user_closer": 1,
-      "closer": "Jacob"
+      "closer": "Jacob",
+      "id_planilha": 214,
+      "recebimentos": [
+        {
+          "mes": "2026-09",
+          "pago": 33333.34,
+          "liquido": 27076.5
+        }
+      ]
     },
     {
       "id": 198,
@@ -55,7 +63,15 @@
       "liquido_pgto_2": 0,
       "forma_pgto_2": null,
       "user_closer": 3,
-      "closer": "Alex"
+      "closer": "Alex",
+      "id_planilha": 198,
+      "recebimentos": [
+        {
+          "mes": "2026-09",
+          "pago": 9300,
+          "liquido": 6738.69
+        }
+      ]
     },
     {
       "id": 187,
@@ -75,7 +91,15 @@
       "liquido_pgto_2": 0,
       "forma_pgto_2": null,
       "user_closer": null,
-      "closer": null
+      "closer": null,
+      "id_planilha": 187,
+      "recebimentos": [
+        {
+          "mes": "2026-09",
+          "pago": 0,
+          "liquido": 0
+        }
+      ]
     }
   ]
 }

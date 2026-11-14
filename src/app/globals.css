@@ -317,19 +317,30 @@ body {
 }
 
 /*
- * Casca do dashboard: ocupa a tela inteira e quem rola é o <main> — é o que
- * deixa Geral e Time caberem na TV sem scroll e o cabeçalho sempre visível.
+ * Casca do dashboard. A partir de md ocupa a tela inteira e quem rola é o
+ * <main> — é o que deixa Geral e Time caberem na TV sem scroll e o cabeçalho
+ * sempre visível. No celular (alvo: iPhone 16, 393px) a página rola inteira,
+ * pra o cabeçalho de filtros não comer um terço da tela, e a barra lateral
+ * vira barra de abas fixa no rodapé (ver .barra-lateral).
  */
 .dashboard-shell {
   position: relative;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
   /* Manchas de cor atrás do vidro — sem elas o translúcido não tem o que refratar. */
   background:
     radial-gradient(60vw 50vh at 8% 0%, rgb(var(--color-accent-rgb) / 22%), transparent 70%),
     radial-gradient(50vw 60vh at 100% 30%, rgb(var(--color-closer-claro-rgb) / 14%), transparent 70%),
     radial-gradient(70vw 50vh at 40% 110%, rgb(var(--color-accent-ink-rgb) / 12%), transparent 70%),
     var(--page-bg);
+}
+
+@media (min-width: 768px) {
+  .dashboard-shell {
+    height: 100vh;
+    overflow: hidden;
+  }
 }
 
 /*
@@ -533,6 +544,16 @@ body {
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   border-right: 1px solid var(--glass-border);
+}
+
+/* Celular: barra de abas fixa no rodapé, acima da área segura do iPhone. */
+@media (max-width: 767px) {
+  .barra-lateral {
+    background: rgb(var(--page-bg-rgb) / 80%);
+    border-right: 0;
+    border-top: 1px solid var(--glass-border);
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
 }
 
 .aba-lateral {

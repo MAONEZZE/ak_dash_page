@@ -91,7 +91,10 @@ function indicePadrao(grupo: PessoaTime): number {
   );
 }
 
-/** Tamanho do conteúdo do card abaixo de 1200px em relação ao desenho original (pedido: 1,8×). */
+/**
+ * Tamanho do conteúdo do card abaixo de 1200px em relação ao desenho original (pedido: 1,8×).
+ * No celular (< 640px, alvo iPhone 16) o 1,8× não cabe: lá `--u` é 0,64px, ~1,15× efetivo.
+ */
 const ESCALA_CONTEUDO = 1.8;
 
 /**
@@ -236,7 +239,7 @@ function CardPessoaTime({
               </span>
             )}
           </div>
-          <span className="truncate text-muted" style={{ fontSize: u(13) }}>
+          <span className="truncate text-muted max-sm:whitespace-normal" style={{ fontSize: u(13) }}>
             {batidas} {batidas === 1 ? "meta batida" : "metas batidas"} · {verdes} no verde
           </span>
         </div>
@@ -395,7 +398,7 @@ export function Time() {
 
   return (
     <div
-      className="flex flex-col gap-3 [--u:1px] min-[1201px]:[--u:var(--u-tv)]"
+      className="flex flex-col gap-3 [--u:1px] max-sm:[--u:0.64px] min-[1201px]:[--u:var(--u-tv)]"
       style={VARIAVEIS_TV}
     >
       <AvisoFontes avisos={[...(seller.dado?.avisos ?? []), ...(sdr.dado?.avisos ?? []), ...(closer.dado?.avisos ?? [])]} />
