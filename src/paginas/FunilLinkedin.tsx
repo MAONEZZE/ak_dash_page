@@ -4,7 +4,8 @@ import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilBarras } from "../componentes/FunilBarras";
-import { GraficoBarrasContas } from "../componentes/GraficoBarrasContas";
+import type { EtapaFunil } from "../componentes/FunilBarras";
+import { MiniFunisContas } from "../componentes/MiniFunisContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
@@ -12,7 +13,7 @@ import { COLUNAS_LINKEDIN, diasUteisRestantes, linhaLinkedin, somarContas, taxas
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import type { RespostaFunil } from "../lib/tipos-api";
+import type { MetricasConta, RespostaFunil } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
@@ -103,6 +104,33 @@ export function FunilLinkedin() {
   );
 }
 
+function etapasLinkedin(m: MetricasConta): EtapaFunil[] {
+  const t = taxasLinkedin(m);
+  return [
+    {
+      rotulo: "Conexões Enviadas",
+      valor: m.conexoes_enviadas,
+      passagem: { taxa: t.aceitacao, texto: "aceitaram", textoPerda: "não aceitaram" },
+    },
+    {
+      rotulo: "Conexões Aceitas",
+      valor: m.conexoes_aceitas,
+      passagem: { taxa: t.abordados, texto: "abordados", textoPerda: "não abordados" },
+    },
+    {
+      rotulo: "Mensagem de Abordagem",
+      valor: m.mensagens_abordagem,
+      passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+    },
+    {
+      rotulo: "Respondidos",
+      valor: m.respondidos,
+      passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+    },
+    { rotulo: "Números Captados", valor: m.numeros_captados },
+  ];
+}
+
 function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }) {
   const m = somarContas(dado.contas, conta);
   const t = taxasLinkedin(m);
@@ -113,29 +141,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <FunilBarras
         titulo="Funil LinkedIn"
         conversaoTotal={t.conversaoTotal}
-        etapas={[
-          {
-            rotulo: "Conexões Enviadas",
-            valor: m.conexoes_enviadas,
-            passagem: { taxa: t.aceitacao, texto: "aceitaram", textoPerda: "não aceitaram" },
-          },
-          {
-            rotulo: "Conexões Aceitas",
-            valor: m.conexoes_aceitas,
-            passagem: { taxa: t.abordados, texto: "abordados", textoPerda: "não abordados" },
-          },
-          {
-            rotulo: "Mensagem de Abordagem",
-            valor: m.mensagens_abordagem,
-            passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
-          },
-          {
-            rotulo: "Respondidos",
-            valor: m.respondidos,
-            passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
-          },
-          { rotulo: "Números Captados", valor: m.numeros_captados },
-        ]}
+        etapas={etapasLinkedin(m)}
         lateral={{
           rotulo: "Follow de abordagem",
           texto: `${formatarNumero(m.follows_abordagem)} (${umaCasa(t.followsPorAbordagem)} por abordagem)`,
@@ -147,6 +153,10 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         <CardKpi label="InMails enviados" value={formatarNumero(m.in_mails)} />
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />
       </section>
+      <MiniFunisContas
+        titulo="Funil por LinkedIn"
+        contas={dado.contas.map((c) => ({ nome: c.nome, etapas: etapasLinkedin(c.metricas), conversaoTotal: taxasLinkedin(c.metricas).conversaoTotal }))}
+      />
       <TabelaContasFunil
         titulo="Por LinkedIn"
         rotuloConta="LinkedIn"
@@ -155,23 +165,6 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         total={linhaLinkedin("TOTAL", somarContas(dado.contas, null))}
         destacada={conta}
       />
-      <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <GraficoBarrasContas
-          titulo="Volume por LinkedIn"
-          orientacao="horizontal"
-          formato="numero"
-          ordenar="crescente"
-          dados={dado.contas.map((c) => ({ nome: c.nome, valor: c.metricas.conexoes_enviadas }))}
-          destacada={conta}
-        />
-        <GraficoBarrasContas
-          titulo="Taxa de conversão por LinkedIn"
-          orientacao="vertical"
-          formato="taxa"
-          dados={dado.contas.map((c) => ({ nome: c.nome, valor: taxasLinkedin(c.metricas).conversaoTotal }))}
-          destacada={conta}
-        />
-      </section>
       <BlocoDashboardFunil dashboard={dado.dashboard} diasUteisRestantes={diasUteisRestantes(new Date())} />
     </>
   );

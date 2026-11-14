@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import fixture from "../src/lib/fixtures/funil_linkedin.example.json";
@@ -75,7 +75,7 @@ function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
   return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
 }
 
-it("mostra tabela por LinkedIn, os dois gráficos e o bloco Dashboard da Duda", async () => {
+it("mostra tabela por LinkedIn, os mini-funis e o bloco Dashboard da Duda", async () => {
   const fups: MetricaTime = {
     metrica: "fups",
     nome_exibicao: "Fups",
@@ -142,14 +142,34 @@ it("mostra tabela por LinkedIn, os dois gráficos e o bloco Dashboard da Duda", 
   expect(etapas[0].textContent).toContain("Conexões Enviadas");
   expect(etapas[0].textContent).toContain("165");
 
-  const volume = screen.getByRole("figure", { name: "Volume por LinkedIn" });
-  const ordem = within(within(volume).getByRole("table"))
-    .getAllByRole("row")
-    .slice(1)
-    .map((linha) => within(linha).getAllByRole("cell")[0].textContent);
-  expect(ordem).toEqual(["Alex", "Mariana", "Jacob", "Jonathan", "Leticia"]);
-  expect(screen.getByRole("figure", { name: "Taxa de conversão por LinkedIn" })).toBeTruthy();
+  expect(within(screen.getByRole("region", { name: "Funil por LinkedIn" })).getByRole("button", { name: /Alex/ }).getAttribute("aria-pressed")).toBe("true");
 
   expect(screen.getByRole("heading", { name: "Dashboard · Duda" })).toBeTruthy();
   expect(within(screen.getByRole("table", { name: "Diário" })).getByText("750")).toBeTruthy();
+});
+
+it("clicar num mini-funil filtra o funil pelo LinkedIn escolhido", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("list", { name: "Funil LinkedIn" });
+  const regiao = screen.getByRole("region", { name: "Funil por LinkedIn" });
+  expect(within(regiao).getAllByRole("button")).toHaveLength(5);
+
+  fireEvent.click(within(regiao).getByRole("button", { name: /Leticia/ }));
+  const primeiroItem = () => within(screen.getByRole("list", { name: "Funil LinkedIn" })).getAllByRole("listitem")[0];
+  expect(primeiroItem().textContent).toContain("395");
+  expect(within(regiao).getByRole("button", { name: /Leticia/ }).getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.click(within(regiao).getByRole("button", { name: /Leticia/ }));
+  expect(primeiroItem().textContent).toContain("1.621");
+
+  expect(buscarFunil).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole("figure", { name: "Volume por LinkedIn" })).toBeNull();
+  expect(screen.queryByRole("figure", { name: "Taxa de conversão por LinkedIn" })).toBeNull();
 });
