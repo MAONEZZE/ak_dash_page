@@ -100,11 +100,11 @@ function BarraLateral() {
 
   return (
     <aside
-      className={`barra-lateral flex w-[72px] shrink-0 flex-col gap-3 px-3 py-4 transition-[width] duration-200 ${recolhido ? "" : "lg:w-60"}`}
+      className={`barra-lateral fixed inset-x-0 bottom-0 z-30 flex shrink-0 px-3 pt-2 md:static md:w-[72px] md:flex-col md:gap-3 md:py-4 md:transition-[width] md:duration-200 ${recolhido ? "" : "lg:w-60"}`}
       aria-label="Páginas"
       data-recolhido={recolhido ? "true" : undefined}
     >
-      <nav className="flex flex-col gap-1.5" aria-label="Navegação">
+      <nav className="flex w-full justify-around gap-1.5 md:flex-col md:justify-start" aria-label="Navegação">
         {NAV_ITENS.map(({ rota, rotulo, Icone }) => (
           <NavLink
             key={rota}
@@ -123,7 +123,7 @@ function BarraLateral() {
         aria-expanded={!recolhido}
         aria-label={recolhido ? "Expandir menu" : "Recolher menu"}
         title={recolhido ? "Expandir menu" : "Recolher menu"}
-        className="aba-lateral mt-auto hidden w-full cursor-pointer border-0 bg-transparent lg:flex"
+        className="aba-lateral mt-auto !hidden w-full cursor-pointer border-0 bg-transparent lg:!flex"
       >
         <IconeBotao className="size-5 shrink-0" aria-hidden />
         <span className={rotuloVisivel}>Recolher</span>
@@ -390,7 +390,7 @@ export default function App() {
           <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)]">
             <BarraLateral />
             <div className="flex min-w-0 flex-1 flex-col">
-              <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
+              <header className="cabecalho z-20 shrink-0 px-4 py-3 sm:px-6 md:sticky md:top-0">
                 {/*
                  * Navbar: filtros no centro, som + menu à direita (as páginas ficam na barra lateral).
                  * Abaixo de lg os filtros descem pra uma segunda linha inteira.
@@ -408,7 +408,7 @@ export default function App() {
                 </div>
               </header>
 
-              <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5 sm:px-6">
+              <main className="px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 md:overflow-y-auto md:pb-6">
                 <Routes>
                   <Route path="/login" element={<Navigate to="/geral" replace />} />
                   <Route path="/" element={<Navigate to="/geral" replace />} />

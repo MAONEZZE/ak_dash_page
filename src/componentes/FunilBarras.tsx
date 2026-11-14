@@ -15,8 +15,11 @@ function recorte(topo: number, base: number): string {
   return `polygon(${a}% 0, ${100 - a}% 0, ${100 - b}% 100%, ${b}% 100%)`;
 }
 
-/** Grade de cada linha: blocos à esquerda, coluna da nota lateral à direita. */
-const GRADE_LINHA = "grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-center";
+/**
+ * Grade de cada linha: blocos à esquerda, coluna da nota lateral à direita.
+ * No celular (< sm) é uma coluna só e a nota desce pra baixo do bloco.
+ */
+const GRADE_LINHA = "grid grid-cols-1 items-center sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]";
 
 /**
  * Funil de forma fixa (trapézios encaixados, do mais largo ao mais estreito),
@@ -43,9 +46,9 @@ export function FunilBarras({
 
   const cardFunil = (
     <div className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
         <h2 className="font-display text-[22px] font-bold tracking-tight">{titulo}</h2>
-        <div role="group" aria-label="Conversão total do funil" className="flex flex-col items-end">
+        <div role="group" aria-label="Conversão total do funil" className="flex flex-col items-start sm:items-end">
           <span className="text-[12px] font-semibold uppercase tracking-[0.13em] text-muted">Conversão total do funil</span>
           <span className="font-display text-[32px] font-extrabold leading-none">{formatarTaxa(conversaoTotal)}</span>
         </div>
@@ -69,20 +72,20 @@ export function FunilBarras({
                       className="flex min-h-[60px] flex-col items-center justify-center bg-brand px-2 text-center text-surface"
                       style={{ clipPath: recorte(topo, base) }}
                     >
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] opacity-85">{etapa.rotulo}</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em]">{etapa.rotulo}</span>
                       <span className="font-display text-[24px] font-extrabold leading-none">{formatarNumero(etapa.valor)}</span>
                     </div>
                     {temLateral && (
                       <span
                         data-conector
                         aria-hidden
-                        className="absolute top-1/2 border-t-2 border-dashed border-border-forte"
+                        className="absolute top-1/2 hidden border-t-2 border-dashed border-border-forte sm:block"
                         style={{ left: `${bordaDireita}%`, right: -24 }}
                       />
                     )}
                   </div>
                   {temLateral && (
-                    <div data-nota-lateral className="col-start-2 ml-6 flex min-w-0 flex-col rounded-[12px] bg-surface-2 px-3 py-1.5">
+                    <div data-nota-lateral className="mt-2 flex min-w-0 flex-col items-center justify-self-center text-center sm:col-start-2 sm:ml-6 sm:mt-0 sm:items-start sm:justify-self-auto sm:text-left rounded-[12px] bg-surface-2 px-3 py-1.5">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
                       <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
                     </div>

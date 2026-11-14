@@ -30,16 +30,16 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
   const agora = new Date();
   return (
     <article className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col gap-[clamp(4px,0.8vh,10px)] rounded-[24px] p-[clamp(10px,1.4vh,18px)]" aria-label={titulo}>
-      <span className="p-1 text-[clamp(25px,1.94vh,28px)] font-bold uppercase leading-none tracking-[0.13em] text-muted">{titulo}</span>
+      <span className="p-1 text-[15px] sm:text-[clamp(25px,1.94vh,28px)] font-bold uppercase leading-none tracking-[0.13em] text-muted">{titulo}</span>
       <div
         role="table"
         aria-label={titulo}
-        className="flex min-h-0 flex-1 flex-col text-[clamp(16px,min(2.89vh,5vw),43px)] leading-none sm:text-[clamp(16px,min(2.89vh,2.78vw),43px)] xl:text-[clamp(16px,min(2.89vh,1.25vw),43px)]"
+        className="flex min-h-0 flex-1 flex-col text-[15px] leading-none sm:text-[clamp(16px,min(2.89vh,2.78vw),43px)] xl:text-[clamp(16px,min(2.89vh,1.25vw),43px)]"
       >
         {/* Cabeçalho no tamanho do título do card: em 2x os rótulos não cabem num quarto da tela. */}
         <div
           role="row"
-          className={`grid mt-3 ${COLUNAS} items-center border-b border-line pb-[clamp(3px,0.5vh,8px)] text-[clamp(21px,2.54vh,38px)] font-semibold sm:text-[clamp(17.5px,min(2.54vh,2.81vw),38px)] xl:text-[clamp(17.5px,min(2.54vh,1.35vw),38px)] uppercase tracking-[0.06em] text-muted`}
+          className={`grid mt-3 ${COLUNAS} items-center border-b border-line pb-[clamp(3px,0.5vh,8px)] text-[12px] font-semibold sm:text-[clamp(17.5px,min(2.54vh,2.81vw),38px)] xl:text-[clamp(17.5px,min(2.54vh,1.35vw),38px)] uppercase tracking-[0.06em] text-muted`}
         >
           <span role="columnheader" className={CELULA}>
             Evento
@@ -62,7 +62,7 @@ export function TabelaEventos({ titulo, eventos, vazio }: { titulo: string; even
         </div>
         <div role="rowgroup" className={CORPO_ROLAVEL}>
           {eventos.length === 0 ? (
-            <p className="px-2 py-4 text-[clamp(20px,2.4vh,36px)] text-muted">{vazio}</p>
+            <p className="px-2 py-4 text-[15px] sm:text-[clamp(20px,2.4vh,36px)] text-muted">{vazio}</p>
           ) : (
             eventos.map((e) => (
               <div
