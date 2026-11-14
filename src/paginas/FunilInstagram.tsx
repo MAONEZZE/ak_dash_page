@@ -3,11 +3,11 @@ import { AvisoFontes } from "../componentes/AvisoFontes";
 import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
-import { FunilEscada } from "../componentes/FunilEscada";
+import { FunilBarras } from "../componentes/FunilBarras";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
-import { COLUNAS_INSTAGRAM, diasUteisRestantes, linhaInstagram, somarContas, formatarTaxa, taxasInstagram, umaCasa } from "../lib/funil";
+import { COLUNAS_INSTAGRAM, diasUteisRestantes, linhaInstagram, somarContas, taxasInstagram, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -88,8 +88,8 @@ export function FunilInstagram() {
         ) : (
           <>
             <CardEsqueleto className="min-h-[280px]" />
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 4 }, (_, i) => (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {Array.from({ length: 2 }, (_, i) => (
                 <CardEsqueleto key={i} className="min-h-[168px]" />
               ))}
             </section>
@@ -109,11 +109,20 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
   return (
     <>
       <AvisoFontes avisos={dado.avisos} />
-      <FunilEscada
+      <FunilBarras
         titulo="Funil Instagram"
+        conversaoTotal={t.conversaoTotal}
         etapas={[
-          { rotulo: "Abordagens feitas", valor: m.abordagens, passagem: { taxa: t.resposta, texto: "responderam" } },
-          { rotulo: "Respondidos", valor: m.respondidos, passagem: { taxa: t.conversaoNumero, texto: "viraram número" } },
+          {
+            rotulo: "Abordagens feitas",
+            valor: m.abordagens,
+            passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+          },
+          {
+            rotulo: "Respondidos",
+            valor: m.respondidos,
+            passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+          },
           { rotulo: "Números Captados", valor: m.numeros_captados },
         ]}
         lateral={{
@@ -122,11 +131,9 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
           aoLadoDe: 0,
         }}
       />
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CardKpi label="Conversão total do funil" value={formatarTaxa(t.conversaoTotal)} />
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />
         <CardKpi label="Indicações Captadas" value={formatarNumero(m.indicacoes)} />
-        <CardKpi label="Taxa de resposta" value={formatarTaxa(t.resposta)} />
       </section>
       <TabelaContasFunil
         titulo="Por perfil"

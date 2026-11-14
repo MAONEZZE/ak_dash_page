@@ -90,10 +90,17 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(within(lista).getByText("Follow-ups")).toBeTruthy();
   expect(within(lista).getByText("200 (1,0 por abordagem)")).toBeTruthy();
 
-  expect(valorDe("Conversão total do funil")).toBe("5,0%");
+  expect(etapas[0].textContent).toContain("−150 não responderam");
+  expect(etapas[1].textContent).toContain("−40 não viraram número");
+  expect(etapas[1].textContent).toContain("maior perda");
+  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("5,0%");
+
   expect(valorDe("Follow-ups")).toBe("200");
   expect(valorDe("Indicações Captadas")).toBe("1");
-  expect(valorDe("Taxa de resposta")).toBe("25,0%");
+
+  const rotulos = screen.getAllByRole("article").map((a) => a.querySelector("span")?.textContent);
+  expect(rotulos).not.toContain("Conversão total do funil");
+  expect(rotulos).not.toContain("Taxa de resposta");
 
   expect(screen.getByText("Consolidado de Mary, akeel e Jacob")).toBeTruthy();
 });
