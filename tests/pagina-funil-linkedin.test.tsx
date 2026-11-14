@@ -6,7 +6,6 @@ import fixture from "../src/lib/fixtures/funil_linkedin.example.json";
 import { buscarFunil } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { FunilLinkedin } from "../src/paginas/FunilLinkedin";
-import type { MetricaTime, RespostaFunil } from "../src/lib/tipos-api";
 
 vi.mock("../src/lib/api", () => ({
   buscarFunil: vi.fn(async () => fixture),
@@ -40,12 +39,17 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   const lista = await screen.findByRole("list", { name: "Funil LinkedIn" });
   expect(buscarFunil).toHaveBeenCalledWith("linkedin", { granularidade: "mes", periodo: "2026-11" });
 
+  const medidor = screen.getByRole("meter", { name: "Números Captados" });
+  expect(medidor.getAttribute("aria-valuenow")).toBe("89");
+  expect(medidor.getAttribute("aria-valuemax")).toBe("154");
+  expect(lista.closest(".glass-panel")?.nextElementSibling?.contains(medidor)).toBe(true);
+
   const etapas = within(lista).getAllByRole("listitem");
   expect(etapas).toHaveLength(5);
   expect(etapas[0].textContent).toContain("Conexões Enviadas");
   expect(etapas[0].textContent).toContain("1.621");
   expect(etapas[0].textContent).toContain("↓ 58,0% aceitaram");
-  expect(etapas[0].textContent).toContain("−681 não aceitaram");
+  expect(etapas[0].textContent).not.toContain("não aceitaram");
   expect(etapas[1].textContent).toContain("Conexões Aceitas");
   expect(etapas[1].textContent).toContain("940");
   expect(etapas[1].textContent).toContain("↓ 89,4% abordados");
@@ -57,7 +61,7 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(etapas[3].textContent).toContain("Respondidos");
   expect(etapas[3].textContent).toContain("482");
   expect(etapas[3].textContent).toContain("↓ 18,5% viraram número");
-  expect(etapas[3].textContent).toContain("−393 não viraram número");
+  expect(etapas[3].textContent).not.toContain("não viraram número");
   expect(etapas[3].textContent).toContain("maior perda");
   expect(etapas[4].textContent).toContain("Números Captados");
   expect(etapas[4].textContent).toContain("89");
@@ -75,20 +79,7 @@ function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
   return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
 }
 
-it("mostra tabela por LinkedIn, os mini-funis e o bloco Dashboard da Duda", async () => {
-  const fups: MetricaTime = {
-    metrica: "fups",
-    nome_exibicao: "Fups",
-    meta_periodo: 750,
-    realizado: 20,
-    pct_atingimento: 2.7,
-    falta_folga: { tipo: "falta", valor: 730 },
-    horas_restantes: null,
-    media_necessaria: null,
-    previsao: null,
-  };
-  vi.mocked(buscarFunil).mockResolvedValueOnce({ ...fixture, dashboard: { ...fixture.dashboard, diario: [fups] } } as RespostaFunil);
-
+it("mostra tabela por LinkedIn, os mini-funis e o gráfico por conta no lugar do Dashboard", async () => {
   render(
     <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11&conta=Alex"]}>
       <AtualizacaoProvider>
@@ -144,8 +135,21 @@ it("mostra tabela por LinkedIn, os mini-funis e o bloco Dashboard da Duda", asyn
 
   expect(within(screen.getByRole("region", { name: "Funil por LinkedIn" })).getByRole("button", { name: /Alex/ }).getAttribute("aria-pressed")).toBe("true");
 
-  expect(screen.getByRole("heading", { name: "Dashboard · Duda" })).toBeTruthy();
-  expect(within(screen.getByRole("list", { name: "Diário" })).getByText("/ 750")).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: /Dashboard/ })).toBeNull();
+  const grafico = screen.getByRole("figure", { name: "Evolução por conta" });
+  expect(grafico.querySelectorAll("[data-linha]")).toHaveLength(5);
+  const seletor = screen.getByRole("combobox", { name: "Métrica" });
+  expect(within(seletor).getAllByRole("option").map((o) => o.textContent)).toEqual([
+    "Conexões Enviadas",
+    "Conexões Aceitas",
+    "Mensagem de Abordagem",
+    "Respondidos",
+    "Números Captados",
+    "Abordagens",
+    "Follow de abordagem",
+    "InMails Enviados",
+    "Follow-ups",
+  ]);
 });
 
 it("clicar num mini-funil filtra o funil pelo LinkedIn escolhido", async () => {
@@ -172,4 +176,17 @@ it("clicar num mini-funil filtra o funil pelo LinkedIn escolhido", async () => {
   expect(buscarFunil).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole("figure", { name: "Volume por LinkedIn" })).toBeNull();
   expect(screen.queryByRole("figure", { name: "Taxa de conversão por LinkedIn" })).toBeNull();
+});
+
+it("sem título da página", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("list", { name: "Funil LinkedIn" });
+  expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 });

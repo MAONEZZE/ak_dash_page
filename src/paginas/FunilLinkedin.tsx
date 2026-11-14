@@ -1,21 +1,35 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilBarras } from "../componentes/FunilBarras";
 import type { EtapaFunil } from "../componentes/FunilBarras";
+import { GraficoContasFunil } from "../componentes/GraficoContasFunil";
 import { MiniFunisContas } from "../componentes/MiniFunisContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
+import { Velocimetro } from "../componentes/Velocimetro";
 import { buscarFunil } from "../lib/api";
-import { COLUNAS_LINKEDIN, diasUteisRestantes, linhaLinkedin, somarContas, taxasLinkedin, umaCasa } from "../lib/funil";
+import { COLUNAS_LINKEDIN, linhaLinkedin, somarContas, taxasLinkedin, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import type { MetricasConta, RespostaFunil } from "../lib/tipos-api";
+import type { MetricaConta, MetricasConta, RespostaFunil } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
+
+/** Opções do dropdown do gráfico por conta, na ordem do funil e da tabela. */
+const METRICAS_GRAFICO_LINKEDIN: { chave: MetricaConta; rotulo: string }[] = [
+  { chave: "conexoes_enviadas", rotulo: "Conexões Enviadas" },
+  { chave: "conexoes_aceitas", rotulo: "Conexões Aceitas" },
+  { chave: "mensagens_abordagem", rotulo: "Mensagem de Abordagem" },
+  { chave: "respondidos", rotulo: "Respondidos" },
+  { chave: "numeros_captados", rotulo: "Números Captados" },
+  { chave: "abordagens", rotulo: "Abordagens" },
+  { chave: "follows_abordagem", rotulo: "Follow de abordagem" },
+  { chave: "in_mails", rotulo: "InMails Enviados" },
+  { chave: "fups", rotulo: "Follow-ups" },
+];
 
 interface EstadoFunil {
   dado: RespostaFunil | null;
@@ -70,17 +84,11 @@ export function FunilLinkedin() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">
-          Painel de acompanhamento do funil de prospecção LinkedIn
-        </h1>
-        {dado && (
-          <>
-            <p className="text-lg text-muted">Consolidado de {listarNomes(dado.contas.map((c) => c.nome))}</p>
-            <PillConta rotulo="LinkedIn" contas={dado.contas.map((c) => c.nome)} />
-          </>
-        )}
-      </header>
+      {dado && (
+        <header className="flex flex-col gap-3">
+          <PillConta rotulo="LinkedIn" contas={dado.contas.map((c) => c.nome)} />
+        </header>
+      )}
 
       {!dado ? (
         erro ? (
@@ -110,22 +118,22 @@ function etapasLinkedin(m: MetricasConta): EtapaFunil[] {
     {
       rotulo: "Conexões Enviadas",
       valor: m.conexoes_enviadas,
-      passagem: { taxa: t.aceitacao, texto: "aceitaram", textoPerda: "não aceitaram" },
+      passagem: { taxa: t.aceitacao, texto: "aceitaram" },
     },
     {
       rotulo: "Conexões Aceitas",
       valor: m.conexoes_aceitas,
-      passagem: { taxa: t.abordados, texto: "abordados", textoPerda: "não abordados" },
+      passagem: { taxa: t.abordados, texto: "abordados" },
     },
     {
       rotulo: "Mensagem de Abordagem",
       valor: m.mensagens_abordagem,
-      passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+      passagem: { taxa: t.resposta, texto: "responderam" },
     },
     {
       rotulo: "Respondidos",
       valor: m.respondidos,
-      passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+      passagem: { taxa: t.conversaoNumero, texto: "viraram número" },
     },
     { rotulo: "Números Captados", valor: m.numeros_captados },
   ];
@@ -141,10 +149,20 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <FunilBarras
         titulo="Funil LinkedIn"
         conversaoTotal={t.conversaoTotal}
+        aoLado={
+          <Velocimetro
+            rotulo="Números Captados"
+            valor={somarContas(dado.contas, null).numeros_captados}
+            meta={dado.meta_numeros_captados}
+          />
+        }
         etapas={etapasLinkedin(m)}
         lateral={{
           rotulo: "Follow de abordagem",
-          texto: `${formatarNumero(m.follows_abordagem)} (${umaCasa(t.followsPorAbordagem)} por abordagem)`,
+          texto:
+            t.followsPorAbordagem === null
+              ? formatarNumero(m.follows_abordagem)
+              : `${formatarNumero(m.follows_abordagem)} (${umaCasa(t.followsPorAbordagem)} por abordagem)`,
           aoLadoDe: 2,
         }}
       />
@@ -165,7 +183,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         total={linhaLinkedin("TOTAL", somarContas(dado.contas, null))}
         destacada={conta}
       />
-      <BlocoDashboardFunil dashboard={dado.dashboard} diasUteisRestantes={diasUteisRestantes(new Date())} />
+      <GraficoContasFunil contas={dado.contas} periodo={dado.periodo} metricas={METRICAS_GRAFICO_LINKEDIN} />
     </>
   );
 }

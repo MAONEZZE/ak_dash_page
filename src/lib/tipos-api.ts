@@ -359,24 +359,26 @@ export type MetricaConta = (typeof METRICAS_CONTA)[number];
 
 export type MetricasConta = Record<MetricaConta, number>;
 
+/** Métricas de uma conta num dia com registro (vazio vira 0). */
+export interface DiaContaFunil {
+  data: string; // YYYY-MM-DD
+  metricas: MetricasConta;
+}
+
 export interface ContaFunil {
   id_conta: string;
   nome: string;
   metricas: MetricasConta;
-}
-
-export interface DashboardFunil {
-  seller: { id_user: string; nome: string } | null;
-  diario: MetricaTime[];
-  semanal: MetricaTime[];
-  mensal: MetricaTime[];
+  /** Um item por dia com registro no período, em ordem de data. */
+  serie: DiaContaFunil[];
 }
 
 export interface RespostaFunil {
   periodo: Periodo;
   avisos: string[];
   contas: ContaFunil[];
-  dashboard: DashboardFunil;
+  /** Meta de números captados no período (sellers ligados às contas); null sem seller ou sem meta. */
+  meta_numeros_captados: number | null;
 }
 
 export interface ParametrosFunil {

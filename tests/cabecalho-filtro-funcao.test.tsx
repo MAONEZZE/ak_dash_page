@@ -63,6 +63,47 @@ describe("filtro de função no header", () => {
     expect(screen.getByText("pagina-funil-instagram")).toBeTruthy();
   });
 
+  it("abas das páginas ficam na barra lateral e os filtros continuam na navbar", async () => {
+    await montar("/geral?granularidade=mes&periodo=2026-11");
+    const lateral = screen.getByRole("complementary", { name: "Páginas" });
+    const header = screen.getByRole("banner");
+
+    const navegacao = within(lateral).getByRole("navigation", { name: "Navegação" });
+    expect(within(header).queryByRole("navigation")).toBeNull();
+    expect(within(header).getByRole("group", { name: "Período" })).toBeTruthy();
+    expect(within(header).getByRole("group", { name: "Mês" })).toBeTruthy();
+
+    const ativo = within(navegacao).getByRole("link", { name: "Geral" });
+    expect(ativo.getAttribute("aria-current")).toBe("page");
+
+    fireEvent.click(within(navegacao).getByRole("link", { name: "Financeiro" }));
+    expect(await screen.findByText("pagina-financeiro")).toBeTruthy();
+    expect(screen.getByTestId("busca-atual").textContent).toBe("?granularidade=mes&periodo=2026-11");
+  });
+
+  it("o menu lateral recolhe e expande, e lembra a escolha ao recarregar", async () => {
+    await montar("/geral");
+    const lateral = screen.getByRole("complementary", { name: "Páginas" });
+    const botao = within(lateral).getByRole("button", { name: "Recolher menu" });
+
+    expect(botao.getAttribute("aria-expanded")).toBe("true");
+    expect(lateral.hasAttribute("data-recolhido")).toBe(false);
+
+    fireEvent.click(botao);
+
+    expect(lateral.getAttribute("data-recolhido")).toBe("true");
+    const expandir = within(lateral).getByRole("button", { name: "Expandir menu" });
+    expect(expandir.getAttribute("aria-expanded")).toBe("false");
+    expect(within(lateral).getByRole("link", { name: "Financeiro" })).toBeTruthy();
+
+    cleanup();
+    await montar("/geral");
+    expect(screen.getByRole("complementary", { name: "Páginas" }).getAttribute("data-recolhido")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Expandir menu" }));
+    expect(screen.getByRole("complementary", { name: "Páginas" }).hasAttribute("data-recolhido")).toBe(false);
+  });
+
   it("navbar autenticada não exibe a marca akeel", async () => {
     await montar("/geral");
     const header = screen.getByRole("banner");

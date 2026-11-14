@@ -1,8 +1,11 @@
 import { expect, it } from "vitest";
 import {
+  escalaMetades,
   extremosPorColuna,
+  serieGraficoContas,
   formatarTaxa,
   indiceGargalo,
+  formatoFunil,
   largurasEtapas,
   somarContas,
   taxasInstagram,
@@ -114,4 +117,89 @@ it("extremosPorColuna aponta melhor e pior conta só nas colunas de taxa com val
   ];
 
   expect(extremosPorColuna(colunas, linhas)).toEqual({ aceitacao: { melhor: "Jacob", pior: "Leticia" } });
+});
+
+it("formatoFunil estreita de 100% até 34% em passos iguais, um par topo/base por etapa", () => {
+  expect(formatoFunil(3)).toEqual([
+    [100, 78],
+    [78, 56],
+    [56, 34],
+  ]);
+  expect(formatoFunil(5).map(([topo]) => topo)).toEqual([100, 86.8, 73.6, 60.4, 47.2]);
+  expect(formatoFunil(5)[4][1]).toBe(34);
+  expect(formatoFunil(1)).toEqual([[100, 34]]);
+  expect(formatoFunil(0)).toEqual([]);
+});
+
+function conta(nome: string, dias: [string, Partial<MetricasConta>][]): ContaFunil {
+  const zero = Object.fromEntries(METRICAS_CONTA.map((m) => [m, 0])) as MetricasConta;
+  return {
+    id_conta: nome,
+    nome,
+    metricas: zero,
+    serie: dias.map(([data, m]) => ({ data, metricas: { ...zero, ...m } })),
+  };
+}
+
+it("serieGraficoContas: um ponto por dia do período até hoje, 0 nos dias sem registro", () => {
+  const contas = [
+    conta("Jacob", [["2026-11-02", { numeros_captados: 3 }], ["2026-11-04", { numeros_captados: 5 }]]),
+    conta("Alex", [["2026-11-03", { numeros_captados: 1 }]]),
+  ];
+
+  const grafico = serieGraficoContas(
+    contas,
+    "numeros_captados",
+    { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
+    new Date(2026, 10, 4, 15),
+  );
+
+  expect(grafico.rotulos).toEqual(["01/11", "02/11", "03/11", "04/11"]);
+  expect(grafico.series).toEqual([
+    { nome: "Jacob", valores: [0, 3, 0, 5] },
+    { nome: "Alex", valores: [0, 0, 1, 0] },
+  ]);
+});
+
+it("serieGraficoContas: semana, dia e custom passado mostram todos os dias do período", () => {
+  const contas = [conta("Jacob", [["2026-10-30", { fups: 2 }]])];
+  const hoje = new Date(2026, 10, 14);
+
+  expect(serieGraficoContas(contas, "fups", { granularidade: "custom", inicio: "2026-10-29", fim: "2026-11-01" }, hoje)).toEqual({
+    rotulos: ["29/10", "30/10", "31/10", "01/11"],
+    series: [{ nome: "Jacob", valores: [0, 2, 0, 0] }],
+  });
+  expect(serieGraficoContas(contas, "fups", { granularidade: "dia", inicio: "2026-10-30", fim: "2026-10-30" }, hoje).rotulos).toEqual([
+    "30/10",
+  ]);
+});
+
+it("serieGraficoContas: ano soma por mês, até o mês corrente", () => {
+  const contas = [
+    conta("Jacob", [
+      ["2026-01-05", { abordagens: 4 }],
+      ["2026-01-20", { abordagens: 6 }],
+      ["2026-03-01", { abordagens: 1 }],
+    ]),
+  ];
+
+  const grafico = serieGraficoContas(
+    contas,
+    "abordagens",
+    { granularidade: "ano", inicio: "2026-01-01", fim: "2026-12-31" },
+    new Date(2026, 2, 10),
+  );
+
+  expect(grafico.rotulos).toEqual(["Jan", "Fev", "Mar"]);
+  expect(grafico.series[0].valores).toEqual([10, 0, 1]);
+
+  const anoPassado = serieGraficoContas(contas, "abordagens", { granularidade: "ano", inicio: "2025-01-01", fim: "2025-12-31" }, new Date(2026, 2, 10));
+  expect(anoPassado.rotulos).toHaveLength(12);
+});
+
+it("escalaMetades: 0, metade e o total, com total par pra metade ser inteira", () => {
+  expect(escalaMetades([3, 100, 40])).toEqual([0, 50, 100]);
+  expect(escalaMetades([7])).toEqual([0, 4, 8]);
+  expect(escalaMetades([0, 0])).toEqual([0, 1, 2]);
+  expect(escalaMetades([])).toEqual([0, 1, 2]);
 });

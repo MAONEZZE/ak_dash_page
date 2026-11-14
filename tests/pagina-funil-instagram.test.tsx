@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { buscarFunil } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { FunilInstagram } from "../src/paginas/FunilInstagram";
-import type { MetricaTime, MetricasConta, RespostaFunil } from "../src/lib/tipos-api";
+import type { MetricasConta, RespostaFunil } from "../src/lib/tipos-api";
 
 const ZERO: MetricasConta = {
   conexoes_enviadas: 0,
@@ -28,20 +28,17 @@ const RESPOSTA: RespostaFunil = {
       id_conta: "1",
       nome: "Mary",
       metricas: { ...ZERO, abordagens: 100, respondidos: 30, numeros_captados: 6, fups: 50, indicacoes: 1 },
+      serie: [{ data: "2026-11-02", metricas: { ...ZERO, abordagens: 100, respondidos: 30, numeros_captados: 6, fups: 50, indicacoes: 1 } }],
     },
     {
       id_conta: "2",
       nome: "akeel",
       metricas: { ...ZERO, abordagens: 100, respondidos: 20, numeros_captados: 4, fups: 150, indicacoes: 0 },
+      serie: [{ data: "2026-11-03", metricas: { ...ZERO, abordagens: 100, respondidos: 20, numeros_captados: 4, fups: 150, indicacoes: 0 } }],
     },
-    { id_conta: "3", nome: "Jacob", metricas: { ...ZERO } },
+    { id_conta: "3", nome: "Jacob", metricas: { ...ZERO }, serie: [] },
   ],
-  dashboard: {
-    seller: { id_user: "1", nome: "Lucas" },
-    diario: [],
-    semanal: [],
-    mensal: [],
-  },
+  meta_numeros_captados: 40,
 };
 
 vi.mock("../src/lib/api", () => ({
@@ -76,6 +73,11 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   const lista = await screen.findByRole("list", { name: "Funil Instagram" });
   expect(buscarFunil).toHaveBeenCalledWith("instagram", { granularidade: "mes", periodo: "2026-11" });
 
+  const medidor = screen.getByRole("meter", { name: "Números Captados" });
+  expect(medidor.getAttribute("aria-valuenow")).toBe("10");
+  expect(medidor.getAttribute("aria-valuemax")).toBe("40");
+  expect(lista.closest(".glass-panel")?.nextElementSibling?.contains(medidor)).toBe(true);
+
   const etapas = within(lista).getAllByRole("listitem");
   expect(etapas).toHaveLength(3);
   expect(etapas[0].textContent).toContain("Abordagens feitas");
@@ -90,8 +92,8 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(within(lista).getByText("Follow-ups")).toBeTruthy();
   expect(within(lista).getByText("200 (1,0 por abordagem)")).toBeTruthy();
 
-  expect(etapas[0].textContent).toContain("−150 não responderam");
-  expect(etapas[1].textContent).toContain("−40 não viraram número");
+  expect(etapas[0].textContent).not.toContain("não responderam");
+  expect(etapas[1].textContent).not.toContain("não viraram número");
   expect(etapas[1].textContent).toContain("maior perda");
   expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("5,0%");
 
@@ -131,19 +133,7 @@ function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
   return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
 }
 
-it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Dashboard", async () => {
-  const mensal: MetricaTime = {
-    metrica: "numeros_captados",
-    nome_exibicao: "Números Captados",
-    meta_periodo: 441,
-    realizado: 33,
-    pct_atingimento: 7.5,
-    falta_folga: { tipo: "falta", valor: 408 },
-    horas_restantes: null,
-    media_necessaria: { valor: 37.1, unidade: "dia", situacao: "pendente" },
-    previsao: null,
-  };
-  vi.mocked(buscarFunil).mockResolvedValueOnce({ ...RESPOSTA, dashboard: { ...RESPOSTA.dashboard, mensal: [mensal] } });
+it("mostra a tabela de todos os perfis com o selecionado destacado e o gráfico por perfil", async () => {
   vi.useFakeTimers({ now: new Date(2026, 10, 13, 12), toFake: ["Date"] });
 
   try {
@@ -175,11 +165,18 @@ it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Das
     expect(within(tabela).getByRole("cell", { name: "akeel" }).closest("tr")?.getAttribute("aria-current")).toBe("true");
     expect(within(tabela).getByRole("cell", { name: "Mary" }).closest("tr")?.getAttribute("aria-current")).toBeNull();
 
-    const listaMensal = screen.getByRole("list", { name: "Mensal" });
-    expect(within(listaMensal).getByText("/ 441")).toBeTruthy();
-    expect(listaMensal.textContent).toContain("37,1 por dia · dias úteis restantes: 11");
-
-    expect(screen.getByRole("heading", { name: "Dashboard · Lucas" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: /Dashboard/ })).toBeNull();
+    const grafico = screen.getByRole("figure", { name: "Evolução por conta" });
+    expect(grafico.querySelectorAll("[data-linha]")).toHaveLength(3);
+    expect([...grafico.querySelectorAll("[data-rotulo-x]")].at(-1)?.textContent).toBe("13/11");
+    const seletor = screen.getByRole("combobox", { name: "Métrica" });
+    expect(within(seletor).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "Abordagens feitas",
+      "Respondidos",
+      "Números Captados",
+      "Follow-ups",
+      "Indicações Captadas",
+    ]);
   } finally {
     vi.useRealTimers();
   }
@@ -208,4 +205,36 @@ it("clicar num mini-funil filtra o funil pelo perfil escolhido", async () => {
   fireEvent.click(within(regiao).getByRole("button", { name: /Mary/ }));
   expect(within(lista).getAllByRole("listitem")[0].textContent).toContain("200");
   expect(buscarFunil).toHaveBeenCalledTimes(1);
+});
+
+it("sem título da página", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilInstagram />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("list", { name: "Funil Instagram" });
+  expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+});
+
+it("sem abordagens registradas, follow-ups mostram só o total", async () => {
+  vi.mocked(buscarFunil).mockResolvedValueOnce({
+    ...RESPOSTA,
+    contas: [{ id_conta: "1", nome: "Jacob", metricas: { ...ZERO, fups: 225, numeros_captados: 21 }, serie: [] }],
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilInstagram />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  const lista = await screen.findByRole("list", { name: "Funil Instagram" });
+  expect(lista.textContent).toContain("225");
+  expect(lista.textContent).not.toContain("por abordagem");
 });

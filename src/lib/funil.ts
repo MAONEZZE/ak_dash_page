@@ -1,4 +1,4 @@
-import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "./tipos-api";
+import { METRICAS_CONTA, type ContaFunil, type MetricaConta, type MetricasConta, type Periodo } from "./tipos-api";
 
 /** Soma as métricas das contas; `conta` com o nome de uma conta filtra só ela, senão (null ou inexistente) soma todas. */
 export function somarContas(contas: ContaFunil[], conta: string | null): MetricasConta {
@@ -22,6 +22,21 @@ export function largurasEtapas(valores: number[]): number[] {
   const maior = Math.max(0, ...valores);
   if (maior === 0) return valores.map(() => LARGURA_MINIMA_ETAPA);
   return valores.map((valor) => Math.max(LARGURA_MINIMA_ETAPA, Math.round((valor / maior) * 1000) / 10));
+}
+
+/** Largura (%) da boca de baixo do funil: a última etapa termina nela. */
+const BASE_DO_FUNIL = 34;
+
+/**
+ * Larguras [topo, base] (%) de cada etapa num funil de forma fixa: começa em
+ * 100% e estreita em passos iguais até `BASE_DO_FUNIL`. A base de uma etapa é o
+ * topo da seguinte, então os trapézios encaixam. A forma não depende dos
+ * valores: os números e as taxas carregam o dado, e o funil nunca sai invertido.
+ */
+export function formatoFunil(etapas: number): [number, number][] {
+  const passo = (100 - BASE_DO_FUNIL) / etapas;
+  const largura = (k: number) => Math.round((100 - k * passo) * 10) / 10;
+  return Array.from({ length: etapas }, (_, k) => [largura(k), largura(k + 1)]);
 }
 
 /** Índice da menor taxa não nula (primeiro em empate); `null` se houver menos de duas taxas válidas. */
@@ -193,22 +208,59 @@ export function linhaInstagram(nome: string, m: MetricasConta): LinhaFunil {
   };
 }
 
-/** Dias úteis (seg–sex) entre `inicio` e `fim`, ambos inclusive, em data local. */
-function contarDiasUteis(inicio: Date, fim: Date): number {
-  let n = 0;
-  for (const d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
-    if (d.getDay() !== 0 && d.getDay() !== 6) n++;
-  }
-  return n;
+// ---- gráfico de linhas por conta ----
+
+export interface GraficoContas {
+  /** Rótulo de cada ponto do eixo X: "dd/mm" por dia, "Jan".."Dez" no ano. */
+  rotulos: string[];
+  series: { nome: string; valores: number[] }[];
 }
 
-/** Dias úteis de amanhã até o domingo da semana ISO de `hoje` (semanal) e até o fim do mês de `hoje` (mensal). */
-export function diasUteisRestantes(hoje: Date): { semanal: number; mensal: number } {
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth();
-  const dia = hoje.getDate();
-  const amanha = new Date(ano, mes, dia + 1);
-  const domingo = new Date(ano, mes, dia + (7 - (hoje.getDay() || 7)));
-  const fimDoMes = new Date(ano, mes + 1, 0);
-  return { semanal: contarDiasUteis(amanha, domingo), mensal: contarDiasUteis(amanha, fimDoMes) };
+const MESES_CURTOS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function isoLocal(data: Date): string {
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
+
+/** Dias "AAAA-MM-DD" de `inicio` a `fim`, inclusive (aritmética em UTC pra não tropeçar no horário de verão). */
+function diasEntre(inicio: string, fim: string): string[] {
+  const dias: string[] = [];
+  for (let d = new Date(`${inicio}T00:00:00Z`); d.toISOString().slice(0, 10) <= fim; d.setUTCDate(d.getUTCDate() + 1)) {
+    dias.push(d.toISOString().slice(0, 10));
+  }
+  return dias;
+}
+
+/**
+ * Uma série por conta com a `metrica` escolhida ao longo do período: um ponto
+ * por dia, ou por mês quando a granularidade é ano. Para em hoje, pra o resto
+ * do mês corrente não cair a zero; dia sem registro vale 0.
+ */
+export function serieGraficoContas(contas: ContaFunil[], metrica: MetricaConta, periodo: Periodo, hoje: Date): GraficoContas {
+  const fim = periodo.fim < isoLocal(hoje) ? periodo.fim : isoLocal(hoje);
+  const porMes = periodo.granularidade === "ano";
+  const chaves = porMes
+    ? [...new Set(diasEntre(periodo.inicio, fim).map((d) => d.slice(0, 7)))]
+    : diasEntre(periodo.inicio, fim);
+  const rotulos = porMes
+    ? chaves.map((k) => MESES_CURTOS[Number(k.slice(5, 7)) - 1])
+    : chaves.map((k) => `${k.slice(8, 10)}/${k.slice(5, 7)}`);
+
+  const series = contas.map((c) => {
+    const somas = new Map<string, number>();
+    for (const dia of c.serie) {
+      const chave = porMes ? dia.data.slice(0, 7) : dia.data;
+      somas.set(chave, (somas.get(chave) ?? 0) + dia.metricas[metrica]);
+    }
+    return { nome: c.nome, valores: chaves.map((k) => somas.get(k) ?? 0) };
+  });
+
+  return { rotulos, series };
+}
+
+/** Marcas do eixo Y de metade em metade do maior valor: [0, total/2, total], com total par (mínimo 2). */
+export function escalaMetades(valores: number[]): [number, number, number] {
+  const maior = Math.max(0, ...valores);
+  const total = Math.max(2, Math.ceil(maior / 2) * 2);
+  return [0, total / 2, total];
 }

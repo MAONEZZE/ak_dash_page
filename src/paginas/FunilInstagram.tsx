@@ -1,21 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
-import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilBarras } from "../componentes/FunilBarras";
 import type { EtapaFunil } from "../componentes/FunilBarras";
+import { GraficoContasFunil } from "../componentes/GraficoContasFunil";
 import { MiniFunisContas } from "../componentes/MiniFunisContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
+import { Velocimetro } from "../componentes/Velocimetro";
 import { buscarFunil } from "../lib/api";
-import { COLUNAS_INSTAGRAM, diasUteisRestantes, linhaInstagram, somarContas, taxasInstagram, umaCasa } from "../lib/funil";
+import { COLUNAS_INSTAGRAM, linhaInstagram, somarContas, taxasInstagram, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import type { MetricasConta, RespostaFunil } from "../lib/tipos-api";
+import type { MetricaConta, MetricasConta, RespostaFunil } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
+
+/** Opções do dropdown do gráfico por conta, na ordem do funil e da tabela. */
+const METRICAS_GRAFICO_INSTAGRAM: { chave: MetricaConta; rotulo: string }[] = [
+  { chave: "abordagens", rotulo: "Abordagens feitas" },
+  { chave: "respondidos", rotulo: "Respondidos" },
+  { chave: "numeros_captados", rotulo: "Números Captados" },
+  { chave: "fups", rotulo: "Follow-ups" },
+  { chave: "indicacoes", rotulo: "Indicações Captadas" },
+];
 
 interface EstadoFunil {
   dado: RespostaFunil | null;
@@ -70,17 +80,12 @@ export function FunilInstagram() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-[15px] font-semibold uppercase tracking-[0.13em] text-muted">
-          Painel de acompanhamento do funil de prospecção Instagram
-        </h1>
-        {dado && (
-          <>
-            <p className="text-lg text-muted">Consolidado de {listarNomes(dado.contas.map((c) => c.nome))}</p>
-            <PillConta rotulo="Perfil" contas={dado.contas.map((c) => c.nome)} />
-          </>
-        )}
-      </header>
+      {dado && (
+        <header className="flex flex-col gap-3">
+          <p className="text-lg text-muted">Consolidado de {listarNomes(dado.contas.map((c) => c.nome))}</p>
+          <PillConta rotulo="Perfil" contas={dado.contas.map((c) => c.nome)} />
+        </header>
+      )}
 
       {!dado ? (
         erro ? (
@@ -110,12 +115,12 @@ function etapasInstagram(m: MetricasConta): EtapaFunil[] {
     {
       rotulo: "Abordagens feitas",
       valor: m.abordagens,
-      passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+      passagem: { taxa: t.resposta, texto: "responderam" },
     },
     {
       rotulo: "Respondidos",
       valor: m.respondidos,
-      passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+      passagem: { taxa: t.conversaoNumero, texto: "viraram número" },
     },
     { rotulo: "Números Captados", valor: m.numeros_captados },
   ];
@@ -131,10 +136,20 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <FunilBarras
         titulo="Funil Instagram"
         conversaoTotal={t.conversaoTotal}
+        aoLado={
+          <Velocimetro
+            rotulo="Números Captados"
+            valor={somarContas(dado.contas, null).numeros_captados}
+            meta={dado.meta_numeros_captados}
+          />
+        }
         etapas={etapasInstagram(m)}
         lateral={{
           rotulo: "Follow-ups",
-          texto: `${formatarNumero(m.fups)} (${umaCasa(t.fupsPorAbordagem)} por abordagem)`,
+          texto:
+            t.fupsPorAbordagem === null
+              ? formatarNumero(m.fups)
+              : `${formatarNumero(m.fups)} (${umaCasa(t.fupsPorAbordagem)} por abordagem)`,
           aoLadoDe: 0,
         }}
       />
@@ -158,7 +173,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         total={linhaInstagram("TOTAL", somarContas(dado.contas, null))}
         destacada={conta}
       />
-      <BlocoDashboardFunil dashboard={dado.dashboard} diasUteisRestantes={diasUteisRestantes(new Date())} />
+      <GraficoContasFunil contas={dado.contas} periodo={dado.periodo} metricas={METRICAS_GRAFICO_INSTAGRAM} />
     </>
   );
 }
