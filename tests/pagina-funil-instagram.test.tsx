@@ -175,9 +175,8 @@ it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Das
     expect(within(tabela).getByRole("cell", { name: "akeel" }).closest("tr")?.getAttribute("aria-current")).toBe("true");
     expect(within(tabela).getByRole("cell", { name: "Mary" }).closest("tr")?.getAttribute("aria-current")).toBeNull();
 
-    const tabelaMensal = screen.getByRole("table", { name: "Mensal" });
-    expect(within(tabelaMensal).getByText("441")).toBeTruthy();
-    expect(within(tabelaMensal).getByText("11")).toBeTruthy();
+    const listaMensal = screen.getByRole("list", { name: "Mensal" });
+    expect(within(listaMensal).getByText("/ 441")).toBeTruthy();
 
     expect(screen.getByRole("heading", { name: "Dashboard · Lucas" })).toBeTruthy();
   } finally {

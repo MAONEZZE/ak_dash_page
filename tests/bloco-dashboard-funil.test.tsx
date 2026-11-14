@@ -38,64 +38,42 @@ const dashboard: DashboardFunil = {
   ],
 };
 
-const cabecalhos = (tabela: HTMLElement) =>
-  within(tabela)
-    .getAllByRole("columnheader")
-    .map((th) => th.textContent);
-
-it("renderiza as três tabelas com as colunas da aba Dashboard", () => {
+it("mostra um card por métrica em Diário, Semanal e Mensal com realizado, meta e % de atingimento", () => {
   const { unmount } = render(
     <BlocoDashboardFunil dashboard={dashboard} diasUteisRestantes={{ semanal: 0, mensal: 11 }} />,
   );
 
   expect(screen.getByRole("heading", { level: 2, name: "Dashboard · Lucas" })).toBeTruthy();
 
-  const diario = screen.getByRole("table", { name: "Diário" });
-  const semanal = screen.getByRole("table", { name: "Semanal" });
-  const mensal = screen.getByRole("table", { name: "Mensal" });
+  const diario = screen.getByRole("list", { name: "Diário" });
+  const semanal = screen.getByRole("list", { name: "Semanal" });
+  const mensal = screen.getByRole("list", { name: "Mensal" });
 
-  expect(cabecalhos(diario)).toEqual([
-    "Métrica",
-    "Meta",
-    "Realizado",
-    "% de atingimento",
-    "Falta / Folga",
-    "Horas restantes",
-    "Média necessária por hora",
-  ]);
-  expect(cabecalhos(semanal)).toEqual([
-    "Métrica",
-    "Meta",
-    "Realizado",
-    "% de atingimento",
-    "Falta / Folga",
-    "Dias úteis restantes",
-    "Média necessária por dia",
-  ]);
-  expect(cabecalhos(mensal)).toEqual([
-    "Métrica",
-    "Meta",
-    "Realizado",
-    "% de atingimento",
-    "Falta / Folga",
-    "Dias úteis restantes",
-    "Média necessária por dia",
-    "Previsão",
-  ]);
+  expect(within(diario).getAllByRole("listitem")).toHaveLength(1);
+  expect(within(semanal).getAllByRole("listitem")).toHaveLength(1);
+  expect(within(mensal).getAllByRole("listitem")).toHaveLength(2);
 
-  expect(within(diario).getByText("Falta 19")).toBeTruthy();
-  expect(within(diario).getByText("9,5%")).toBeTruthy();
-  expect(within(diario).getByText("6,3")).toBeTruthy();
+  const cardDiario = within(diario).getAllByRole("listitem")[0];
+  expect(cardDiario.textContent).toContain("Números Captados");
+  expect(cardDiario.textContent).toContain("/ 21");
+  expect(cardDiario.textContent).toContain("9,5%");
+  const progressoDiario = within(cardDiario).getByRole("progressbar");
+  expect(progressoDiario.getAttribute("aria-valuenow")).toBe("2");
+  expect(progressoDiario.getAttribute("aria-valuemax")).toBe("21");
+  expect(cardDiario.querySelector(".barra-preenchimento")?.classList.contains("bg-bad")).toBe(true);
 
-  expect(within(mensal).getAllByText("11")).toHaveLength(2);
-  expect(within(mensal).getByText("Folga 0")).toBeTruthy();
-  expect(within(mensal).getByText("Meta batida")).toBeTruthy();
-  expect(within(mensal).getByText("69,3")).toBeTruthy();
+  const cardIndicacoes = within(mensal).getAllByRole("listitem")[1];
+  expect(cardIndicacoes.textContent).toContain("Indicações Captadas");
+  expect(cardIndicacoes.textContent).toContain("/ 0");
+  expect(cardIndicacoes.textContent).not.toContain("%");
+  expect(cardIndicacoes.querySelector(".barra-preenchimento")?.classList.contains("bg-aberta")).toBe(true);
+
+  expect(screen.queryAllByRole("table")).toHaveLength(0);
 
   unmount();
 
   render(<BlocoDashboardFunil dashboard={{ ...dashboard, seller: null }} />);
 
   expect(screen.getByText("Nenhum seller ligado a este canal.")).toBeTruthy();
-  expect(screen.queryAllByRole("table")).toHaveLength(0);
+  expect(screen.queryAllByRole("list")).toHaveLength(0);
 });

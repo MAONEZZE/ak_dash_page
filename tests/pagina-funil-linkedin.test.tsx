@@ -145,7 +145,7 @@ it("mostra tabela por LinkedIn, os mini-funis e o bloco Dashboard da Duda", asyn
   expect(within(screen.getByRole("region", { name: "Funil por LinkedIn" })).getByRole("button", { name: /Alex/ }).getAttribute("aria-pressed")).toBe("true");
 
   expect(screen.getByRole("heading", { name: "Dashboard · Duda" })).toBeTruthy();
-  expect(within(screen.getByRole("table", { name: "Diário" })).getByText("750")).toBeTruthy();
+  expect(within(screen.getByRole("list", { name: "Diário" })).getByText("/ 750")).toBeTruthy();
 });
 
 it("clicar num mini-funil filtra o funil pelo LinkedIn escolhido", async () => {
