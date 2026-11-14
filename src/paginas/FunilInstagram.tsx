@@ -4,6 +4,8 @@ import { BlocoDashboardFunil } from "../componentes/BlocoDashboardFunil";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilBarras } from "../componentes/FunilBarras";
+import type { EtapaFunil } from "../componentes/FunilBarras";
+import { MiniFunisContas } from "../componentes/MiniFunisContas";
 import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { buscarFunil } from "../lib/api";
@@ -11,7 +13,7 @@ import { COLUNAS_INSTAGRAM, diasUteisRestantes, linhaInstagram, somarContas, tax
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
-import type { RespostaFunil } from "../lib/tipos-api";
+import type { MetricasConta, RespostaFunil } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
@@ -102,6 +104,23 @@ export function FunilInstagram() {
   );
 }
 
+function etapasInstagram(m: MetricasConta): EtapaFunil[] {
+  const t = taxasInstagram(m);
+  return [
+    {
+      rotulo: "Abordagens feitas",
+      valor: m.abordagens,
+      passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
+    },
+    {
+      rotulo: "Respondidos",
+      valor: m.respondidos,
+      passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
+    },
+    { rotulo: "Números Captados", valor: m.numeros_captados },
+  ];
+}
+
 function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }) {
   const m = somarContas(dado.contas, conta);
   const t = taxasInstagram(m);
@@ -112,19 +131,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <FunilBarras
         titulo="Funil Instagram"
         conversaoTotal={t.conversaoTotal}
-        etapas={[
-          {
-            rotulo: "Abordagens feitas",
-            valor: m.abordagens,
-            passagem: { taxa: t.resposta, texto: "responderam", textoPerda: "não responderam" },
-          },
-          {
-            rotulo: "Respondidos",
-            valor: m.respondidos,
-            passagem: { taxa: t.conversaoNumero, texto: "viraram número", textoPerda: "não viraram número" },
-          },
-          { rotulo: "Números Captados", valor: m.numeros_captados },
-        ]}
+        etapas={etapasInstagram(m)}
         lateral={{
           rotulo: "Follow-ups",
           texto: `${formatarNumero(m.fups)} (${umaCasa(t.fupsPorAbordagem)} por abordagem)`,
@@ -135,6 +142,14 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />
         <CardKpi label="Indicações Captadas" value={formatarNumero(m.indicacoes)} />
       </section>
+      <MiniFunisContas
+        titulo="Funil por perfil"
+        contas={dado.contas.map((c) => ({
+          nome: c.nome,
+          etapas: etapasInstagram(c.metricas),
+          conversaoTotal: taxasInstagram(c.metricas).conversaoTotal,
+        }))}
+      />
       <TabelaContasFunil
         titulo="Por perfil"
         rotuloConta="Perfil"

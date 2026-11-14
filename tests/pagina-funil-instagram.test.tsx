@@ -184,3 +184,28 @@ it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Das
     vi.useRealTimers();
   }
 });
+
+it("clicar num mini-funil filtra o funil pelo perfil escolhido", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilInstagram />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  const lista = await screen.findByRole("list", { name: "Funil Instagram" });
+  const regiao = screen.getByRole("region", { name: "Funil por perfil" });
+  expect(within(regiao).getAllByRole("button")).toHaveLength(3);
+  const botaoMary = within(regiao).getByRole("button", { name: /Mary/ });
+  expect(botaoMary.textContent).toContain("6,0%");
+
+  fireEvent.click(botaoMary);
+  expect(within(lista).getAllByRole("listitem")[0].textContent).toContain("100");
+  expect(within(lista).getAllByRole("listitem")[0].textContent).toContain("↓ 30,0% responderam");
+  expect(within(regiao).getByRole("button", { name: /Mary/ }).getAttribute("aria-pressed")).toBe("true");
+
+  fireEvent.click(within(regiao).getByRole("button", { name: /Mary/ }));
+  expect(within(lista).getAllByRole("listitem")[0].textContent).toContain("200");
+  expect(buscarFunil).toHaveBeenCalledTimes(1);
+});
