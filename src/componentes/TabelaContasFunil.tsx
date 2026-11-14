@@ -9,11 +9,19 @@ function formatarValor(coluna: ColunaFunil, valor: number | null): string {
 }
 
 function celulas(colunas: ColunaFunil[], linha: LinhaFunil) {
-  return colunas.map((c) => (
-    <td key={c.chave} className="px-3 py-3 align-middle">
-      {formatarValor(c, linha.valores[c.chave] ?? null)}
-    </td>
-  ));
+  return colunas.map((c) => {
+    const valor = linha.valores[c.chave] ?? null;
+    return (
+      <td key={c.chave} className="px-3 py-3 align-middle">
+        {formatarValor(c, valor)}
+        {c.tipo === "taxa" && valor !== null && (
+          <div data-barra-taxa className="mt-1 h-1 w-full rounded-full bg-track">
+            <div className="h-full rounded-full bg-brand" style={{ width: `${Math.round(Math.min(Math.max(valor, 0), 1) * 1000) / 10}%` }} />
+          </div>
+        )}
+      </td>
+    );
+  });
 }
 
 /**
