@@ -155,7 +155,7 @@ export type MetricaCloser = (typeof METRICAS_CLOSER)[number];
 
 /**
  * Métricas que a aba "Dashboard" de cada planilha (Sellers, SDRs, Closers)
- * acompanha, na ordem dela — é o que Comercial e Time mostram por cargo.
+ * acompanha, na ordem dela — é o que a Time mostra por cargo.
  * "Onboarding realizado" (Dashboard Closers) ainda não existe no banco.
  */
 export const METRICAS_DASHBOARD: Record<Cargo, readonly string[]> = {
@@ -337,4 +337,51 @@ export interface RespostaFinanceiro {
   cards: CardFinanceiro[];
   /** Ordenadas por data_venda decrescente (venda mais recente primeiro). */
   vendas: VendaFinanceiro[];
+}
+
+// ---- /funil/{canal} ----
+
+export type Canal = "linkedin" | "instagram";
+
+export const METRICAS_CONTA = [
+  "conexoes_enviadas",
+  "conexoes_aceitas",
+  "mensagens_abordagem",
+  "abordagens",
+  "follows_abordagem",
+  "respondidos",
+  "in_mails",
+  "fups",
+  "numeros_captados",
+  "indicacoes",
+] as const;
+export type MetricaConta = (typeof METRICAS_CONTA)[number];
+
+export type MetricasConta = Record<MetricaConta, number>;
+
+/** Métricas de uma conta num dia com registro (vazio vira 0). */
+export interface DiaContaFunil {
+  data: string; // YYYY-MM-DD
+  metricas: MetricasConta;
+}
+
+export interface ContaFunil {
+  id_conta: string;
+  nome: string;
+  metricas: MetricasConta;
+  /** Um item por dia com registro no período, em ordem de data. */
+  serie: DiaContaFunil[];
+}
+
+export interface RespostaFunil {
+  periodo: Periodo;
+  avisos: string[];
+  contas: ContaFunil[];
+  /** Meta de números captados no período (sellers ligados às contas); null sem seller ou sem meta. */
+  meta_numeros_captados: number | null;
+}
+
+export interface ParametrosFunil {
+  granularidade: Granularidade;
+  periodo: string;
 }

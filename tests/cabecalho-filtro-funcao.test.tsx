@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 // O filtro de função (Todos/Sellers/SDRs/Closers) mora no header, logo à direita
-// do filtro de data — e só nas páginas que filtram por função (Comercial e Time).
+// do filtro de data — e só nas páginas que filtram por função (Time).
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/paginas/Comercial", () => ({ Comercial: () => <div>pagina-comercial</div> }));
+vi.mock("../src/paginas/FunilLinkedin", () => ({ FunilLinkedin: () => <div>pagina-funil-linkedin</div> }));
+vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pagina-funil-instagram</div> }));
+vi.mock("../src/paginas/Geral", () => ({ Geral: () => <div>pagina-geral</div> }));
 vi.mock("../src/paginas/Time", () => ({ Time: () => <div>pagina-time</div> }));
 vi.mock("../src/paginas/Financeiro", () => ({ Financeiro: () => <div>pagina-financeiro</div> }));
 vi.mock("../src/lib/supabase", () => ({
@@ -43,8 +45,67 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
+  it("navbar lista as cinco páginas na ordem e a raiz abre a Geral", async () => {
+    await montar("/");
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+
+    expect(within(navegacao).getAllByRole("link").map((l) => l.textContent)).toEqual([
+      "Funil LinkedIn",
+      "Funil Instagram",
+      "Geral",
+      "Financeiro",
+      "Time",
+    ]);
+    expect(await screen.findByText("pagina-geral")).toBeTruthy();
+
+    cleanup();
+    await montar("/funil-instagram");
+    expect(screen.getByText("pagina-funil-instagram")).toBeTruthy();
+  });
+
+  it("abas das páginas ficam na barra lateral e os filtros continuam na navbar", async () => {
+    await montar("/geral?granularidade=mes&periodo=2026-11");
+    const lateral = screen.getByRole("complementary", { name: "Páginas" });
+    const header = screen.getByRole("banner");
+
+    const navegacao = within(lateral).getByRole("navigation", { name: "Navegação" });
+    expect(within(header).queryByRole("navigation")).toBeNull();
+    expect(within(header).getByRole("group", { name: "Período" })).toBeTruthy();
+    expect(within(header).getByRole("group", { name: "Mês" })).toBeTruthy();
+
+    const ativo = within(navegacao).getByRole("link", { name: "Geral" });
+    expect(ativo.getAttribute("aria-current")).toBe("page");
+
+    fireEvent.click(within(navegacao).getByRole("link", { name: "Financeiro" }));
+    expect(await screen.findByText("pagina-financeiro")).toBeTruthy();
+    expect(screen.getByTestId("busca-atual").textContent).toBe("?granularidade=mes&periodo=2026-11");
+  });
+
+  it("o menu lateral recolhe e expande, e lembra a escolha ao recarregar", async () => {
+    await montar("/geral");
+    const lateral = screen.getByRole("complementary", { name: "Páginas" });
+    const botao = within(lateral).getByRole("button", { name: "Recolher menu" });
+
+    expect(botao.getAttribute("aria-expanded")).toBe("true");
+    expect(lateral.hasAttribute("data-recolhido")).toBe(false);
+
+    fireEvent.click(botao);
+
+    expect(lateral.getAttribute("data-recolhido")).toBe("true");
+    const expandir = within(lateral).getByRole("button", { name: "Expandir menu" });
+    expect(expandir.getAttribute("aria-expanded")).toBe("false");
+    expect(within(lateral).getByRole("link", { name: "Financeiro" })).toBeTruthy();
+
+    cleanup();
+    await montar("/geral");
+    expect(screen.getByRole("complementary", { name: "Páginas" }).getAttribute("data-recolhido")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Expandir menu" }));
+    expect(screen.getByRole("complementary", { name: "Páginas" }).hasAttribute("data-recolhido")).toBe(false);
+  });
+
   it("navbar autenticada não exibe a marca akeel", async () => {
-    await montar("/comercial");
+    await montar("/geral");
     const header = screen.getByRole("banner");
 
     expect(within(header).queryByText("akeel", { exact: true })).toBeNull();
@@ -77,7 +138,7 @@ describe("filtro de função no header", () => {
     }
   });
 
-  it.each(["/comercial", "/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
+  it.each(["/time"])("em %s fica no header, logo depois do filtro de data", async (rota) => {
     await montar(rota);
     const header = screen.getByRole("banner");
     const periodo = screen.getByRole("group", { name: "Período" });
@@ -89,11 +150,12 @@ describe("filtro de função no header", () => {
   });
 
   it.each([
-    ["/comercial", true],
     ["/time", true],
+    ["/funil-linkedin", false],
+    ["/funil-instagram", false],
     ["/geral", false],
     ["/financeiro", false],
-  ] as const)("filtro de função permanece visível e só habilita em Comercial e Time (%s)", async (rota, habilitado) => {
+  ] as const)("filtro de função permanece visível e só habilita na Time (%s)", async (rota, habilitado) => {
     cleanup();
     await montar(rota);
     const header = screen.getByRole("banner");

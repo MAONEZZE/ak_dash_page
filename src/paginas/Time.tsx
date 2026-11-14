@@ -38,7 +38,7 @@ interface CargoPessoa {
 
 /** Mesma pessoa nos dois cargos, num card só. */
 interface PessoaTime {
-  /** id_user — também é o `id="pessoa-…"` que a Comercial usa no link. */
+  /** id_user — também é o `id="pessoa-…"` que o destaque por URL (`/time#pessoa-…`) usa. */
   chave: string;
   cargos: CargoPessoa[];
 }
@@ -252,7 +252,7 @@ function CardPessoaTime({
   );
 }
 
-/** Rola até o card de `#pessoa-…` (link da Comercial) e devolve a chave a destacar por ~2,4s. */
+/** Rola até o card de `#pessoa-…` (destaque por URL, `/time#pessoa-…`) e devolve a chave a destacar por ~2,4s. */
 function useDestaqueDoHash(chavesRenderizadas: string): string | null {
   const { hash } = useLocation();
   const hashTratado = useRef<string | null>(null);

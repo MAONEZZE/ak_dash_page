@@ -1,4 +1,22 @@
-import { CalendarRange, ChevronLeft, ChevronRight, LogOut, Menu, Moon, RefreshCw, Sun, Volume2, VolumeX } from "lucide-react";
+import {
+  Briefcase,
+  CalendarRange,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  RefreshCw,
+  Sun,
+  Users,
+  Volume2,
+  VolumeX,
+  Wallet,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
@@ -9,8 +27,9 @@ import { formatarHora } from "./lib/formato";
 import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
 import type { Granularidade } from "./lib/tipos-api";
-import { Comercial } from "./paginas/Comercial";
 import { Financeiro } from "./paginas/Financeiro";
+import { FunilInstagram } from "./paginas/FunilInstagram";
+import { FunilLinkedin } from "./paginas/FunilLinkedin";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
 import { Time } from "./paginas/Time";
@@ -30,14 +49,15 @@ function useTema(): [Tema, () => void] {
 }
 
 const NAV_ITENS = [
-  { rota: "/geral", rotulo: "Geral" },
-  { rota: "/comercial", rotulo: "Comercial" },
-  { rota: "/time", rotulo: "Time" },
-  { rota: "/financeiro", rotulo: "Financeiro" },
+  { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: Briefcase },
+  { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: Camera },
+  { rota: "/geral", rotulo: "Geral", Icone: LayoutDashboard },
+  { rota: "/financeiro", rotulo: "Financeiro", Icone: Wallet },
+  { rota: "/time", rotulo: "Time", Icone: Users },
 ];
 
 /** Páginas que filtram por função (Todos/Sellers/SDRs/Closers). */
-const PAGINAS_COM_SQUAD = ["/comercial", "/time"];
+const PAGINAS_COM_SQUAD = ["/time"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
@@ -46,21 +66,69 @@ const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "ano", label: "Ano" },
 ];
 
-function PillNav() {
+const CHAVE_MENU_RECOLHIDO = "ak_dash_menu_recolhido";
+
+function lerMenuRecolhido(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_MENU_RECOLHIDO) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Abas das páginas numa coluna à esquerda. Recolhida (ou abaixo de lg) mostra
+ * só os ícones, com o rótulo pra leitor de tela e no tooltip. A escolha de
+ * recolher fica no navegador.
+ */
+function BarraLateral() {
   const location = useLocation();
+  const [recolhido, setRecolhido] = useState(lerMenuRecolhido);
+
+  function alternar() {
+    const novo = !recolhido;
+    setRecolhido(novo);
+    try {
+      localStorage.setItem(CHAVE_MENU_RECOLHIDO, novo ? "1" : "0");
+    } catch {
+      // Sem storage (aba anônima/bloqueado): só não lembra a escolha.
+    }
+  }
+
+  const rotuloVisivel = recolhido ? "sr-only" : "sr-only lg:not-sr-only";
+  const IconeBotao = recolhido ? PanelLeftOpen : PanelLeftClose;
 
   return (
-    <nav className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0" aria-label="Navegação">
-      {NAV_ITENS.map((item) => (
-        <NavLink
-          key={item.rota}
-          to={{ pathname: item.rota, search: location.search }}
-          className={({ isActive }) => `pill ${isActive ? "pill-ativo" : ""}`}
-        >
-          {item.rotulo}
-        </NavLink>
-      ))}
-    </nav>
+    <aside
+      className={`barra-lateral flex w-[72px] shrink-0 flex-col gap-3 px-3 py-4 transition-[width] duration-200 ${recolhido ? "" : "lg:w-60"}`}
+      aria-label="Páginas"
+      data-recolhido={recolhido ? "true" : undefined}
+    >
+      <nav className="flex flex-col gap-1.5" aria-label="Navegação">
+        {NAV_ITENS.map(({ rota, rotulo, Icone }) => (
+          <NavLink
+            key={rota}
+            to={{ pathname: rota, search: location.search }}
+            title={rotulo}
+            className={({ isActive }) => `aba-lateral ${isActive ? "aba-lateral-ativa" : ""}`}
+          >
+            <Icone className="size-5 shrink-0" aria-hidden />
+            <span className={rotuloVisivel}>{rotulo}</span>
+          </NavLink>
+        ))}
+      </nav>
+      <button
+        type="button"
+        onClick={alternar}
+        aria-expanded={!recolhido}
+        aria-label={recolhido ? "Expandir menu" : "Recolher menu"}
+        title={recolhido ? "Expandir menu" : "Recolher menu"}
+        className="aba-lateral mt-auto hidden w-full cursor-pointer border-0 bg-transparent lg:flex"
+      >
+        <IconeBotao className="size-5 shrink-0" aria-hidden />
+        <span className={rotuloVisivel}>Recolher</span>
+      </button>
+    </aside>
   );
 }
 
@@ -319,36 +387,39 @@ export default function App() {
     <AtualizacaoProvider>
       <SomProvider>
         <div className="dashboard-shell font-body text-fg">
-          <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)] flex-col">
-            <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
-              {/*
-               * Navbar: páginas + filtros no centro, som + menu à direita.
-               * Abaixo de lg os filtros descem pra uma segunda linha inteira.
-               */}
-              <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
-                <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
-                  <PillNav />
-                  <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
-                  <PillPeriodo />
-                  <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
+          <div className="relative z-10 mx-auto flex h-full max-w-[var(--dashboard-max-width)]">
+            <BarraLateral />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <header className="cabecalho sticky top-0 z-20 shrink-0 px-4 py-3 sm:px-6">
+                {/*
+                 * Navbar: filtros no centro, som + menu à direita (as páginas ficam na barra lateral).
+                 * Abaixo de lg os filtros descem pra uma segunda linha inteira.
+                 */}
+                <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
+                  <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
+                    <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
+                    <PillPeriodo />
+                    <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
+                  </div>
+                  <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
+                    <BotaoSom />
+                    <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
+                  </div>
                 </div>
-                <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
-                  <BotaoSom />
-                  <MenuAcoes tema={tema} alternarTema={alternarTema} aoSair={aoSair} />
-                </div>
-              </div>
-            </header>
+              </header>
 
-            <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5 sm:px-6">
-              <Routes>
-                <Route path="/login" element={<Navigate to="/comercial" replace />} />
-                <Route path="/" element={<Navigate to="/comercial" replace />} />
-                <Route path="/geral" element={<Geral />} />
-                <Route path="/comercial" element={<Comercial />} />
-                <Route path="/time" element={<Time />} />
-                <Route path="/financeiro" element={<Financeiro />} />
-              </Routes>
-            </main>
+              <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-5 sm:px-6">
+                <Routes>
+                  <Route path="/login" element={<Navigate to="/geral" replace />} />
+                  <Route path="/" element={<Navigate to="/geral" replace />} />
+                  <Route path="/funil-linkedin" element={<FunilLinkedin />} />
+                  <Route path="/funil-instagram" element={<FunilInstagram />} />
+                  <Route path="/geral" element={<Geral />} />
+                  <Route path="/time" element={<Time />} />
+                  <Route path="/financeiro" element={<Financeiro />} />
+                </Routes>
+              </main>
+            </div>
           </div>
         </div>
       </SomProvider>
