@@ -177,6 +177,7 @@ it("mostra a tabela de todos os perfis com o selecionado destacado e o bloco Das
 
     const listaMensal = screen.getByRole("list", { name: "Mensal" });
     expect(within(listaMensal).getByText("/ 441")).toBeTruthy();
+    expect(listaMensal.textContent).toContain("37,1 por dia · dias úteis restantes: 11");
 
     expect(screen.getByRole("heading", { name: "Dashboard · Lucas" })).toBeTruthy();
   } finally {

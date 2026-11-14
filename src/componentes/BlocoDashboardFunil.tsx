@@ -1,10 +1,16 @@
 import { formatarNumero } from "../lib/formato";
 import { umaCasa } from "../lib/funil";
-import { statusDoAtingimento } from "../lib/atingimento";
+import { COR_TEXTO, statusDoAtingimento } from "../lib/atingimento";
 import type { DashboardFunil, MetricaTime } from "../lib/tipos-api";
 import { ProgressBar } from "./ProgressBar";
 
-function CardMetrica({ linha }: { linha: MetricaTime }) {
+function textoDias(n: number | null | undefined): string | null {
+  return n === null || n === undefined ? null : `dias úteis restantes: ${formatarNumero(n)}`;
+}
+
+function CardMetrica({ linha, restante }: { linha: MetricaTime; restante: string | null }) {
+  const status = linha.meta_periodo ? statusDoAtingimento(linha.pct_atingimento) : "sem_meta";
+
   return (
     <li className="glass-panel flex flex-col gap-2 rounded-[24px] p-5">
       <span className="text-[13px] font-semibold uppercase tracking-[0.13em] text-muted">{linha.nome_exibicao}</span>
@@ -19,22 +25,41 @@ function CardMetrica({ linha }: { linha: MetricaTime }) {
           <span className="text-[16px] font-bold">{`${umaCasa(linha.pct_atingimento)}%`}</span>
         )}
       </div>
-      <ProgressBar
-        valor={linha.realizado}
-        meta={linha.meta_periodo ?? 0}
-        status={linha.meta_periodo ? statusDoAtingimento(linha.pct_atingimento) : "sem_meta"}
-      />
+      <ProgressBar valor={linha.realizado} meta={linha.meta_periodo ?? 0} status={status} />
+      <div className="flex flex-col gap-1 text-[14px] font-semibold text-muted">
+        {linha.falta_folga !== null && (
+          <span>
+            {linha.falta_folga.tipo === "falta" ? "Falta" : "Folga"}{" "}
+            <span className={COR_TEXTO[status]}>{formatarNumero(linha.falta_folga.valor)}</span>
+          </span>
+        )}
+        {linha.media_necessaria !== null && linha.media_necessaria.situacao === "pendente" && (
+          <span>
+            {[`${umaCasa(linha.media_necessaria.valor)} por ${linha.media_necessaria.unidade}`, restante]
+              .filter((parte) => parte !== null)
+              .join(" · ")}
+          </span>
+        )}
+      </div>
     </li>
   );
 }
 
-function ColunaRecorte({ titulo, linhas }: { titulo: string; linhas: MetricaTime[] }) {
+function ColunaRecorte({
+  titulo,
+  linhas,
+  restante,
+}: {
+  titulo: string;
+  linhas: MetricaTime[];
+  restante: (linha: MetricaTime) => string | null;
+}) {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-[15px] font-bold uppercase tracking-[0.13em] text-muted">{titulo}</h3>
       <ul aria-label={titulo} className="flex flex-col gap-3">
         {linhas.map((linha) => (
-          <CardMetrica key={linha.metrica} linha={linha} />
+          <CardMetrica key={linha.metrica} linha={linha} restante={restante(linha)} />
         ))}
       </ul>
     </div>
@@ -43,6 +68,7 @@ function ColunaRecorte({ titulo, linhas }: { titulo: string; linhas: MetricaTime
 
 export function BlocoDashboardFunil({
   dashboard,
+  diasUteisRestantes,
 }: {
   dashboard: DashboardFunil;
   diasUteisRestantes?: { semanal: number | null; mensal: number | null };
@@ -57,9 +83,21 @@ export function BlocoDashboardFunil({
         <>
           <h2 className="font-display text-[24px] font-bold tracking-tight">Dashboard · {seller.nome}</h2>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <ColunaRecorte titulo="Diário" linhas={dashboard.diario} />
-            <ColunaRecorte titulo="Semanal" linhas={dashboard.semanal} />
-            <ColunaRecorte titulo="Mensal" linhas={dashboard.mensal} />
+            <ColunaRecorte
+              titulo="Diário"
+              linhas={dashboard.diario}
+              restante={(linha) => (linha.horas_restantes === null ? null : `horas restantes: ${umaCasa(linha.horas_restantes)}`)}
+            />
+            <ColunaRecorte
+              titulo="Semanal"
+              linhas={dashboard.semanal}
+              restante={() => textoDias(diasUteisRestantes?.semanal)}
+            />
+            <ColunaRecorte
+              titulo="Mensal"
+              linhas={dashboard.mensal}
+              restante={() => textoDias(diasUteisRestantes?.mensal)}
+            />
           </div>
         </>
       )}

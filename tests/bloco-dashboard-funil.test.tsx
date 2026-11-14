@@ -77,3 +77,47 @@ it("mostra um card por métrica em Diário, Semanal e Mensal com realizado, meta
   expect(screen.getByText("Nenhum seller ligado a este canal.")).toBeTruthy();
   expect(screen.queryAllByRole("list")).toHaveLength(0);
 });
+
+it("rodapé do card mostra falta ou folga, a média necessária e o tempo restante", () => {
+  const dashboardComRodape: DashboardFunil = {
+    seller: { id_user: "13", nome: "Lucas" },
+    diario: [
+      { ...numerosCaptados },
+      { ...numerosCaptados, metrica: "fups", nome_exibicao: "Follow-ups", horas_restantes: null },
+    ],
+    semanal: [
+      {
+        ...numerosCaptados,
+        meta_periodo: 20,
+        realizado: 21,
+        pct_atingimento: 105,
+        falta_folga: { tipo: "folga", valor: 1 },
+        horas_restantes: null,
+        media_necessaria: { valor: 45, unidade: "dia", situacao: "pendente" },
+      },
+    ],
+    mensal: [],
+  };
+
+  const { unmount } = render(
+    <BlocoDashboardFunil dashboard={dashboardComRodape} diasUteisRestantes={{ semanal: 2, mensal: 11 }} />,
+  );
+
+  const [primeiroDiario, segundoDiario] = within(screen.getByRole("list", { name: "Diário" })).getAllByRole("listitem");
+  expect(primeiroDiario.textContent).toContain("Falta 19");
+  expect(primeiroDiario.textContent).toContain("3,0 por hora · horas restantes: 6,3");
+  expect(segundoDiario.textContent).toContain("3,0 por hora");
+  expect(segundoDiario.textContent).not.toContain("horas restantes");
+
+  const itemSemanal = within(screen.getByRole("list", { name: "Semanal" })).getAllByRole("listitem")[0];
+  expect(itemSemanal.textContent).toContain("Folga 1");
+  expect(itemSemanal.textContent).toContain("45,0 por dia · dias úteis restantes: 2");
+
+  unmount();
+
+  render(<BlocoDashboardFunil dashboard={dashboardComRodape} />);
+
+  const itemSemanalSemDias = within(screen.getByRole("list", { name: "Semanal" })).getAllByRole("listitem")[0];
+  expect(itemSemanalSemDias.textContent).toContain("45,0 por dia");
+  expect(itemSemanalSemDias.textContent).not.toContain("dias úteis restantes");
+});
