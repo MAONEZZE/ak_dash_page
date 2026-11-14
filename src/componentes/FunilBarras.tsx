@@ -12,15 +12,24 @@ export function FunilBarras({
   titulo,
   etapas,
   lateral,
+  conversaoTotal,
 }: {
   titulo: string;
   etapas: EtapaFunil[];
   lateral?: { rotulo: string; texto: string; aoLadoDe: number };
+  conversaoTotal: number | null;
 }) {
   const larguras = largurasEtapas(etapas.map((e) => e.valor));
   const gargalo = indiceGargalo(etapas.map((e) => (e.passagem ? e.passagem.taxa : null)));
   return (
     <div className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="font-display text-[24px] font-bold tracking-tight">{titulo}</h2>
+        <div role="group" aria-label="Conversão total do funil" className="flex flex-col items-end">
+          <span className="text-[13px] font-semibold uppercase tracking-[0.13em] text-muted">Conversão total do funil</span>
+          <span className="font-display text-[40px] font-extrabold leading-none">{formatarTaxa(conversaoTotal)}</span>
+        </div>
+      </header>
       <ol aria-label={titulo} className="flex flex-col gap-2">
         {etapas.map((etapa, i) => {
           const proxima = etapas[i + 1];

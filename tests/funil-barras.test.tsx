@@ -13,7 +13,7 @@ it("mostra etapas em ordem com barra proporcional, taxa de passagem e nota later
   ];
   const lateral = { rotulo: "Follow de abordagem", texto: "713 (0,8 por abordagem)", aoLadoDe: 1 };
 
-  render(<FunilBarras titulo="Funil LinkedIn" etapas={etapas} lateral={lateral} />);
+  render(<FunilBarras titulo="Funil LinkedIn" etapas={etapas} lateral={lateral} conversaoTotal={null} />);
 
   const lista = screen.getByRole("list", { name: "Funil LinkedIn" });
   const itens = within(lista).getAllByRole("listitem");
@@ -46,7 +46,7 @@ it("mostra a perda de cada passagem e marca a de menor taxa como maior perda", (
     { rotulo: "Indicações", valor: 200 },
   ];
 
-  const { rerender } = render(<FunilBarras titulo="Funil" etapas={etapas} />);
+  const { rerender } = render(<FunilBarras titulo="Funil" etapas={etapas} conversaoTotal={null} />);
 
   const lista = screen.getByRole("list", { name: "Funil" });
   const itens = within(lista).getAllByRole("listitem");
@@ -62,8 +62,21 @@ it("mostra a perda de cada passagem e marca a de menor taxa como maior perda", (
 
   expect(document.querySelectorAll("[data-gargalo]")).toHaveLength(1);
 
-  rerender(<FunilBarras titulo="Funil" etapas={[etapas[0], { rotulo: "Aceitas", valor: 940 }]} />);
+  rerender(<FunilBarras titulo="Funil" etapas={[etapas[0], { rotulo: "Aceitas", valor: 940 }]} conversaoTotal={null} />);
 
   expect(document.querySelectorAll("[data-gargalo]")).toHaveLength(0);
   expect(screen.queryByText("maior perda")).toBeNull();
+});
+
+it("mostra o título e a conversão total do funil no cabeçalho", () => {
+  const etapas: EtapaFunil[] = [{ rotulo: "Abordagens", valor: 200 }];
+
+  const { rerender } = render(<FunilBarras titulo="Funil Instagram" etapas={etapas} conversaoTotal={0.05} />);
+
+  expect(screen.getByRole("heading", { level: 2, name: "Funil Instagram" })).toBeTruthy();
+  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("5,0%");
+
+  rerender(<FunilBarras titulo="Funil Instagram" etapas={etapas} conversaoTotal={null} />);
+
+  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("—");
 });
