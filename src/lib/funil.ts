@@ -24,6 +24,22 @@ export function largurasEtapas(valores: number[]): number[] {
   return valores.map((valor) => Math.max(LARGURA_MINIMA_ETAPA, Math.round((valor / maior) * 1000) / 10));
 }
 
+/** Índice da menor taxa não nula (primeiro em empate); `null` se houver menos de duas taxas válidas. */
+export function indiceGargalo(taxas: (number | null)[]): number | null {
+  let indice: number | null = null;
+  let menor = Infinity;
+  let validas = 0;
+  taxas.forEach((taxa, i) => {
+    if (taxa === null) return;
+    validas++;
+    if (taxa < menor) {
+      menor = taxa;
+      indice = i;
+    }
+  });
+  return validas < 2 ? null : indice;
+}
+
 export interface TaxasLinkedin {
   aceitacao: number | null;
   abordados: number | null;

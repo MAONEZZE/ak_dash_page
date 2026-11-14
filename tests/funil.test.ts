@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { formatarTaxa, largurasEtapas, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
+import { formatarTaxa, indiceGargalo, largurasEtapas, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
 import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "../src/lib/tipos-api";
 
 function metricas(parcial: Partial<MetricasConta>): MetricasConta {
@@ -78,4 +78,13 @@ it("largurasEtapas é proporcional ao maior valor, com piso de 8%", () => {
   expect(largurasEtapas([0, 0, 0])).toEqual([8, 8, 8]);
   expect(largurasEtapas([100, -9])).toEqual([100, 8]);
   expect(largurasEtapas([])).toEqual([]);
+});
+
+it("indiceGargalo devolve o índice da menor taxa válida", () => {
+  expect(indiceGargalo([0.58, 0.894, 0.574, 0.185, null])).toBe(3);
+  expect(indiceGargalo([0.2, 0.2, null])).toBe(0);
+  expect(indiceGargalo([null, 0.3, null, 0.1])).toBe(3);
+  expect(indiceGargalo([0.5, null])).toBeNull();
+  expect(indiceGargalo([null, null])).toBeNull();
+  expect(indiceGargalo([])).toBeNull();
 });
