@@ -6,20 +6,25 @@ export function useContaSelecionada(): string | null {
   return params.get("conta");
 }
 
+/** Devolve a função que grava `conta=` na querystring (null remove), preservando os demais parâmetros. */
+export function useDefinirConta(): (conta: string | null) => void {
+  const [params, setParams] = useSearchParams();
+
+  return (conta: string | null) => {
+    const novo = new URLSearchParams(params);
+    if (conta === null) novo.delete("conta");
+    else novo.set("conta", conta);
+    setParams(novo, { replace: true });
+  };
+}
+
 /**
  * Filtro de conta (perfil, etc.) com um botão "Todas" e um por conta. Mora na
  * querystring (`conta=`), como o filtro de função, e preserva os demais parâmetros.
  */
 export function PillConta({ rotulo, contas }: { rotulo: string; contas: string[] }) {
   const selecionada = useContaSelecionada();
-  const [params, setParams] = useSearchParams();
-
-  function definirConta(conta: string | null) {
-    const novo = new URLSearchParams(params);
-    if (conta === null) novo.delete("conta");
-    else novo.set("conta", conta);
-    setParams(novo, { replace: true });
-  }
+  const definirConta = useDefinirConta();
 
   const opcoes: { label: string; conta: string | null }[] = [
     { label: "Todas", conta: null },
