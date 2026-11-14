@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatarNumero } from "../lib/formato";
 import { umaCasa } from "../lib/funil";
 import { COR_TEXTO, statusDoAtingimento } from "../lib/atingimento";
@@ -10,6 +11,28 @@ function textoDias(n: number | null | undefined): string | null {
 
 function CardMetrica({ linha, restante }: { linha: MetricaTime; restante: string | null }) {
   const status = linha.meta_periodo ? statusDoAtingimento(linha.pct_atingimento) : "sem_meta";
+  const media = linha.media_necessaria;
+  let linhaMedia: ReactNode = null;
+  switch (media?.situacao) {
+    case "pendente":
+      linhaMedia = (
+        <span>
+          {[`${umaCasa(media.valor)} por ${media.unidade}`, restante]
+            .filter((parte) => parte !== null)
+            .join(" · ")}
+        </span>
+      );
+      break;
+    case "meta_batida":
+      linhaMedia = <span>Meta batida</span>;
+      break;
+    case "expediente_encerrado":
+      linhaMedia = <span>Expediente encerrado</span>;
+      break;
+    case "periodo_encerrado":
+      linhaMedia = <span>Período encerrado</span>;
+      break;
+  }
 
   return (
     <li className="glass-panel flex flex-col gap-2 rounded-[24px] p-5">
@@ -27,18 +50,18 @@ function CardMetrica({ linha, restante }: { linha: MetricaTime; restante: string
       </div>
       <ProgressBar valor={linha.realizado} meta={linha.meta_periodo ?? 0} status={status} />
       <div className="flex flex-col gap-1 text-[14px] font-semibold text-muted">
-        {linha.falta_folga !== null && (
-          <span>
-            {linha.falta_folga.tipo === "falta" ? "Falta" : "Folga"}{" "}
-            <span className={COR_TEXTO[status]}>{formatarNumero(linha.falta_folga.valor)}</span>
-          </span>
-        )}
-        {linha.media_necessaria !== null && linha.media_necessaria.situacao === "pendente" && (
-          <span>
-            {[`${umaCasa(linha.media_necessaria.valor)} por ${linha.media_necessaria.unidade}`, restante]
-              .filter((parte) => parte !== null)
-              .join(" · ")}
-          </span>
+        {!linha.meta_periodo ? (
+          <span>Meta aberta</span>
+        ) : (
+          <>
+            {linha.falta_folga !== null && (
+              <span>
+                {linha.falta_folga.tipo === "falta" ? "Falta" : "Folga"}{" "}
+                <span className={COR_TEXTO[status]}>{formatarNumero(linha.falta_folga.valor)}</span>
+              </span>
+            )}
+            {linhaMedia}
+          </>
         )}
       </div>
     </li>

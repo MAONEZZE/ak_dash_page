@@ -121,3 +121,63 @@ it("rodapé do card mostra falta ou folga, a média necessária e o tempo restan
   expect(itemSemanalSemDias.textContent).toContain("45,0 por dia");
   expect(itemSemanalSemDias.textContent).not.toContain("dias úteis restantes");
 });
+
+it("rodapé do card mostra meta aberta, meta batida e encerramentos", () => {
+  const dashboardSituacoes: DashboardFunil = {
+    seller: { id_user: "13", nome: "Lucas" },
+    diario: [
+      {
+        ...numerosCaptados,
+        metrica: "a",
+        nome_exibicao: "Aberta",
+        meta_periodo: 0,
+        realizado: 0,
+        pct_atingimento: null,
+        falta_folga: { tipo: "folga", valor: 0 },
+        media_necessaria: { valor: null, unidade: "hora", situacao: "meta_batida" },
+      },
+      {
+        ...numerosCaptados,
+        metrica: "b",
+        nome_exibicao: "Batida",
+        meta_periodo: 4,
+        realizado: 5,
+        pct_atingimento: 125,
+        falta_folga: { tipo: "folga", valor: 1 },
+        media_necessaria: { valor: null, unidade: "hora", situacao: "meta_batida" },
+      },
+      {
+        ...numerosCaptados,
+        metrica: "c",
+        nome_exibicao: "Expediente",
+        media_necessaria: { valor: null, unidade: "hora", situacao: "expediente_encerrado" },
+      },
+      {
+        ...numerosCaptados,
+        metrica: "d",
+        nome_exibicao: "Periodo",
+        media_necessaria: { valor: null, unidade: "dia", situacao: "periodo_encerrado" },
+      },
+    ],
+    semanal: [],
+    mensal: [],
+  };
+
+  render(<BlocoDashboardFunil dashboard={dashboardSituacoes} />);
+
+  const [itemA, itemB, itemC, itemD] = within(screen.getByRole("list", { name: "Diário" })).getAllByRole("listitem");
+
+  expect(itemA.textContent).toContain("Meta aberta");
+  expect(itemA.textContent).not.toContain("Meta batida");
+  expect(itemA.textContent).not.toContain("Folga");
+  expect(itemA.textContent).not.toContain("horas restantes");
+
+  expect(itemB.textContent).toContain("Folga 1");
+  expect(itemB.textContent).toContain("Meta batida");
+  expect(itemB.textContent).not.toContain("horas restantes");
+
+  expect(itemC.textContent).toContain("Falta 19");
+  expect(itemC.textContent).toContain("Expediente encerrado");
+
+  expect(itemD.textContent).toContain("Período encerrado");
+});
