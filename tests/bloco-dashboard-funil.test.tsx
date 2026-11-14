@@ -181,3 +181,29 @@ it("rodapé do card mostra meta aberta, meta batida e encerramentos", () => {
 
   expect(itemD.textContent).toContain("Período encerrado");
 });
+
+it("card do Mensal mostra a previsão quando ela existe", () => {
+  const dashboardComPrevisao: DashboardFunil = {
+    seller: { id_user: "13", nome: "Lucas" },
+    diario: [{ ...numerosCaptados, previsao: 50 }],
+    semanal: [{ ...numerosCaptados, previsao: 50 }],
+    mensal: [
+      { ...numerosCaptados, meta_periodo: 441, realizado: 33, previsao: 69.3 },
+      { ...numerosCaptados, metrica: "fups", nome_exibicao: "Follow-ups", previsao: null },
+    ],
+  };
+
+  render(
+    <BlocoDashboardFunil dashboard={dashboardComPrevisao} diasUteisRestantes={{ semanal: 0, mensal: 11 }} />,
+  );
+
+  const [primeiroMensal, segundoMensal] = within(screen.getByRole("list", { name: "Mensal" })).getAllByRole("listitem");
+  expect(primeiroMensal.textContent).toContain("Previsão 69,3");
+  expect(segundoMensal.textContent).not.toContain("Previsão");
+
+  for (const nome of ["Diário", "Semanal"]) {
+    for (const item of within(screen.getByRole("list", { name: nome })).getAllByRole("listitem")) {
+      expect(item.textContent).not.toContain("Previsão");
+    }
+  }
+});

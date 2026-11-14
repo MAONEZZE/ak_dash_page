@@ -9,7 +9,15 @@ function textoDias(n: number | null | undefined): string | null {
   return n === null || n === undefined ? null : `dias úteis restantes: ${formatarNumero(n)}`;
 }
 
-function CardMetrica({ linha, restante }: { linha: MetricaTime; restante: string | null }) {
+function CardMetrica({
+  linha,
+  restante,
+  mostrarPrevisao,
+}: {
+  linha: MetricaTime;
+  restante: string | null;
+  mostrarPrevisao: boolean;
+}) {
   const status = linha.meta_periodo ? statusDoAtingimento(linha.pct_atingimento) : "sem_meta";
   const media = linha.media_necessaria;
   let linhaMedia: ReactNode = null;
@@ -63,6 +71,7 @@ function CardMetrica({ linha, restante }: { linha: MetricaTime; restante: string
             {linhaMedia}
           </>
         )}
+        {mostrarPrevisao && linha.previsao !== null && <span>{`Previsão ${umaCasa(linha.previsao)}`}</span>}
       </div>
     </li>
   );
@@ -72,17 +81,24 @@ function ColunaRecorte({
   titulo,
   linhas,
   restante,
+  mostrarPrevisao,
 }: {
   titulo: string;
   linhas: MetricaTime[];
   restante: (linha: MetricaTime) => string | null;
+  mostrarPrevisao: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-[15px] font-bold uppercase tracking-[0.13em] text-muted">{titulo}</h3>
       <ul aria-label={titulo} className="flex flex-col gap-3">
         {linhas.map((linha) => (
-          <CardMetrica key={linha.metrica} linha={linha} restante={restante(linha)} />
+          <CardMetrica
+            key={linha.metrica}
+            linha={linha}
+            restante={restante(linha)}
+            mostrarPrevisao={mostrarPrevisao}
+          />
         ))}
       </ul>
     </div>
@@ -110,16 +126,19 @@ export function BlocoDashboardFunil({
               titulo="Diário"
               linhas={dashboard.diario}
               restante={(linha) => (linha.horas_restantes === null ? null : `horas restantes: ${umaCasa(linha.horas_restantes)}`)}
+              mostrarPrevisao={false}
             />
             <ColunaRecorte
               titulo="Semanal"
               linhas={dashboard.semanal}
               restante={() => textoDias(diasUteisRestantes?.semanal)}
+              mostrarPrevisao={false}
             />
             <ColunaRecorte
               titulo="Mensal"
               linhas={dashboard.mensal}
               restante={() => textoDias(diasUteisRestantes?.mensal)}
+              mostrarPrevisao
             />
           </div>
         </>
