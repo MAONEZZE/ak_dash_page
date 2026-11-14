@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { formatarTaxa, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
+import { formatarTaxa, largurasEtapas, somarContas, taxasInstagram, taxasLinkedin, umaCasa } from "../src/lib/funil";
 import { METRICAS_CONTA, type ContaFunil, type MetricasConta } from "../src/lib/tipos-api";
 
 function metricas(parcial: Partial<MetricasConta>): MetricasConta {
@@ -70,4 +70,12 @@ it("taxasInstagram calcula resposta, conversão e follow-ups por abordagem", () 
   expect(z.resposta).toBeNull();
   expect(z.conversaoTotal).toBeNull();
   expect(z.fupsPorAbordagem).toBeNull();
+});
+
+it("largurasEtapas é proporcional ao maior valor, com piso de 8%", () => {
+  expect(largurasEtapas([1621, 940, 840, 482, 89])).toEqual([100, 58, 51.8, 29.7, 8]);
+  expect(largurasEtapas([200, 50, 10])).toEqual([100, 25, 8]);
+  expect(largurasEtapas([0, 0, 0])).toEqual([8, 8, 8]);
+  expect(largurasEtapas([100, -9])).toEqual([100, 8]);
+  expect(largurasEtapas([])).toEqual([]);
 });

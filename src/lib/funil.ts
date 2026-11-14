@@ -15,6 +15,15 @@ export function razao(parte: number, total: number): number | null {
   return total === 0 ? null : parte / total;
 }
 
+export const LARGURA_MINIMA_ETAPA = 8;
+
+/** Largura percentual (0–100, 1 casa) de cada etapa proporcional ao maior valor, com piso de `LARGURA_MINIMA_ETAPA`. */
+export function largurasEtapas(valores: number[]): number[] {
+  const maior = Math.max(0, ...valores);
+  if (maior === 0) return valores.map(() => LARGURA_MINIMA_ETAPA);
+  return valores.map((valor) => Math.max(LARGURA_MINIMA_ETAPA, Math.round((valor / maior) * 1000) / 10));
+}
+
 export interface TaxasLinkedin {
   aceitacao: number | null;
   abordados: number | null;
