@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatarNumero } from "../lib/formato";
-import { escalaMetades, serieGraficoContas } from "../lib/funil";
-import type { ContaFunil, MetricaConta, Periodo } from "../lib/tipos-api";
+import { escalaMetades, serieGraficoContas, type SerieDiaria } from "../lib/funil";
+import type { Periodo } from "../lib/tipos-api";
 
 const W = 1000;
 const H = 300;
@@ -29,18 +29,20 @@ const CORES = [
  * Linhas por conta da métrica escolhida no dropdown, ao longo do período do
  * filtro (um ponto por dia, ou por mês no ano). Eixo Y em 0, metade e total.
  */
-export function GraficoContasFunil({
+export function GraficoContasFunil<K extends string>({
   contas,
   periodo,
   metricas,
+  titulo = "Evolução por conta",
   hoje = new Date(),
 }: {
-  contas: ContaFunil[];
+  contas: SerieDiaria<K>[];
   periodo: Periodo;
-  metricas: { chave: MetricaConta; rotulo: string }[];
+  metricas: { chave: K; rotulo: string }[];
+  titulo?: string;
   hoje?: Date;
 }) {
-  const [metrica, setMetrica] = useState<MetricaConta>(metricas[0].chave);
+  const [metrica, setMetrica] = useState<K>(metricas[0].chave);
   const { rotulos, series } = serieGraficoContas(contas, metrica, periodo, hoje);
   const marcas = escalaMetades(series.flatMap((s) => s.valores));
   const teto = marcas[2];
@@ -59,12 +61,12 @@ export function GraficoContasFunil({
   return (
     <section className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[24px] font-bold tracking-tight">Evolução por conta</h2>
+        <h2 className="font-display text-[24px] font-bold tracking-tight">{titulo}</h2>
         <label className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.13em] text-muted">
           Métrica
           <select
             value={metrica}
-            onChange={(e) => setMetrica(e.target.value as MetricaConta)}
+            onChange={(e) => setMetrica(e.target.value as K)}
             className="glass-pill min-h-11 cursor-pointer px-4 text-[15px] font-semibold normal-case tracking-normal text-fg"
           >
             {metricas.map((m) => (
@@ -85,7 +87,7 @@ export function GraficoContasFunil({
         ))}
       </ul>
 
-      <figure aria-label="Evolução por conta" className="m-0 flex flex-col gap-2">
+      <figure aria-label={titulo} className="m-0 flex flex-col gap-2">
         <div className="flex gap-2">
           <div className="relative shrink-0" style={{ width: LARGURA_EIXO_Y, height: ALTURA_PLOT_PX }}>
             {[...marcas].reverse().map((valor) => (

@@ -1,4 +1,6 @@
+import { fotoConta } from "../lib/fotos-contas";
 import { formatarNumero } from "../lib/formato";
+import { Avatar } from "./Avatar";
 import { extremosPorColuna, formatarTaxa, type ColunaFunil, type ExtremosColuna, type LinhaFunil } from "../lib/funil";
 
 const CABECALHO = "text-[13px] font-semibold uppercase tracking-[0.08em] text-muted";
@@ -19,7 +21,7 @@ function celulas(colunas: ColunaFunil[], linha: LinhaFunil, extremos: ExtremosCo
         key={c.chave}
         data-extremo={extremo}
         title={extremo === "melhor" ? "Melhor taxa" : extremo === "pior" ? "Pior taxa" : undefined}
-        className={`px-3 py-3 align-middle${classeExtremo}`}
+        className={`px-3 py-3 text-center align-middle${classeExtremo}`}
       >
         {formatarValor(c, valor)}
         {c.tipo === "taxa" && valor !== null && (
@@ -42,14 +44,14 @@ export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total,
     <article className="glass-panel flex min-w-0 flex-col gap-3 rounded-[24px] p-5">
       <h3 className="text-[15px] font-bold uppercase tracking-[0.13em]">{titulo}</h3>
       <div className="overflow-x-auto">
-        <table aria-label={titulo} className="w-full border-collapse text-left">
+        <table aria-label={titulo} className="w-full border-collapse text-left [&_td:not(:last-child)]:border-r [&_th:not(:last-child)]:border-r [&_td]:border-line [&_th]:border-line">
           <thead>
             <tr className="border-b border-line">
-              <th scope="col" className={`py-2 pr-3 ${CABECALHO}`}>
+              <th scope="col" className={`px-3 py-2 text-center ${CABECALHO}`}>
                 {rotuloConta}
               </th>
               {colunas.map((c) => (
-                <th key={c.chave} scope="col" className={`px-3 py-2 ${CABECALHO}`}>
+                <th key={c.chave} scope="col" className={`px-3 py-2 text-center ${CABECALHO}`}>
                   {c.rotulo}
                 </th>
               ))}
@@ -60,7 +62,12 @@ export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total,
               const ativa = linha.nome === destacada;
               return (
                 <tr key={linha.nome} aria-current={ativa ? "true" : undefined} className={`border-b border-line last:border-0 ${ativa ? "bg-surface-2" : ""}`}>
-                  <td className="py-3 pr-3 text-[16px] font-bold">{linha.nome}</td>
+                  <td className="px-3 py-3 align-middle" title={linha.nome}>
+                    <span aria-hidden className="flex justify-center">
+                      <Avatar nome={linha.nome} imagemUrl={fotoConta(linha.nome)} tamanho={56} />
+                    </span>
+                    <span className="sr-only">{linha.nome}</span>
+                  </td>
                   {celulas(colunas, linha, extremos)}
                 </tr>
               );
@@ -68,7 +75,7 @@ export function TabelaContasFunil({ titulo, rotuloConta, colunas, linhas, total,
           </tbody>
           <tfoot>
             <tr className="border-t border-line font-bold">
-              <td className="py-3 pr-3">{total.nome}</td>
+              <td className="px-3 py-3 text-center">{total.nome}</td>
               {celulas(colunas, total, null)}
             </tr>
           </tfoot>

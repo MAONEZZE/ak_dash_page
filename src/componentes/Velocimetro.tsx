@@ -46,7 +46,18 @@ function Traco({ de, ate, className, ...resto }: { de: number; ate: number; clas
  * ponteiro marcando o valor (para em 100% mesmo acima da meta; o % escrito
  * não tem teto). O fundo do card pisca suave na cor da faixa do ponteiro.
  */
-export function Velocimetro({ rotulo, valor, meta }: { rotulo: string; valor: number; meta: number | null }) {
+export function Velocimetro({
+  rotulo,
+  valor,
+  meta,
+  fonte,
+}: {
+  rotulo: string;
+  valor: number;
+  meta: number | null;
+  /** De onde vêm os números (ex.: título e data do evento), abaixo do rótulo. */
+  fonte?: { titulo: string; data?: string };
+}) {
   const temMeta = meta !== null && meta > 0;
   const pct = temMeta ? (valor / meta) * 100 : null;
   const status = statusDoAtingimento(pct);
@@ -63,7 +74,13 @@ export function Velocimetro({ rotulo, valor, meta }: { rotulo: string; valor: nu
         aria-valuemax={temMeta ? meta : undefined}
         className="relative flex w-full max-w-[460px] flex-col items-center gap-2"
       >
-        <span className="text-[12px] font-semibold uppercase tracking-[0.13em] text-muted">{rotulo}</span>
+        <span className="text-[30px] font-bold uppercase tracking-[0.13em] text-muted">{rotulo}</span>
+        {fonte && (
+          <span data-fonte className="flex flex-col items-center text-center leading-tight">
+            <span className="text-[18px] font-semibold">{fonte.titulo}</span>
+            {fonte.data && <span className="text-[15px] font-semibold text-muted">{fonte.data}</span>}
+          </span>
+        )}
         <svg viewBox="0 0 200 112" className="block w-full overflow-visible" aria-hidden>
           {FAIXAS.map((f, i) => {
             const de = f.de + (i > 0 ? FOLGA : 0);

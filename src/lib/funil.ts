@@ -1,4 +1,4 @@
-import { METRICAS_CONTA, type ContaFunil, type MetricaConta, type MetricasConta, type Periodo } from "./tipos-api";
+import { METRICAS_CONTA, type ContaFunil, type MetricasConta, type Periodo } from "./tipos-api";
 
 /** Soma as métricas das contas; `conta` com o nome de uma conta filtra só ela, senão (null ou inexistente) soma todas. */
 export function somarContas(contas: ContaFunil[], conta: string | null): MetricasConta {
@@ -151,10 +151,6 @@ export const COLUNAS_LINKEDIN: ColunaFunil[] = [
   { chave: "conversaoNumero", rotulo: "% Conversão em número", tipo: "taxa" },
   { chave: "numeros_captados", rotulo: "Números Captados", tipo: "numero" },
   { chave: "conversaoTotal", rotulo: "Conversão total", tipo: "taxa" },
-  { chave: "abordagens", rotulo: "Abordagens", tipo: "numero" },
-  { chave: "in_mails", rotulo: "InMails Enviados", tipo: "numero" },
-  { chave: "fups", rotulo: "Follow-ups", tipo: "numero" },
-  { chave: "follows_abordagem", rotulo: "Follow de abordagem", tipo: "numero" },
 ];
 
 /** Linha da tabela LinkedIn: contadores da conta + taxas calculadas. */
@@ -173,10 +169,6 @@ export function linhaLinkedin(nome: string, m: MetricasConta): LinhaFunil {
       conversaoNumero: t.conversaoNumero,
       numeros_captados: m.numeros_captados,
       conversaoTotal: t.conversaoTotal,
-      abordagens: m.abordagens,
-      in_mails: m.in_mails,
-      fups: m.fups,
-      follows_abordagem: m.follows_abordagem,
     },
   };
 }
@@ -188,7 +180,6 @@ export const COLUNAS_INSTAGRAM: ColunaFunil[] = [
   { chave: "conversaoNumero", rotulo: "% Conversão em número", tipo: "taxa" },
   { chave: "numeros_captados", rotulo: "Números Captados", tipo: "numero" },
   { chave: "conversaoTotal", rotulo: "Conversão total", tipo: "taxa" },
-  { chave: "fups", rotulo: "Follow-ups", tipo: "numero" },
 ];
 
 /** Linha da tabela Instagram: contadores da conta + taxas calculadas. */
@@ -203,7 +194,6 @@ export function linhaInstagram(nome: string, m: MetricasConta): LinhaFunil {
       conversaoNumero: t.conversaoNumero,
       numeros_captados: m.numeros_captados,
       conversaoTotal: t.conversaoTotal,
-      fups: m.fups,
     },
   };
 }
@@ -231,17 +221,34 @@ function diasEntre(inicio: string, fim: string): string[] {
   return dias;
 }
 
+/** "AAAA-MM-DD" `n` dias antes de `dia`. */
+function diasAntes(dia: string, n: number): string {
+  const d = new Date(`${dia}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** No filtro de dia o gráfico mostra os 7 dias até ele (a API manda a série desde então): um ponto só não vira linha. */
+const DIAS_SERIE_FILTRO_DIA = 7;
+
 /**
  * Uma série por conta com a `metrica` escolhida ao longo do período: um ponto
  * por dia, ou por mês quando a granularidade é ano. Para em hoje, pra o resto
  * do mês corrente não cair a zero; dia sem registro vale 0.
  */
-export function serieGraficoContas(contas: ContaFunil[], metrica: MetricaConta, periodo: Periodo, hoje: Date): GraficoContas {
+/** Qualquer coisa com nome e série diária: conta de funil ou SDR. */
+export interface SerieDiaria<K extends string> {
+  nome: string;
+  serie: { data: string; metricas: Record<K, number> }[];
+}
+
+export function serieGraficoContas<K extends string>(contas: SerieDiaria<K>[], metrica: K, periodo: Periodo, hoje: Date): GraficoContas {
   const fim = periodo.fim < isoLocal(hoje) ? periodo.fim : isoLocal(hoje);
+  const inicio = periodo.granularidade === "dia" ? diasAntes(periodo.inicio, DIAS_SERIE_FILTRO_DIA - 1) : periodo.inicio;
   const porMes = periodo.granularidade === "ano";
   const chaves = porMes
-    ? [...new Set(diasEntre(periodo.inicio, fim).map((d) => d.slice(0, 7)))]
-    : diasEntre(periodo.inicio, fim);
+    ? [...new Set(diasEntre(inicio, fim).map((d) => d.slice(0, 7)))]
+    : diasEntre(inicio, fim);
   const rotulos = porMes
     ? chaves.map((k) => MESES_CURTOS[Number(k.slice(5, 7)) - 1])
     : chaves.map((k) => `${k.slice(8, 10)}/${k.slice(5, 7)}`);
