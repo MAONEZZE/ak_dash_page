@@ -45,7 +45,7 @@ const RESPOSTA: RespostaFunilSdr = {
     { id_user: "11", nome: "Juca", imagem_url: null, metricas: JUCA, serie: [{ data: "2026-11-03", metricas: JUCA }] },
     { id_user: "14", nome: "Jennifer", imagem_url: null, metricas: JENNIFER, serie: [] },
   ],
-  evento: { titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80 },
+  evento: { id: "e1", titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80 },
 };
 
 vi.mock("../src/lib/api", () => ({ buscarFunilSdr: vi.fn(async () => RESPOSTA) }));
@@ -53,9 +53,9 @@ vi.mock("../src/lib/api", () => ({ buscarFunilSdr: vi.fn(async () => RESPOSTA) }
 beforeEach(() => vi.clearAllMocks());
 afterEach(() => cleanup());
 
-function renderizar() {
+function renderizar(url = "/funil-sdr?granularidade=mes&periodo=2026-11") {
   render(
-    <MemoryRouter initialEntries={["/funil-sdr?granularidade=mes&periodo=2026-11"]}>
+    <MemoryRouter initialEntries={[url]}>
       <AtualizacaoProvider>
         <FunilSdr />
       </AtualizacaoProvider>
@@ -66,7 +66,13 @@ function renderizar() {
 it("busca o funil de SDR com o período do header", async () => {
   renderizar();
   await screen.findByRole("meter", { name: "Inscrições Realizadas" });
-  expect(buscarFunilSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: "2026-11" });
+  expect(buscarFunilSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: "2026-11", evento: null });
+});
+
+it("com um evento escolhido no filtro, busca o funil de SDR com os números dele", async () => {
+  renderizar("/funil-sdr?granularidade=mes&periodo=2026-11&evento=e-antigo");
+  await screen.findByRole("meter", { name: "Inscrições Realizadas" });
+  expect(buscarFunilSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: "2026-11", evento: "e-antigo" });
 });
 
 it("velocímetro mostra os inscritos da próxima Confraria contra a capacidade, com título e data do evento", async () => {
@@ -84,7 +90,7 @@ it("sem Confraria agendada o velocímetro avisa e fica sem meta", async () => {
   renderizar();
   const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
   expect(velocimetro.getAttribute("aria-valuenow")).toBe("0");
-  expect(velocimetro.textContent).toContain("Nenhuma Confraria agendada");
+  expect(velocimetro.textContent).toContain("Nenhum evento agendado");
   expect(velocimetro.textContent).toContain("Meta aberta");
 });
 
