@@ -22,6 +22,7 @@ import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
 import { CalendarioIntervalo, formatarDataCurta } from "./componentes/CalendarioIntervalo";
 import { LogoInstagram, LogoLinkedin } from "./componentes/IconesMarca";
+import { PillEvento, useEventoSelecionado } from "./componentes/PillEvento";
 import { PillSquad } from "./componentes/PillSquad";
 import { formatarHora } from "./lib/formato";
 import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
@@ -60,6 +61,9 @@ const NAV_ITENS = [
 
 /** Páginas que filtram por função (Todos/Sellers/SDRs/Closers). */
 const PAGINAS_COM_SQUAD = ["/time"];
+
+/** Páginas que filtram por evento (evento do velocímetro e dos cards do evento). */
+const PAGINAS_COM_EVENTO = ["/funil-sdr"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
@@ -364,7 +368,8 @@ export default function App() {
   const { usuario, carregando, sair } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { granularidade } = useFiltrosAtuais();
+  const { granularidade, periodo } = useFiltrosAtuais();
+  const evento = useEventoSelecionado();
 
   if (carregando) {
     return (
@@ -410,6 +415,9 @@ export default function App() {
                     <div className={PAGINAS_COM_SQUAD.includes(location.pathname) ? "shrink-0" : "hidden sm:block"}>
                       <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
                     </div>
+                    <div className={PAGINAS_COM_EVENTO.includes(location.pathname) ? "shrink-0" : "hidden sm:block"}>
+                      <PillEvento disabled={!PAGINAS_COM_EVENTO.includes(location.pathname)} />
+                    </div>
                   </div>
                   <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
                     <BotaoSom />
@@ -419,7 +427,14 @@ export default function App() {
               </header>
 
               <main className="px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 md:overflow-y-auto md:pb-6">
-                <Routes>
+                {/*
+                 * Trocar um filtro que refaz a busca (período, mês, evento) remonta a
+                 * página: o dado velho some e os componentes voltam ao esqueleto até
+                 * a resposta nova chegar (e uma resposta atrasada do filtro anterior
+                 * cai num componente desmontado, sem sobrescrever a nova). Filtros que
+                 * só recortam o dado já carregado (conta, função) não entram na chave.
+                 */}
+                <Routes key={`${granularidade}|${periodo}|${evento ?? ""}`}>
                   <Route path="/login" element={<Navigate to="/geral" replace />} />
                   <Route path="/" element={<Navigate to="/geral" replace />} />
                   <Route path="/funil-linkedin" element={<FunilLinkedin />} />

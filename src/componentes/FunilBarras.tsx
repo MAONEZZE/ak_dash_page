@@ -8,18 +8,42 @@ export interface EtapaFunil {
   passagem?: { taxa: number | null; texto: string };
 }
 
-/** Trapézio centrado: topo e base em % da largura da coluna do funil. */
-function recorte(topo: number, base: number): string {
+/** Raio (px) dos cantos arredondados dos trapézios. */
+const RAIO = 10;
+
+/**
+ * Trapézio centrado com cantos arredondados: topo e base em % da largura da
+ * coluna do funil. O SVG estica (preserveAspectRatio="none") e o contorno de
+ * espessura fixa com junção redonda arredonda os cantos sem deformar o raio.
+ * O polígono fica recuado RAIO px e o contorno devolve o tamanho original.
+ */
+function TrapezioArredondado({ topo, base }: { topo: number; base: number }) {
   const a = (100 - topo) / 2;
   const b = (100 - base) / 2;
-  return `polygon(${a}% 0, ${100 - a}% 0, ${100 - b}% 100%, ${b}% 100%)`;
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      className="absolute overflow-visible fill-brand stroke-brand"
+      style={{ inset: RAIO, width: `calc(100% - ${2 * RAIO}px)`, height: `calc(100% - ${2 * RAIO}px)` }}
+    >
+      <polygon
+        points={`${a},0 ${100 - a},0 ${100 - b},100 ${b},100`}
+        strokeWidth={2 * RAIO}
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
 }
 
 /**
- * Grade de cada linha: blocos à esquerda, coluna da nota lateral à direita.
+ * Grade de cada linha: blocos na coluna do meio (centralizados no card), nota
+ * lateral na coluna da esquerda e uma coluna vazia de mesma largura à direita.
  * No celular (< sm) é uma coluna só e a nota desce pra baixo do bloco.
  */
-const GRADE_LINHA = "grid grid-cols-1 items-center sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]";
+const GRADE_LINHA = "grid grid-cols-1 items-center sm:grid-cols-[minmax(0,1fr)_minmax(0,3fr)_minmax(0,1fr)]";
 
 /**
  * Funil de forma fixa (trapézios encaixados, do mais largo ao mais estreito),
@@ -53,39 +77,39 @@ export function FunilBarras({
           <span className="font-display text-[32px] font-extrabold leading-none">{formatarTaxa(conversaoTotal)}</span>
         </div>
       </header>
-      <ol aria-label={titulo} className="flex w-full min-w-0 flex-col">
+      <ol aria-label={titulo} className="flex w-full min-w-0 flex-1 flex-col justify-center">
           {etapas.map((etapa, i) => {
             const [topo, base] = formato[i];
             const ehGargalo = gargalo === i;
             const temLateral = lateral !== undefined && lateral.aoLadoDe === i;
-            // Borda direita do trapézio na altura do meio, em % da coluna dos blocos.
-            const bordaDireita = 50 + (topo + base) / 4;
+            // Borda esquerda do trapézio na altura do meio, em % da coluna dos blocos.
+            const bordaEsquerda = 50 - (topo + base) / 4;
 
             return (
               <li key={etapa.rotulo} className="flex flex-col">
                 <div data-linha-etapa className={GRADE_LINHA}>
-                  <div className="relative col-start-1">
+                  <div className="relative sm:col-start-2 sm:row-start-1">
                     <div
                       data-segmento
                       data-largura-topo={topo}
                       data-largura-base={base}
-                      className="flex min-h-[60px] flex-col items-center justify-center bg-brand px-2 text-center text-surface"
-                      style={{ clipPath: recorte(topo, base) }}
+                      className="relative flex min-h-[60px] flex-col items-center justify-center px-2 text-center text-surface"
                     >
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em]">{etapa.rotulo}</span>
-                      <span className="font-display text-[24px] font-extrabold leading-none">{formatarNumero(etapa.valor)}</span>
+                      <TrapezioArredondado topo={topo} base={base} />
+                      <span className="relative text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em]">{etapa.rotulo}</span>
+                      <span className="relative font-display text-[24px] font-extrabold leading-none">{formatarNumero(etapa.valor)}</span>
                     </div>
                     {temLateral && (
                       <span
                         data-conector
                         aria-hidden
                         className="absolute top-1/2 hidden border-t-2 border-dashed border-border-forte sm:block"
-                        style={{ left: `${bordaDireita}%`, right: -24 }}
+                        style={{ left: -12, right: `${100 - bordaEsquerda}%` }}
                       />
                     )}
                   </div>
                   {temLateral && (
-                    <div data-nota-lateral className="mt-2 flex min-w-0 flex-col items-center justify-self-center text-center sm:col-start-2 sm:ml-6 sm:mt-0 sm:items-start sm:justify-self-auto sm:text-left rounded-[12px] bg-surface-2 px-3 py-1.5">
+                    <div data-nota-lateral className="mt-2 flex min-w-0 flex-col items-center justify-self-center text-center sm:col-start-1 sm:row-start-1 sm:mr-3 sm:mt-0 sm:items-end sm:justify-self-end sm:text-right rounded-[12px] bg-surface-2 px-3 py-1.5">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
                       <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
                     </div>
@@ -97,7 +121,7 @@ export function FunilBarras({
                     <div
                       data-passagem
                       data-gargalo={ehGargalo ? "true" : undefined}
-                      className={`col-start-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[14px] font-semibold ${
+                      className={`sm:col-start-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[14px] font-semibold ${
                         ehGargalo ? "text-bad" : "text-muted"
                       }`}
                     >

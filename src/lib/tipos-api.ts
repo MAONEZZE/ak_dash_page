@@ -426,11 +426,25 @@ export interface RespostaFunilSdr {
   metricas_time: MetricaTime[];
   funil: EtapasFunilSdr;
   sdrs: SdrFunil[];
-  /** Próxima Confraria (SED.events, fora do filtro de período): fonte do velocímetro. `null` sem nenhuma agendada. */
+  /** Evento escolhido no filtro ou, sem escolha, o próximo de qualquer título (SED.events, fora do filtro de período): fonte do velocímetro e dos cards do evento. `null` sem nenhuma. */
   evento: EventoVelocimetro | null;
 }
 
+/** Opção do filtro de evento (header, só na página Funil SDR). */
+export interface OpcaoEvento {
+  id: string;
+  titulo: string;
+  /** `event_date` cru, em UTC — formatar com `formatarDataHoraEvento`. */
+  data: string;
+}
+
+export interface RespostaEventosFunilSdr {
+  eventos: OpcaoEvento[];
+  avisos: string[];
+}
+
 export interface EventoVelocimetro {
+  id: string;
   titulo: string;
   /** `event_date` cru, em UTC — formatar com `formatarDataHoraEvento`. */
   data: string;

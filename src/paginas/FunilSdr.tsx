@@ -10,6 +10,7 @@ import { buscarFunilSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { razao, type ColunaFunil, type LinhaFunil } from "../lib/funil";
 import { formatarDataHoraEvento, formatarNumero } from "../lib/formato";
+import { useEventoSelecionado } from "../componentes/PillEvento";
 import { useFiltrosAtuais } from "../lib/periodo";
 import {
   METRICAS_SDR_FUNIL,
@@ -63,6 +64,7 @@ interface EstadoFunil {
 
 export function FunilSdr() {
   const { granularidade, periodo } = useFiltrosAtuais();
+  const evento = useEventoSelecionado();
   const [estado, setEstado] = useState<EstadoFunil>({ dado: null, carregando: true, erro: null });
   const [atualizadoEm, setAtualizadoEm] = useState<Date>(new Date());
   const [atualizando, setAtualizando] = useState(false);
@@ -72,7 +74,7 @@ export function FunilSdr() {
   const carregar = useCallback(async () => {
     setAtualizando(true);
     setEstado((atual) => ({ ...atual, carregando: true }));
-    await buscarFunilSdr({ granularidade, periodo })
+    await buscarFunilSdr({ granularidade, periodo, evento })
       .then((dado) => setEstado({ dado, carregando: false, erro: null }))
       .catch((erro: unknown) =>
         setEstado((atual) => ({
@@ -83,7 +85,7 @@ export function FunilSdr() {
       );
     setAtualizadoEm(new Date());
     setAtualizando(false);
-  }, [granularidade, periodo]);
+  }, [granularidade, periodo, evento]);
 
   useEffect(() => {
     carregar();
@@ -112,7 +114,6 @@ export function FunilSdr() {
     );
   }
 
-  const { evento } = dado;
   const reunioes = dado.metricas_time.find((m) => m.metrica === "reunioes_agendadas");
 
   return (
@@ -130,12 +131,12 @@ export function FunilSdr() {
         aoLado={
           <Velocimetro
             rotulo="Inscrições Realizadas"
-            valor={evento?.inscritos ?? 0}
-            meta={evento?.capacidade ?? null}
+            valor={dado.evento?.inscritos ?? 0}
+            meta={dado.evento?.capacidade ?? null}
             fonte={
-              evento
-                ? { titulo: evento.titulo, data: formatarDataHoraEvento(evento.data) }
-                : { titulo: "Nenhuma Confraria agendada" }
+              dado.evento
+                ? { titulo: dado.evento.titulo, data: formatarDataHoraEvento(dado.evento.data) }
+                : { titulo: "Nenhum evento agendado" }
             }
           />
         }
@@ -154,11 +155,11 @@ export function FunilSdr() {
             }}
           />
         )}
-        {evento && (
+        {dado.evento && (
           <>
-            <CardKpi label="Aprovados" value={formatarNumero(evento.aprovados)} />
-            <CardKpi label="Pendentes" value={formatarNumero(evento.pendentes)} />
-            <CardKpi label="Rejeitados" value={formatarNumero(evento.rejeitados)} />
+            <CardKpi label="Aprovados" value={formatarNumero(dado.evento.aprovados)} />
+            <CardKpi label="Pendentes" value={formatarNumero(dado.evento.pendentes)} />
+            <CardKpi label="Rejeitados" value={formatarNumero(dado.evento.rejeitados)} />
           </>
         )}
       </section>
