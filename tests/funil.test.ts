@@ -161,7 +161,7 @@ it("serieGraficoContas: um ponto por dia do período até hoje, 0 nos dias sem r
   ]);
 });
 
-it("serieGraficoContas: semana, dia e custom passado mostram todos os dias do período", () => {
+it("serieGraficoContas: semana e custom passado mostram todos os dias do período", () => {
   const contas = [conta("Jacob", [["2026-10-30", { fups: 2 }]])];
   const hoje = new Date(2026, 10, 14);
 
@@ -169,9 +169,16 @@ it("serieGraficoContas: semana, dia e custom passado mostram todos os dias do pe
     rotulos: ["29/10", "30/10", "31/10", "01/11"],
     series: [{ nome: "Jacob", valores: [0, 2, 0, 0] }],
   });
-  expect(serieGraficoContas(contas, "fups", { granularidade: "dia", inicio: "2026-10-30", fim: "2026-10-30" }, hoje).rotulos).toEqual([
-    "30/10",
-  ]);
+});
+
+it("serieGraficoContas: no filtro de dia mostra os 7 dias até ele, pra ter linha", () => {
+  const contas = [conta("Jacob", [["2026-10-28", { fups: 4 }], ["2026-11-02", { fups: 1 }]])];
+  expect(
+    serieGraficoContas(contas, "fups", { granularidade: "dia", inicio: "2026-11-02", fim: "2026-11-02" }, new Date(2026, 10, 14)),
+  ).toEqual({
+    rotulos: ["27/10", "28/10", "29/10", "30/10", "31/10", "01/11", "02/11"],
+    series: [{ nome: "Jacob", valores: [0, 4, 0, 0, 0, 0, 1] }],
+  });
 });
 
 it("serieGraficoContas: ano soma por mês, até o mês corrente", () => {

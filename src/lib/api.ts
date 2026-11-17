@@ -15,6 +15,7 @@ import type {
   RespostaComercial,
   RespostaFinanceiro,
   RespostaFunil,
+  RespostaFunilSdr,
   RespostaGeral,
 } from "./tipos-api";
 import { supabase } from "./supabase";
@@ -192,4 +193,8 @@ export async function buscarFinanceiro(params: ParametrosGeral = {}): Promise<Re
 export async function buscarFunil(canal: Canal, params: ParametrosFunil): Promise<RespostaFunil> {
   if (USA_FIXTURES) return funilLinkedinFixture as RespostaFunil;
   return requisitar<RespostaFunil>(`/funil/${canal}`, { granularidade: params.granularidade, periodo: params.periodo });
+}
+
+export async function buscarFunilSdr(params: ParametrosFunil): Promise<RespostaFunilSdr> {
+  return requisitar<RespostaFunilSdr>("/funil-sdr", { granularidade: params.granularidade, periodo: params.periodo });
 }

@@ -623,6 +623,18 @@ body {
     padding: 0 12px;
     font-size: 13px;
   }
+
+  /* Filtros do header numa linha só, mais discretos. */
+  .filtros-header .pill {
+    min-height: 34px;
+    min-width: 34px;
+    padding: 0 9px;
+    font-size: 12px;
+  }
+
+  .filtros-header .glass-pill {
+    padding: 2px;
+  }
 }
 
 .pill:hover {

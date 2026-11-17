@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/paginas/FunilLinkedin", () => ({ FunilLinkedin: () => <div>pagina-funil-linkedin</div> }));
 vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pagina-funil-instagram</div> }));
+vi.mock("../src/paginas/FunilSdr", () => ({ FunilSdr: () => <div>pagina-funil-sdr</div> }));
 vi.mock("../src/paginas/Geral", () => ({ Geral: () => <div>pagina-geral</div> }));
 vi.mock("../src/paginas/Time", () => ({ Time: () => <div>pagina-time</div> }));
 vi.mock("../src/paginas/Financeiro", () => ({ Financeiro: () => <div>pagina-financeiro</div> }));
@@ -45,13 +46,14 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
-  it("navbar lista as cinco páginas na ordem e a raiz abre a Geral", async () => {
+  it("navbar lista as seis páginas na ordem e a raiz abre a Geral", async () => {
     await montar("/");
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
 
     expect(within(navegacao).getAllByRole("link").map((l) => l.textContent)).toEqual([
       "Funil LinkedIn",
       "Funil Instagram",
+      "Funil SDR",
       "Geral",
       "Financeiro",
       "Time",

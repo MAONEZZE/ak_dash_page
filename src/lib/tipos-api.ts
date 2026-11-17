@@ -385,3 +385,61 @@ export interface ParametrosFunil {
   granularidade: Granularidade;
   periodo: string;
 }
+
+// ---- /funil-sdr ----
+
+export const METRICAS_SDR_FUNIL = [
+  "abordagens",
+  "respondidos",
+  "inscricoes_realizadas",
+  "indicacoes",
+  "reunioes_agendadas",
+] as const;
+export type MetricaSdrFunil = (typeof METRICAS_SDR_FUNIL)[number];
+
+export type MetricasSdrFunil = Record<MetricaSdrFunil, number>;
+
+export interface SdrFunil {
+  id_user: string;
+  nome: string;
+  imagem_url: string | null;
+  metricas: MetricasSdrFunil;
+  /** Um item por dia com registro no período, em ordem de data. */
+  serie: { data: string; metricas: MetricasSdrFunil }[];
+}
+
+/** Funil do time de SDR. oportunidades = numeros_captados (LinkedIn + Instagram) + indicacoes (SDRs). */
+export interface EtapasFunilSdr {
+  numeros_captados: number;
+  indicacoes: number;
+  oportunidades: number;
+  abordados: number;
+  respondidos: number;
+  inscritos: number;
+}
+
+export interface RespostaFunilSdr {
+  periodo: Periodo;
+  dias_uteis: DiasUteis;
+  avisos: string[];
+  /** Inscrições realizadas, Indicações captadas e Reuniões agendadas (aba Dashboard SDR). Meta: dia = soma das diárias; semana/mês = metas editáveis da aba; ano/custom = diárias × dias úteis. Na página só Reuniões agendadas vira card. */
+  metricas_time: MetricaTime[];
+  funil: EtapasFunilSdr;
+  sdrs: SdrFunil[];
+  /** Próxima Confraria (SED.events, fora do filtro de período): fonte do velocímetro. `null` sem nenhuma agendada. */
+  evento: EventoVelocimetro | null;
+}
+
+export interface EventoVelocimetro {
+  titulo: string;
+  /** `event_date` cru, em UTC — formatar com `formatarDataHoraEvento`. */
+  data: string;
+  /** Aprovados + pendentes (recusados fora) — diferente dos inscritos da Geral, que contam todo status. */
+  inscritos: number;
+  /** Contagem por status (`approved`, `pending`, `rejected`). */
+  aprovados: number;
+  pendentes: number;
+  rejeitados: number;
+  /** Meta do velocímetro; `null` = evento sem limite cadastrado. */
+  capacidade: number | null;
+}

@@ -130,7 +130,12 @@ it("escolher um perfil filtra funil e cards", async () => {
 /** Cells de uma linha da tabela, pelo nome do perfil (ou TOTAL). */
 function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
   const linha = within(tabela).getByRole("cell", { name: nome }).closest("tr") as HTMLElement;
-  return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
+  // Ignora o decorativo (foto/inicial com aria-hidden): fica o texto que o leitor de tela lê.
+  return Array.from(linha.querySelectorAll("td"), (td) => {
+    const copia = td.cloneNode(true) as HTMLElement;
+    copia.querySelectorAll("[aria-hidden]").forEach((el) => el.remove());
+    return copia.textContent ?? "";
+  });
 }
 
 it("mostra a tabela de todos os perfis com o selecionado destacado e o gráfico por perfil", async () => {
@@ -154,13 +159,15 @@ it("mostra a tabela de todos os perfis com o selecionado destacado e o gráfico 
       "% Conversão em número",
       "Números Captados",
       "Conversão total",
-      "Follow-ups",
     ]);
 
-    expect(celulasDaLinha(tabela, "Mary")).toEqual(["Mary", "100", "30,0%", "30", "20,0%", "6", "6,0%", "50"]);
-    expect(celulasDaLinha(tabela, "akeel")).toEqual(["akeel", "100", "20,0%", "20", "20,0%", "4", "4,0%", "150"]);
-    expect(celulasDaLinha(tabela, "Jacob")).toEqual(["Jacob", "0", "—", "0", "—", "0", "—", "0"]);
-    expect(celulasDaLinha(tabela, "TOTAL")).toEqual(["TOTAL", "200", "25,0%", "50", "20,0%", "10", "5,0%", "200"]);
+    expect(celulasDaLinha(tabela, "Mary")).toEqual(["Mary", "100", "30,0%", "30", "20,0%", "6", "6,0%"]);
+    const fotoDe = (nome: string) => within(tabela).getByRole("cell", { name: nome }).querySelector("img")?.getAttribute("src");
+    expect(fotoDe("Mary")).toContain("/fotos_dash/mariana.jpeg");
+    expect(fotoDe("akeel")).toContain("/fotos_dash/akeel.jpeg");
+    expect(celulasDaLinha(tabela, "akeel")).toEqual(["akeel", "100", "20,0%", "20", "20,0%", "4", "4,0%"]);
+    expect(celulasDaLinha(tabela, "Jacob")).toEqual(["Jacob", "0", "—", "0", "—", "0", "—"]);
+    expect(celulasDaLinha(tabela, "TOTAL")).toEqual(["TOTAL", "200", "25,0%", "50", "20,0%", "10", "5,0%"]);
 
     expect(within(tabela).getByRole("cell", { name: "akeel" }).closest("tr")?.getAttribute("aria-current")).toBe("true");
     expect(within(tabela).getByRole("cell", { name: "Mary" }).closest("tr")?.getAttribute("aria-current")).toBeNull();

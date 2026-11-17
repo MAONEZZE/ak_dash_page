@@ -1,9 +1,8 @@
 import {
-  Briefcase,
   CalendarRange,
-  Camera,
   ChevronLeft,
   ChevronRight,
+  Headset,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -22,6 +21,7 @@ import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "reac
 import { AtualizacaoProvider, useAtualizacao } from "./lib/atualizacao";
 import { useAuth } from "./lib/auth";
 import { CalendarioIntervalo, formatarDataCurta } from "./componentes/CalendarioIntervalo";
+import { LogoInstagram, LogoLinkedin } from "./componentes/IconesMarca";
 import { PillSquad } from "./componentes/PillSquad";
 import { formatarHora } from "./lib/formato";
 import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
@@ -30,6 +30,7 @@ import type { Granularidade } from "./lib/tipos-api";
 import { Financeiro } from "./paginas/Financeiro";
 import { FunilInstagram } from "./paginas/FunilInstagram";
 import { FunilLinkedin } from "./paginas/FunilLinkedin";
+import { FunilSdr } from "./paginas/FunilSdr";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
 import { Time } from "./paginas/Time";
@@ -49,8 +50,9 @@ function useTema(): [Tema, () => void] {
 }
 
 const NAV_ITENS = [
-  { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: Briefcase },
-  { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: Camera },
+  { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: LogoLinkedin },
+  { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: LogoInstagram },
+  { rota: "/funil-sdr", rotulo: "Funil SDR", Icone: Headset },
   { rota: "/geral", rotulo: "Geral", Icone: LayoutDashboard },
   { rota: "/financeiro", rotulo: "Financeiro", Icone: Wallet },
   { rota: "/time", rotulo: "Time", Icone: Users },
@@ -159,7 +161,7 @@ function PillPeriodo() {
   const [inicio, fim] = custom ? periodo.split("..") : [];
 
   return (
-    <div className="relative max-w-full" ref={container}>
+    <div className="relative min-w-0 max-w-full" ref={container}>
       <div className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0" role="group" aria-label="Período">
         {GRANULARIDADES.map((g) => (
           <button
@@ -181,7 +183,7 @@ function PillPeriodo() {
           className={`pill inline-flex items-center gap-1.5 ${custom ? "pill-ativo" : ""}`}
         >
           <CalendarRange className="size-4" aria-hidden />
-          {custom ? `${formatarDataCurta(inicio)} – ${formatarDataCurta(fim)}` : "Customizado"}
+          {custom ? `${formatarDataCurta(inicio)} – ${formatarDataCurta(fim)}` : <span className="sr-only sm:not-sr-only">Customizado</span>}
         </button>
       </div>
       {calendarioAberto && (
@@ -198,6 +200,7 @@ function PillPeriodo() {
   );
 }
 
+const MESES_CURTOS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const MES_ROTULO = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
 
 /** Seletor de mês com setas (`‹ Setembro 2026 ›`), habilitado sob granularidade Mês. */
@@ -206,9 +209,10 @@ function PillPeriodoNavegavel({ habilitado }: { habilitado: boolean }) {
   const mesExibido = habilitado ? mes : paraPeriodo("mes", new Date());
   const [ano, mesNum] = mesExibido.split("-").map(Number);
   const rotulo = MES_ROTULO.format(new Date(ano, mesNum - 1, 1));
+  const rotuloCurto = `${MESES_CURTOS[mesNum - 1]}/${String(ano).slice(2)}`;
 
   return (
-    <div className="glass-pill flex items-center gap-1 p-1" role="group" aria-label="Mês" aria-disabled={!habilitado}>
+    <div className="glass-pill flex shrink-0 items-center gap-1 p-1" role="group" aria-label="Mês" aria-disabled={!habilitado}>
       <button
         type="button"
         onClick={voltar}
@@ -218,8 +222,11 @@ function PillPeriodoNavegavel({ habilitado }: { habilitado: boolean }) {
       >
         <ChevronLeft className="size-5" aria-hidden />
       </button>
-      <span className="min-w-[9.5rem] px-1 text-center text-[14px] font-semibold capitalize" aria-live="polite">
-        {rotulo}
+      <span className="px-0.5 text-center text-[13px] font-semibold capitalize sm:min-w-[9.5rem] sm:px-1 sm:text-[14px]" aria-live="polite">
+        <span className="sm:hidden" aria-hidden>
+          {rotuloCurto}
+        </span>
+        <span className="sr-only sm:not-sr-only">{rotulo}</span>
       </span>
       <button
         type="button"
@@ -396,10 +403,13 @@ export default function App() {
                  * Abaixo de lg os filtros descem pra uma segunda linha inteira.
                  */}
                 <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
-                  <div className="order-last col-span-2 flex min-w-0 flex-wrap items-center justify-center gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
+                  <div className="filtros-header order-last col-span-2 flex min-w-0 items-center gap-1.5 sm:flex-wrap sm:justify-center sm:gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
                     <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
                     <PillPeriodo />
-                    <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
+                    {/* No celular o filtro de função só aparece onde ele vale. */}
+                    <div className={PAGINAS_COM_SQUAD.includes(location.pathname) ? "shrink-0" : "hidden sm:block"}>
+                      <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
+                    </div>
                   </div>
                   <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
                     <BotaoSom />
@@ -414,6 +424,7 @@ export default function App() {
                   <Route path="/" element={<Navigate to="/geral" replace />} />
                   <Route path="/funil-linkedin" element={<FunilLinkedin />} />
                   <Route path="/funil-instagram" element={<FunilInstagram />} />
+                  <Route path="/funil-sdr" element={<FunilSdr />} />
                   <Route path="/geral" element={<Geral />} />
                   <Route path="/time" element={<Time />} />
                   <Route path="/financeiro" element={<Financeiro />} />

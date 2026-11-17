@@ -76,7 +76,12 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
 /** Cells de uma linha da tabela, pelo nome da conta (ou TOTAL). */
 function celulasDaLinha(tabela: HTMLElement, nome: string): string[] {
   const linha = within(tabela).getByRole("cell", { name: nome }).closest("tr") as HTMLElement;
-  return Array.from(linha.querySelectorAll("td"), (td) => td.textContent ?? "");
+  // Ignora o decorativo (foto/inicial com aria-hidden): fica o texto que o leitor de tela lê.
+  return Array.from(linha.querySelectorAll("td"), (td) => {
+    const copia = td.cloneNode(true) as HTMLElement;
+    copia.querySelectorAll("[aria-hidden]").forEach((el) => el.remove());
+    return copia.textContent ?? "";
+  });
 }
 
 it("mostra tabela por LinkedIn, os mini-funis e o gráfico por conta no lugar do Dashboard", async () => {
@@ -101,10 +106,6 @@ it("mostra tabela por LinkedIn, os mini-funis e o gráfico por conta no lugar do
     "% Conversão em número",
     "Números Captados",
     "Conversão total",
-    "Abordagens",
-    "InMails Enviados",
-    "Follow-ups",
-    "Follow de abordagem",
   ]);
   expect(within(tabela).getAllByRole("row")).toHaveLength(7);
 
@@ -120,11 +121,9 @@ it("mostra tabela por LinkedIn, os mini-funis e o gráfico por conta no lugar do
     "11,5%",
     "19",
     "5,0%",
-    "572",
-    "103",
-    "19",
-    "353",
   ]);
+  const fotoJacob = within(tabela).getByRole("cell", { name: "Jacob" }).querySelector("img");
+  expect(fotoJacob?.getAttribute("src")).toContain("/fotos_dash/jacob.png");
   expect(within(tabela).getByRole("cell", { name: "Alex" }).closest("tr")?.getAttribute("aria-current")).toBe("true");
   expect(within(tabela).getByRole("cell", { name: "Jacob" }).closest("tr")?.getAttribute("aria-current")).toBeNull();
 
