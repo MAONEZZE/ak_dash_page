@@ -86,7 +86,7 @@ export function Velocimetro({
   return (
     <div
       data-alerta={status}
-      className={`glass-panel card-velocimetro flex items-center justify-center rounded-[24px] ${c ? "min-h-[168px] px-[18px] pb-[15px] pt-[17px]" : "p-6"}`}
+      className={`glass-panel card-velocimetro flex items-center justify-center rounded-[24px] ${c ? "min-h-[168px] px-3 pb-[15px] pt-[17px]" : "p-6"}`}
     >
       <div
         role="meter"
@@ -121,8 +121,10 @@ export function Velocimetro({
           </span>
         )}
         <svg
-          viewBox="0 0 200 112"
-          className={`block w-full overflow-visible ${c ? "max-w-[240px]" : ""}`}
+          // Compacto: viewBox recortado na borda do arco (x 12–188, y 12–110) pra ele
+          // ocupar a largura do card; 259px = 288 × 180/200, o mesmo arco de 1,2× o anterior.
+          viewBox={c ? "10 10 180 102" : "0 0 200 112"}
+          className={`block w-full overflow-visible ${c ? "max-w-[259px]" : ""}`}
           aria-hidden
         >
           {FAIXAS.map((f, i) => {

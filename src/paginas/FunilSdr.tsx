@@ -8,6 +8,7 @@ import { GraficoContasFunil } from "../componentes/GraficoContasFunil";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { Velocimetro } from "../componentes/Velocimetro";
 import { buscarFunilSdr } from "../lib/api";
+import { fotoConta } from "../lib/fotos-contas";
 import { useAtualizacao } from "../lib/atualizacao";
 import { razao, type ColunaFunil, type LinhaFunil } from "../lib/funil";
 import { formatarDataHoraEvento, formatarNumero } from "../lib/formato";
@@ -209,7 +210,7 @@ export function FunilSdr() {
             foto={
               <Avatar
                 nome={nome}
-                imagemUrl={sdr?.imagem_url ?? null}
+                imagemUrl={sdr?.imagem_url ?? fotoConta(nome)}
                 tamanho={56}
               />
             }
