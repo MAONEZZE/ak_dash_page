@@ -58,12 +58,15 @@ export function FunilBarras({
   lateral,
   conversaoTotal,
   aoLado,
+  rotuloNoCanto = false,
 }: {
   titulo: string;
   etapas: EtapaFunil[];
   lateral?: { rotulo: string; texto: string; aoLadoDe: number };
   conversaoTotal: number | null;
   aoLado?: ReactNode;
+  /** Rótulo da etapa no canto inferior direito do trapézio e número maior, sozinho no centro (página Funil SDR). */
+  rotuloNoCanto?: boolean;
 }) {
   const formato = formatoFunil(etapas.length);
   const gargalo = indiceGargalo(
@@ -109,14 +112,27 @@ export function FunilBarras({
                   data-segmento
                   data-largura-topo={topo}
                   data-largura-base={base}
-                  className="relative flex min-h-[60px] flex-col items-center justify-center px-2 text-center text-surface"
+                  className={`relative flex flex-col items-center justify-center px-2 text-center text-surface ${rotuloNoCanto ? "min-h-[76px]" : "min-h-[60px]"}`}
                 >
                   <TrapezioArredondado topo={topo} base={base} />
-                  <span className="relative text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em]">
+                  <span
+                    data-rotulo-etapa
+                    className={`text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em] ${rotuloNoCanto ? "absolute bottom-2 order-2 whitespace-nowrap" : "relative"}`}
+                    // No canto: encostado na borda direita do trapézio na altura da base (recuo do RAIO + inclinação).
+                    style={
+                      rotuloNoCanto
+                        ? {
+                            right: `calc(${RAIO + 8}px + ${(100 - base) / 2}%)`,
+                          }
+                        : undefined
+                    }
+                  >
                     {etapa.rotulo}
                     {temNota && <span data-marca-nota>{MARCA_NOTA}</span>}
                   </span>
-                  <span className="relative font-display text-[24px] font-extrabold leading-none">
+                  <span
+                    className={`relative font-display font-extrabold leading-none ${rotuloNoCanto ? "text-[40px]" : "text-[24px]"}`}
+                  >
                     {formatarNumero(etapa.valor)}
                   </span>
                 </div>
