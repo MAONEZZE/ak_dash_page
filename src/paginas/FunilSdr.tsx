@@ -168,14 +168,15 @@ export function FunilSdr() {
     <div className="flex flex-col gap-6">
       <AvisoFontes avisos={dado.avisos} />
       {/* Escala só nesta página (FunilBarras/CardKpi são compartilhados): topo 1,5× menor e depois 1,7× maior (≈1,13×), KPIs 1,5× maiores. */}
-      {/* Altura dos cards Funil SDR e Inscrições Realizadas ÷1,3 (661 → ~506px a 1440px, medido em 19/11/2026):
-          etapas com zoom 0,86 (largura segue 90% do card), arco do velocímetro até 300px e título dele em 26px, numa linha. */}
+      {/* Cards Funil SDR e Inscrições Realizadas com ~601px de altura a 1440px (661 ÷ 1,1, medido em 19/11/2026):
+          etapas com zoom 0,93 e 90% da largura do card; título do velocímetro em 26px, numa linha. */}
       <div
         style={{ zoom: (2 / 3) * 1.7 }}
-        className="[&_ol]:[zoom:0.86] [&_[data-linha-etapa]]:max-w-[90%] [&_[data-ao-lado]_svg]:max-w-[300px] [&_[data-ao-lado]_[data-titulo]]:text-[26px]"
+        className="[&_ol]:[zoom:0.93] [&_[data-linha-etapa]]:max-w-[90%] [&_[data-ao-lado]_[data-titulo]]:text-[26px]"
       >
         <FunilBarras
           titulo="Funil SDR"
+          rotuloNoCanto
           etapas={etapasSdr(dado.funil)}
           conversaoTotal={razao(dado.funil.inscritos, dado.funil.oportunidades)}
           lateral={{
@@ -212,7 +213,7 @@ export function FunilSdr() {
               <Avatar
                 nome={nome}
                 imagemUrl={sdr?.imagem_url ?? fotoConta(nome)}
-                tamanho={56}
+                tamanho={73}
               />
             }
             rotulo={`Inscrições ${nome}`}

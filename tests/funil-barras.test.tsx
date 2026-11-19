@@ -148,6 +148,26 @@ it("sem nota, nem rodapé nem asterisco", () => {
   expect(document.querySelector("[data-marca-nota]")).toBeNull();
 });
 
+it("rotuloNoCanto: rótulo de cada etapa no canto inferior direito do trapézio, número maior", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "Oportunidades", valor: 200, passagem: { taxa: 0.5, texto: "abordados" } },
+    { rotulo: "Abordados", valor: 100 },
+  ];
+  render(<FunilBarras titulo="Funil" etapas={etapas} conversaoTotal={0.5} rotuloNoCanto />);
+  const rotulos = [...document.querySelectorAll<HTMLElement>("[data-rotulo-etapa]")];
+  expect(rotulos.map((r) => r.textContent)).toEqual(["Oportunidades", "Abordados"]);
+  expect(rotulos.every((r) => r.classList.contains("absolute") && r.classList.contains("bottom-2"))).toBe(true);
+  // Recuo da direita acompanha a base do trapézio: 1ª etapa (base 67) mais larga que a 2ª (base 34).
+  expect(rotulos.map((r) => r.style.right)).toEqual(["calc(16.5% + 18px)", "calc(33% + 18px)"]);
+});
+
+it("sem rotuloNoCanto o rótulo fica centralizado acima do número", () => {
+  render(<FunilBarras titulo="Funil" etapas={[{ rotulo: "Abordagens", valor: 1 }]} conversaoTotal={null} />);
+  const rotulo = document.querySelector<HTMLElement>("[data-rotulo-etapa]") as HTMLElement;
+  expect(rotulo.classList.contains("absolute")).toBe(false);
+  expect(rotulo.style.right).toBe("");
+});
+
 it("mostra o conteúdo de `aoLado` em um card separado, à direita do funil", () => {
   render(
     <FunilBarras titulo="Funil" etapas={[{ rotulo: "Abordagens", valor: 1 }]} conversaoTotal={null} aoLado={<p>velocimetro</p>} />,
