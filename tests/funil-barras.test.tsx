@@ -5,7 +5,7 @@ import { FunilBarras, type EtapaFunil } from "../src/componentes/FunilBarras";
 
 afterEach(() => cleanup());
 
-it("mostra etapas em ordem no formato de funil, taxa de passagem e nota lateral", () => {
+it("mostra etapas em ordem no formato de funil, taxa de passagem e nota no rodapé", () => {
   const etapas: EtapaFunil[] = [
     { rotulo: "Conexões Enviadas", valor: 1621, passagem: { taxa: 0.58, texto: "aceitaram" } },
     { rotulo: "Conexões Aceitas", valor: 940, passagem: { taxa: null, texto: "abordados" } },
@@ -25,8 +25,8 @@ it("mostra etapas em ordem no formato de funil, taxa de passagem e nota lateral"
 
   expect(itens[1].textContent).toContain("940");
   expect(itens[1].textContent).toContain("↓ — abordados");
-  expect(itens[1].textContent).toContain("Follow de abordagem");
-  expect(itens[1].textContent).toContain("713 (0,8 por abordagem)");
+  expect(itens[1].textContent).not.toContain("Follow de abordagem");
+  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Follow de abordagem: 713 (0,8 por abordagem)");
 
   expect(itens[2].textContent).toContain("89");
   expect(itens[2].textContent).not.toContain("↓");
@@ -120,7 +120,7 @@ it("o texto da passagem fica entre o bloco da etapa e o da próxima", () => {
   expect(segundo.querySelector("[data-entre-etapas]")).toBeNull();
 });
 
-it("a nota lateral fica ao lado do bloco da etapa, ligada a ele por uma linha", () => {
+it("a nota vai no rodapé do card e a etapa dela ganha um asterisco", () => {
   const etapas: EtapaFunil[] = [
     { rotulo: "Enviadas", valor: 100, passagem: { taxa: 0.5, texto: "aceitaram" } },
     { rotulo: "Mensagem", valor: 50 },
@@ -129,14 +129,23 @@ it("a nota lateral fica ao lado do bloco da etapa, ligada a ele por uma linha", 
 
   render(<FunilBarras titulo="Funil" etapas={etapas} lateral={lateral} conversaoTotal={0.5} />);
 
-  const [primeiro, segundo] = within(screen.getByRole("list", { name: "Funil" })).getAllByRole("listitem");
-  const linha = segundo.querySelector<HTMLElement>("[data-linha-etapa]") as HTMLElement;
+  const lista = screen.getByRole("list", { name: "Funil" });
+  const [primeiro, segundo] = within(lista).getAllByRole("listitem");
+  expect(segundo.querySelector("[data-marca-nota]")?.textContent).toBe("*");
+  expect(primeiro.querySelector("[data-marca-nota]")).toBeNull();
+  expect(lista.textContent).not.toContain("Follow de abordagem");
 
-  expect(linha.querySelector("[data-conector]")).not.toBeNull();
-  expect(linha.querySelector("[data-nota-lateral]")?.textContent).toBe("Follow de abordagem756 (0,9 por abordagem)");
-  expect(primeiro.querySelector("[data-nota-lateral]")).toBeNull();
-  expect(primeiro.querySelector("[data-conector]")).toBeNull();
-  expect(document.querySelector("[data-entre-etapas]")?.textContent).not.toContain("Follow de abordagem");
+  const rodape = document.querySelector("[data-nota-rodape]") as HTMLElement;
+  expect(rodape.textContent).toBe("* Follow de abordagem: 756 (0,9 por abordagem)");
+  // Rodapé = último elemento do card, depois do funil.
+  expect(rodape.previousElementSibling).toBe(lista);
+  expect(rodape.nextElementSibling).toBeNull();
+});
+
+it("sem nota, nem rodapé nem asterisco", () => {
+  render(<FunilBarras titulo="Funil" etapas={[{ rotulo: "Abordagens", valor: 1 }]} conversaoTotal={null} />);
+  expect(document.querySelector("[data-nota-rodape]")).toBeNull();
+  expect(document.querySelector("[data-marca-nota]")).toBeNull();
 });
 
 it("mostra o conteúdo de `aoLado` em um card separado, à direita do funil", () => {
