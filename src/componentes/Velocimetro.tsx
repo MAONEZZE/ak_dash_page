@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { COR_TEXTO, statusDoAtingimento } from "../lib/atingimento";
 import { formatarNumero } from "../lib/formato";
 import { umaCasa } from "../lib/funil";
@@ -62,6 +63,7 @@ export function Velocimetro({
   meta,
   fonte,
   tamanho = "normal",
+  foto,
 }: {
   rotulo: string;
   valor: number;
@@ -70,6 +72,8 @@ export function Velocimetro({
   fonte?: { titulo: string; data?: string };
   /** "compacto": do tamanho de um CardKpi (grade de 4 colunas), título no mesmo estilo do rótulo dele. */
   tamanho?: "normal" | "compacto";
+  /** Só no compacto: mostrada no canto superior esquerdo no lugar do título (que segue como nome acessível do medidor). */
+  foto?: ReactNode;
 }) {
   const c = tamanho === "compacto";
   const temMeta = meta !== null && meta > 0;
@@ -82,7 +86,7 @@ export function Velocimetro({
   return (
     <div
       data-alerta={status}
-      className={`glass-panel card-velocimetro flex items-center justify-center rounded-[24px] ${c ? "min-h-[168px] px-[18px] pb-[15px] pt-[17px]" : "p-6"}`}
+      className={`glass-panel card-velocimetro flex items-center justify-center rounded-[24px] ${c ? "min-h-[168px] px-3 pb-[15px] pt-[17px]" : "p-6"}`}
     >
       <div
         role="meter"
@@ -92,11 +96,17 @@ export function Velocimetro({
         aria-valuemax={temMeta ? meta : undefined}
         className={`relative flex w-full flex-col items-center ${c ? "gap-1" : "max-w-[460px] gap-2"}`}
       >
-        <span
-          className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
-        >
-          {rotulo}
-        </span>
+        {c && foto ? (
+          <span data-foto className="self-start">
+            {foto}
+          </span>
+        ) : (
+          <span
+            className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
+          >
+            {rotulo}
+          </span>
+        )}
         {fonte && (
           <span
             data-fonte
@@ -111,8 +121,10 @@ export function Velocimetro({
           </span>
         )}
         <svg
-          viewBox="0 0 200 112"
-          className={`block w-full overflow-visible ${c ? "max-w-[160px]" : ""}`}
+          // Compacto: viewBox recortado na borda do arco (x 12–188, y 12–110) pra ele
+          // ocupar a largura do card; 259px = 288 × 180/200, o mesmo arco de 1,2× o anterior.
+          viewBox={c ? "10 10 180 102" : "0 0 200 112"}
+          className={`block w-full overflow-visible ${c ? "max-w-[259px]" : ""}`}
           aria-hidden
         >
           {FAIXAS.map((f, i) => {
@@ -171,14 +183,21 @@ export function Velocimetro({
         >
           {temMeta ? `de ${formatarNumero(meta)}` : "Meta aberta"}
         </span>
-        {pct !== null && (
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+        {pct !== null &&
+          (c ? (
+            // Compacto: só o %, no canto inferior direito, sem o chip de status.
             <span
-              className={`font-display font-extrabold leading-none ${c ? "text-[18px]" : "text-[24px]"} ${COR_TEXTO[status]}`}
+              data-pct
+              className={`self-end font-display text-[18px] font-extrabold leading-none ${COR_TEXTO[status]}`}
             >{`${umaCasa(pct)}%`}</span>
-            <StatusChip status={status} />
-          </div>
-        )}
+          ) : (
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+              <span
+                className={`font-display text-[24px] font-extrabold leading-none ${COR_TEXTO[status]}`}
+              >{`${umaCasa(pct)}%`}</span>
+              <StatusChip status={status} />
+            </div>
+          ))}
       </div>
     </div>
   );
