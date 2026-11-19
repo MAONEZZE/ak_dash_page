@@ -166,9 +166,9 @@ export function FunilSdr() {
   return (
     <div className="flex flex-col gap-6">
       <AvisoFontes avisos={dado.avisos} />
-      {/* Escala só nesta página (FunilBarras/CardKpi são compartilhados): topo 1,5× menor, KPIs 1,5× maiores. */}
-      {/* `[&_ol]`: só o funil (trapézios) dentro do card Funil SDR, 1,2× maior. */}
-      <div style={{ zoom: 2 / 3 }} className="[&_ol]:[zoom:1.2]">
+      {/* Escala só nesta página (FunilBarras/CardKpi são compartilhados): topo 1,5× menor e depois 1,7× maior (≈1,13×), KPIs 1,5× maiores. */}
+      {/* Só as etapas do funil (dentro do card Funil SDR) 1,5× maiores: zoom 0,84 × 1,5 (altura e texto) e largura 60% × 1,5 do card. */}
+      <div style={{ zoom: (2 / 3) * 1.7 }} className="[&_ol]:[zoom:1.26] [&_[data-linha-etapa]]:max-w-[90%]">
         <FunilBarras
           titulo="Funil SDR"
           etapas={etapasSdr(dado.funil)}
@@ -197,7 +197,8 @@ export function FunilSdr() {
       </div>
       <section
         aria-label="Inscrições por SDR e do evento"
-        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+        // Títulos dos cards 1,3× menores que o padrão (17px → 13px), só nesta página.
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4 [&_[data-rotulo]]:text-[13px]"
         style={{ zoom: 1.5 }}
       >
         {cardsSdr.map(({ nome, sdr }) => (

@@ -56,8 +56,8 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(etapas[2].textContent).toContain("Mensagem de Abordagem");
   expect(etapas[2].textContent).toContain("840");
   expect(etapas[2].textContent).toContain("↓ 57,4% responderam");
-  expect(etapas[2].textContent).toContain("Follow de abordagem");
-  expect(etapas[2].textContent).toContain("713 (0,8 por abordagem)");
+  expect(etapas[2].querySelector("[data-marca-nota]")).not.toBeNull();
+  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Follow de abordagem: 713 (0,8 por abordagem)");
   expect(etapas[3].textContent).toContain("Respondidos");
   expect(etapas[3].textContent).toContain("482");
   expect(etapas[3].textContent).toContain("↓ 18,5% viraram número");

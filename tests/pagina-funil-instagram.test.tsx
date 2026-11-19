@@ -89,8 +89,7 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(etapas[2].textContent).toContain("Números Captados");
   expect(etapas[2].textContent).toContain("10");
 
-  expect(within(lista).getByText("Follow-ups")).toBeTruthy();
-  expect(within(lista).getByText("200 (1,0 por abordagem)")).toBeTruthy();
+  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Follow-ups: 200 (1,0 por abordagem)");
 
   expect(etapas[0].textContent).not.toContain("não responderam");
   expect(etapas[1].textContent).not.toContain("não viraram número");
@@ -241,7 +240,8 @@ it("sem abordagens registradas, follow-ups mostram só o total", async () => {
     </MemoryRouter>,
   );
 
-  const lista = await screen.findByRole("list", { name: "Funil Instagram" });
-  expect(lista.textContent).toContain("225");
-  expect(lista.textContent).not.toContain("por abordagem");
+  await screen.findByRole("list", { name: "Funil Instagram" });
+  const nota = document.querySelector("[data-nota-rodape]")?.textContent;
+  expect(nota).toContain("225");
+  expect(nota).not.toContain("por abordagem");
 });

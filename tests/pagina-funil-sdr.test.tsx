@@ -136,7 +136,7 @@ it("funil de cima pra baixo: Oportunidades, Abordados, Respondido, Inscritos, co
   const funil = await screen.findByRole("list", { name: "Funil SDR" });
   const etapas = within(funil).getAllByRole("listitem");
   expect(etapas.map((e) => e.querySelector("[data-segmento]")?.textContent)).toEqual([
-    "Oportunidades200",
+    "Oportunidades*200",
     "Abordados150",
     "Respondido60",
     "Inscritos19",
@@ -152,5 +152,7 @@ it("Oportunidades mostra a composição: números captados + indicações", asyn
   renderizar();
   const funil = await screen.findByRole("list", { name: "Funil SDR" });
   const oportunidades = within(funil).getAllByRole("listitem")[0];
-  expect(oportunidades.textContent).toContain("189 números + 11 indicações");
+  expect(oportunidades.querySelector("[data-marca-nota]")?.textContent).toBe("*");
+  // A composição vai como nota no rodapé do card, não dentro do funil.
+  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Oportunidades: 189 números + 11 indicações");
 });

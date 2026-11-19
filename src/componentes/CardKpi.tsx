@@ -122,6 +122,7 @@ export function CardKpi({
     >
       <div className="flex items-start justify-between gap-2">
         <span
+          data-rotulo
           className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/85" : "text-muted"}`}
         >
           {label}
