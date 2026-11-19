@@ -22,7 +22,17 @@ const FAIXAS = [
 ];
 
 /** Traço arredondado do arco entre `de` e `ate` (em % do arco). */
-function Traco({ de, ate, className, ...resto }: { de: number; ate: number; className: string; [k: `data-${string}`]: unknown }) {
+function Traco({
+  de,
+  ate,
+  className,
+  ...resto
+}: {
+  de: number;
+  ate: number;
+  className: string;
+  [k: `data-${string}`]: unknown;
+}) {
   const tamanho = Math.max(ate - de, 0);
   return (
     <path
@@ -51,44 +61,79 @@ export function Velocimetro({
   valor,
   meta,
   fonte,
+  tamanho = "normal",
 }: {
   rotulo: string;
   valor: number;
   meta: number | null;
   /** De onde vêm os números (ex.: título e data do evento), abaixo do rótulo. */
   fonte?: { titulo: string; data?: string };
+  /** "compacto": do tamanho de um CardKpi (grade de 4 colunas), título no mesmo estilo do rótulo dele. */
+  tamanho?: "normal" | "compacto";
 }) {
+  const c = tamanho === "compacto";
   const temMeta = meta !== null && meta > 0;
   const pct = temMeta ? (valor / meta) * 100 : null;
   const status = statusDoAtingimento(pct);
   const marcado = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
-  const angulo = pct === null ? null : Math.round((-90 + (marcado / 100) * 180) * 10) / 10;
+  const angulo =
+    pct === null ? null : Math.round((-90 + (marcado / 100) * 180) * 10) / 10;
 
   return (
-    <div data-alerta={status} className="glass-panel card-velocimetro flex items-center justify-center rounded-[24px] p-6">
+    <div
+      data-alerta={status}
+      className={`glass-panel card-velocimetro flex items-center justify-center rounded-[24px] ${c ? "min-h-[168px] px-[18px] pb-[15px] pt-[17px]" : "p-6"}`}
+    >
       <div
         role="meter"
         aria-label={rotulo}
         aria-valuenow={valor}
         aria-valuemin={0}
         aria-valuemax={temMeta ? meta : undefined}
-        className="relative flex w-full max-w-[460px] flex-col items-center gap-2"
+        className={`relative flex w-full flex-col items-center ${c ? "gap-1" : "max-w-[460px] gap-2"}`}
       >
-        <span className="text-[30px] font-bold uppercase tracking-[0.13em] text-muted">{rotulo}</span>
+        <span
+          className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
+        >
+          {rotulo}
+        </span>
         {fonte && (
-          <span data-fonte className="flex flex-col items-center text-center leading-tight">
+          <span
+            data-fonte
+            className="flex flex-col items-center text-center leading-tight"
+          >
             <span className="text-[18px] font-semibold">{fonte.titulo}</span>
-            {fonte.data && <span className="text-[15px] font-semibold text-muted">{fonte.data}</span>}
+            {fonte.data && (
+              <span className="text-[15px] font-semibold text-muted">
+                {fonte.data}
+              </span>
+            )}
           </span>
         )}
-        <svg viewBox="0 0 200 112" className="block w-full overflow-visible" aria-hidden>
+        <svg
+          viewBox="0 0 200 112"
+          className={`block w-full overflow-visible ${c ? "max-w-[160px]" : ""}`}
+          aria-hidden
+        >
           {FAIXAS.map((f, i) => {
             const de = f.de + (i > 0 ? FOLGA : 0);
             const ate = f.ate - (i < FAIXAS.length - 1 ? FOLGA : 0);
             return (
               <g key={f.cor}>
-                <Traco data-faixa de={de} ate={ate} className={`${f.cor} opacity-25`} />
-                {marcado > de && <Traco data-faixa-cheia de={de} ate={Math.min(marcado, ate)} className={f.cor} />}
+                <Traco
+                  data-faixa
+                  de={de}
+                  ate={ate}
+                  className={`${f.cor} opacity-25`}
+                />
+                {marcado > de && (
+                  <Traco
+                    data-faixa-cheia
+                    de={de}
+                    ate={Math.min(marcado, ate)}
+                    className={f.cor}
+                  />
+                )}
               </g>
             );
           })}
@@ -97,19 +142,40 @@ export function Velocimetro({
               data-ponteiro
               data-angulo={angulo}
               className="transition-transform duration-700 ease-out"
-              style={{ transform: `rotate(${angulo}deg)`, transformOrigin: "100px 100px" }}
+              style={{
+                transform: `rotate(${angulo}deg)`,
+                transformOrigin: "100px 100px",
+              }}
             >
-              <line x1={100} y1={100} x2={100} y2={36} strokeWidth={6} strokeLinecap="round" className="stroke-current" />
+              <line
+                x1={100}
+                y1={100}
+                x2={100}
+                y2={36}
+                strokeWidth={6}
+                strokeLinecap="round"
+                className="stroke-current"
+              />
               <circle cx={100} cy={100} r={10} className="fill-current" />
               <circle cx={100} cy={100} r={4} className="fill-surface" />
             </g>
           )}
         </svg>
-        <span className="font-display text-[56px] font-extrabold leading-none">{formatarNumero(valor)}</span>
-        <span className="text-[15px] font-semibold text-muted">{temMeta ? `de ${formatarNumero(meta)}` : "Meta aberta"}</span>
+        <span
+          className={`font-display font-extrabold leading-none ${c ? "text-[36px]" : "text-[56px]"}`}
+        >
+          {formatarNumero(valor)}
+        </span>
+        <span
+          className={`font-semibold text-muted ${c ? "text-[13px]" : "text-[15px]"}`}
+        >
+          {temMeta ? `de ${formatarNumero(meta)}` : "Meta aberta"}
+        </span>
         {pct !== null && (
-          <div className="mt-1 flex items-center gap-2">
-            <span className={`font-display text-[24px] font-extrabold leading-none ${COR_TEXTO[status]}`}>{`${umaCasa(pct)}%`}</span>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`font-display font-extrabold leading-none ${c ? "text-[18px]" : "text-[24px]"} ${COR_TEXTO[status]}`}
+            >{`${umaCasa(pct)}%`}</span>
             <StatusChip status={status} />
           </div>
         )}
