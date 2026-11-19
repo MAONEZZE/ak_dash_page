@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
+import { Avatar } from "../componentes/Avatar";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
 import { FunilBarras, type EtapaFunil } from "../componentes/FunilBarras";
@@ -205,6 +206,13 @@ export function FunilSdr() {
           <Velocimetro
             key={nome}
             tamanho="compacto"
+            foto={
+              <Avatar
+                nome={nome}
+                imagemUrl={sdr?.imagem_url ?? null}
+                tamanho={56}
+              />
+            }
             rotulo={`Inscrições ${nome}`}
             valor={sdr?.metricas.inscricoes_realizadas ?? 0}
             meta={sdr?.meta_inscricoes ?? null}

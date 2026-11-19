@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { COR_TEXTO, statusDoAtingimento } from "../lib/atingimento";
 import { formatarNumero } from "../lib/formato";
 import { umaCasa } from "../lib/funil";
@@ -62,6 +63,7 @@ export function Velocimetro({
   meta,
   fonte,
   tamanho = "normal",
+  foto,
 }: {
   rotulo: string;
   valor: number;
@@ -70,6 +72,8 @@ export function Velocimetro({
   fonte?: { titulo: string; data?: string };
   /** "compacto": do tamanho de um CardKpi (grade de 4 colunas), título no mesmo estilo do rótulo dele. */
   tamanho?: "normal" | "compacto";
+  /** Só no compacto: mostrada no canto superior esquerdo no lugar do título (que segue como nome acessível do medidor). */
+  foto?: ReactNode;
 }) {
   const c = tamanho === "compacto";
   const temMeta = meta !== null && meta > 0;
@@ -92,11 +96,17 @@ export function Velocimetro({
         aria-valuemax={temMeta ? meta : undefined}
         className={`relative flex w-full flex-col items-center ${c ? "gap-1" : "max-w-[460px] gap-2"}`}
       >
-        <span
-          className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
-        >
-          {rotulo}
-        </span>
+        {c && foto ? (
+          <span data-foto className="self-start">
+            {foto}
+          </span>
+        ) : (
+          <span
+            className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
+          >
+            {rotulo}
+          </span>
+        )}
         {fonte && (
           <span
             data-fonte
@@ -112,7 +122,7 @@ export function Velocimetro({
         )}
         <svg
           viewBox="0 0 200 112"
-          className={`block w-full overflow-visible ${c ? "max-w-[160px]" : ""}`}
+          className={`block w-full overflow-visible ${c ? "max-w-[240px]" : ""}`}
           aria-hidden
         >
           {FAIXAS.map((f, i) => {
@@ -171,14 +181,21 @@ export function Velocimetro({
         >
           {temMeta ? `de ${formatarNumero(meta)}` : "Meta aberta"}
         </span>
-        {pct !== null && (
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+        {pct !== null &&
+          (c ? (
+            // Compacto: só o %, no canto inferior direito, sem o chip de status.
             <span
-              className={`font-display font-extrabold leading-none ${c ? "text-[18px]" : "text-[24px]"} ${COR_TEXTO[status]}`}
+              data-pct
+              className={`self-end font-display text-[18px] font-extrabold leading-none ${COR_TEXTO[status]}`}
             >{`${umaCasa(pct)}%`}</span>
-            <StatusChip status={status} />
-          </div>
-        )}
+          ) : (
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+              <span
+                className={`font-display text-[24px] font-extrabold leading-none ${COR_TEXTO[status]}`}
+              >{`${umaCasa(pct)}%`}</span>
+              <StatusChip status={status} />
+            </div>
+          ))}
       </div>
     </div>
   );

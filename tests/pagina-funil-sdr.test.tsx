@@ -109,6 +109,16 @@ it("velocímetros de inscrições do Juca e da Jennifer no período, contra a me
   expect(jennifer.textContent).toContain("Meta aberta");
 });
 
+it("velocímetros dos SDRs: foto no lugar do título, % embaixo e sem chip de status", async () => {
+  renderizar();
+  const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
+  const juca = within(bloco).getAllByRole("meter")[0];
+  expect(juca.querySelector("[data-foto]")?.textContent).toBe("J"); // sem foto: inicial
+  expect(juca.textContent).not.toContain("Inscrições Juca");
+  expect(juca.querySelector("[data-pct]")?.textContent).toBe("22,7%");
+  expect(juca.textContent).not.toContain("Muito atrás");
+});
+
 it("velocímetros dos SDRs piscam na cor do atingimento; sem meta não piscam", async () => {
   renderizar();
   const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
