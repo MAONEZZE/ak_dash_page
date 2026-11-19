@@ -102,6 +102,7 @@ export function Velocimetro({
           </span>
         ) : (
           <span
+            data-titulo
             className={`font-bold uppercase tracking-[0.13em] text-muted ${c ? "self-start text-[17px] font-semibold leading-snug" : "text-[30px]"}`}
           >
             {rotulo}

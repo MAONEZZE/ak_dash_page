@@ -168,10 +168,11 @@ export function FunilSdr() {
     <div className="flex flex-col gap-6">
       <AvisoFontes avisos={dado.avisos} />
       {/* Escala só nesta página (FunilBarras/CardKpi são compartilhados): topo 1,5× menor e depois 1,7× maior (≈1,13×), KPIs 1,5× maiores. */}
-      {/* Só as etapas do funil (dentro do card Funil SDR) 1,5× maiores: zoom 0,84 × 1,5 (altura e texto) e largura 60% × 1,5 do card. */}
+      {/* Altura dos cards Funil SDR e Inscrições Realizadas ÷1,3 (661 → ~506px a 1440px, medido em 19/11/2026):
+          etapas com zoom 0,86 (largura segue 90% do card), arco do velocímetro até 300px e título dele em 26px, numa linha. */}
       <div
         style={{ zoom: (2 / 3) * 1.7 }}
-        className="[&_ol]:[zoom:1.26] [&_[data-linha-etapa]]:max-w-[90%]"
+        className="[&_ol]:[zoom:0.86] [&_[data-linha-etapa]]:max-w-[90%] [&_[data-ao-lado]_svg]:max-w-[300px] [&_[data-ao-lado]_[data-titulo]]:text-[26px]"
       >
         <FunilBarras
           titulo="Funil SDR"
