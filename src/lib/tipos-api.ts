@@ -404,6 +404,8 @@ export interface SdrFunil {
   nome: string;
   imagem_url: string | null;
   metricas: MetricasSdrFunil;
+  /** Meta de inscrições do SDR no período: a parte dele na meta do time, na proporção da meta diária. `null` sem diária cadastrada. */
+  meta_inscricoes: number | null;
   /** Um item por dia com registro no período, em ordem de data. */
   serie: { data: string; metricas: MetricasSdrFunil }[];
 }
@@ -450,6 +452,8 @@ export interface EventoVelocimetro {
   data: string;
   /** Aprovados + pendentes (recusados fora) — diferente dos inscritos da Geral, que contam todo status. */
   inscritos: number;
+  /** Os mesmos `inscritos`, só os feitos (`created_at`) dentro do filtro de data — valor do velocímetro. */
+  inscritos_periodo: number;
   /** Contagem por status (`approved`, `pending`, `rejected`). */
   aprovados: number;
   pendentes: number;

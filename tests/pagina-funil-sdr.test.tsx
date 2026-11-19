@@ -42,10 +42,10 @@ const RESPOSTA: RespostaFunilSdr = {
   ],
   funil: { numeros_captados: 189, indicacoes: 11, oportunidades: 200, abordados: 150, respondidos: 60, inscritos: 19 },
   sdrs: [
-    { id_user: "11", nome: "Juca", imagem_url: null, metricas: JUCA, serie: [{ data: "2026-11-03", metricas: JUCA }] },
-    { id_user: "14", nome: "Jennifer", imagem_url: null, metricas: JENNIFER, serie: [] },
+    { id_user: "11", nome: "Juca", imagem_url: null, metricas: JUCA, meta_inscricoes: 44, serie: [{ data: "2026-11-03", metricas: JUCA }] },
+    { id_user: "14", nome: "Jennifer", imagem_url: null, metricas: JENNIFER, meta_inscricoes: null, serie: [] },
   ],
-  evento: { id: "e1", titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80 },
+  evento: { id: "e1", titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, inscritos_periodo: 12, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80 },
 };
 
 vi.mock("../src/lib/api", () => ({ buscarFunilSdr: vi.fn(async () => RESPOSTA) }));
@@ -78,7 +78,8 @@ it("com um evento escolhido no filtro, busca o funil de SDR com os números dele
 it("velocímetro mostra os inscritos da próxima Confraria contra a capacidade, com título e data do evento", async () => {
   renderizar();
   const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
-  expect(velocimetro.getAttribute("aria-valuenow")).toBe("39");
+  // Segue o filtro de data: só os inscritos (aprovados + pendentes) feitos no período.
+  expect(velocimetro.getAttribute("aria-valuenow")).toBe("12");
   expect(velocimetro.getAttribute("aria-valuemax")).toBe("80");
   expect(velocimetro.textContent).toContain("Confraria Akeel SP");
   // 22:00 UTC = 19:00 em São Paulo.
@@ -94,23 +95,28 @@ it("sem Confraria agendada o velocímetro avisa e fica sem meta", async () => {
   expect(velocimetro.textContent).toContain("Meta aberta");
 });
 
-it("cards de baixo: reuniões agendadas do período e aprovados, pendentes e rejeitados do evento", async () => {
+it("cards de baixo: inscrições do Juca e da Jennifer no período, pendentes e total de inscrições do evento", async () => {
   renderizar();
-  const bloco = await screen.findByRole("region", { name: "Reuniões e inscrições do evento" });
+  const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
   const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
-  expect(cards).toHaveLength(4);
-  expect(cards[0]).toContain("Reuniões Agendadas");
-  expect(cards[0]).toContain("50/ 44");
-  expect(cards.slice(1)).toEqual(["Aprovados30", "Pendentes9", "Rejeitados3"]);
+  expect(cards).toEqual(["Inscrições Juca10", "Inscrições Jennifer9", "Pendentes9", "Inscrições Realizadassomatório fixo39"]);
 });
 
-it("sem Confraria agendada só fica o card de reuniões", async () => {
-  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({ ...RESPOSTA, evento: null });
+it("cards dos SDRs piscam na cor do atingimento da meta deles; sem meta não piscam", async () => {
   renderizar();
-  const bloco = await screen.findByRole("region", { name: "Reuniões e inscrições do evento" });
+  const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
+  const cards = [...bloco.querySelectorAll("article")];
+  // Juca: 10 de 44 = 22,7% → vermelho. Jennifer: sem meta.
+  expect(cards.map((c) => c.getAttribute("data-alerta"))).toEqual(["muito_atras", "sem_meta", null, null]);
+  expect(cards[0].classList.contains("card-velocimetro")).toBe(true);
+});
+
+it("sem evento ficam só os cards dos SDRs; SDR sem linha no período mostra 0", async () => {
+  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({ ...RESPOSTA, evento: null, sdrs: RESPOSTA.sdrs.slice(0, 1) });
+  renderizar();
+  const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
   const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
-  expect(cards).toHaveLength(1);
-  expect(cards[0]).toContain("Reuniões Agendadas");
+  expect(cards).toEqual(["Inscrições Juca10", "Inscrições Jennifer0"]);
 });
 
 it("tabela tem uma linha por SDR e o TOTAL", async () => {
