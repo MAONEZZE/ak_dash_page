@@ -95,28 +95,44 @@ it("sem Confraria agendada o velocímetro avisa e fica sem meta", async () => {
   expect(velocimetro.textContent).toContain("Meta aberta");
 });
 
-it("cards de baixo: inscrições do Juca e da Jennifer no período, pendentes e total de inscrições do evento", async () => {
+it("velocímetros de inscrições do Juca e da Jennifer no período, contra a meta de cada um", async () => {
   renderizar();
   const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
-  const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
-  expect(cards).toEqual(["Inscrições Juca10", "Inscrições Jennifer9", "Pendentes9", "Inscrições Realizadassomatório fixo39"]);
+  const [juca, jennifer] = within(bloco).getAllByRole("meter");
+  expect([juca.getAttribute("aria-label"), juca.getAttribute("aria-valuenow"), juca.getAttribute("aria-valuemax")]).toEqual([
+    "Inscrições Juca",
+    "10",
+    "44",
+  ]);
+  expect(jennifer.getAttribute("aria-label")).toBe("Inscrições Jennifer");
+  expect(jennifer.getAttribute("aria-valuenow")).toBe("9");
+  expect(jennifer.textContent).toContain("Meta aberta");
 });
 
-it("cards dos SDRs piscam na cor do atingimento da meta deles; sem meta não piscam", async () => {
+it("velocímetros dos SDRs piscam na cor do atingimento; sem meta não piscam", async () => {
   renderizar();
   const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
-  const cards = [...bloco.querySelectorAll("article")];
   // Juca: 10 de 44 = 22,7% → vermelho. Jennifer: sem meta.
-  expect(cards.map((c) => c.getAttribute("data-alerta"))).toEqual(["muito_atras", "sem_meta", null, null]);
-  expect(cards[0].classList.contains("card-velocimetro")).toBe(true);
+  expect([...bloco.querySelectorAll(".card-velocimetro")].map((c) => c.getAttribute("data-alerta"))).toEqual([
+    "muito_atras",
+    "sem_meta",
+  ]);
 });
 
-it("sem evento ficam só os cards dos SDRs; SDR sem linha no período mostra 0", async () => {
+it("na mesma linha dos velocímetros: pendentes e o total de inscrições do evento (somatório fixo)", async () => {
+  renderizar();
+  const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
+  expect(bloco.children).toHaveLength(4);
+  const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
+  expect(cards).toEqual(["Pendentes9", "Inscrições Realizadassomatório fixo39"]);
+});
+
+it("sem evento somem os cards do evento; SDR sem linha no período mostra 0", async () => {
   vi.mocked(buscarFunilSdr).mockResolvedValueOnce({ ...RESPOSTA, evento: null, sdrs: RESPOSTA.sdrs.slice(0, 1) });
   renderizar();
   const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
-  const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
-  expect(cards).toEqual(["Inscrições Juca10", "Inscrições Jennifer0"]);
+  expect(within(bloco).getAllByRole("meter").map((m) => m.getAttribute("aria-valuenow"))).toEqual(["10", "0"]);
+  expect(bloco.querySelectorAll("article")).toHaveLength(0);
 });
 
 it("tabela tem uma linha por SDR e o TOTAL", async () => {

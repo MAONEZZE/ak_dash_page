@@ -13,7 +13,7 @@ import {
 } from "../lib/card-compacto";
 import { statusDoAtingimento } from "../lib/atingimento";
 import { formatarNumero } from "../lib/formato";
-import { calcularRitmo, type StatusRitmo } from "../lib/ritmo";
+import { calcularRitmo } from "../lib/ritmo";
 import type { DiasUteis, FaltaFolga } from "../lib/tipos-api";
 import { ProgressBar } from "./ProgressBar";
 import { RodapeAtingimento } from "./RodapeAtingimento";
@@ -64,8 +64,8 @@ interface CardKpiProps {
    * Exige `tamanho="compacto"`.
    */
   destaque?: boolean;
-  /** Fundo pisca na cor da faixa de atingimento, como o do Velocimetro (`sem_meta` não pisca). */
-  alerta?: StatusRitmo;
+  /** Número centralizado no card (nos dois eixos) e 1,9× maior (50px → 95px). Só para o tamanho "normal". */
+  valorCentral?: boolean;
 }
 
 /** Card de vidro do redesenho novo_template — usado nos grids de KPI de Comercial/Geral/Financeiro. */
@@ -102,7 +102,7 @@ export function CardKpi({
   tamanho = "normal",
   destaque = false,
   pastel,
-  alerta,
+  valorCentral = false,
 }: CardKpiProps) {
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
@@ -117,12 +117,10 @@ export function CardKpi({
 
   return (
     <article
-      data-alerta={alerta}
-      className={`${alerta ? "card-velocimetro " : ""}flex flex-col overflow-hidden rounded-[24px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${pastel ? `card-pastel ${pastel}` : escuro ? "glass-panel-escuro" : "glass-panel"}`}
+      className={`flex flex-col overflow-hidden rounded-[24px] ${compacto ? CARD_COMPACTO_CAIXA : "min-h-[168px] gap-3.5 px-[18px] pb-[15px] pt-[17px]"} ${pastel ? `card-pastel ${pastel}` : escuro ? "glass-panel-escuro" : "glass-panel"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
-          data-rotulo
           className={`font-semibold uppercase tracking-[0.13em] ${compacto ? CARD_COMPACTO_LABEL : "text-[17px] leading-snug"} ${escuro ? "text-offwhite/85" : "text-muted"}`}
         >
           {label}
@@ -144,7 +142,9 @@ export function CardKpi({
               ? r
                 ? ""
                 : CARD_COMPACTO_VAO
-              : "mt-auto"
+              : valorCentral
+                ? "my-auto justify-center"
+                : "mt-auto"
         }`}
       >
         <span
@@ -153,7 +153,9 @@ export function CardKpi({
               ? destaque
                 ? escalaValorCompactoDestaque(value)
                 : escalaValorCompacto(value)
-              : escalaValorPadrao(value)
+              : valorCentral
+                ? "text-[95px]"
+                : escalaValorPadrao(value)
           } ${escuro ? "text-offwhite" : ""}`}
         >
           {value}
