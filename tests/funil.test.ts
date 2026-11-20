@@ -40,6 +40,26 @@ it("somarContas soma todas as contas e filtra pela conta escolhida", () => {
   expect(Object.keys(todas).sort()).toEqual([...METRICAS_CONTA].sort());
 });
 
+it("somarContas soma o sem_conta só no consolidado", () => {
+  const contas: ContaFunil[] = [
+    { id_conta: "1", nome: "Jacob", metricas: metricas({ numeros_captados: 19 }) },
+    { id_conta: "2", nome: "Jonathan", metricas: metricas({ numeros_captados: 5 }) },
+  ];
+  const semConta = metricas({ numeros_captados: 3, abordagens: 2 });
+
+  const todas = somarContas(contas, null, semConta);
+  const jonathan = somarContas(contas, "Jonathan", semConta);
+  const inexistente = somarContas(contas, "Inexistente", semConta);
+  const semParametro = somarContas(contas, null);
+
+  expect(todas.numeros_captados).toBe(27);
+  expect(todas.abordagens).toBe(2);
+  expect(jonathan.numeros_captados).toBe(5);
+  expect(jonathan.abordagens).toBe(0);
+  expect(inexistente.numeros_captados).toBe(27);
+  expect(semParametro.numeros_captados).toBe(24);
+});
+
 it("taxasLinkedin bate com o painel da planilha e devolve null em divisão por zero", () => {
   const totais = metricas({
     conexoes_enviadas: 1621,
