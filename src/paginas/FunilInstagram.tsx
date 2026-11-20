@@ -127,7 +127,7 @@ function etapasInstagram(m: MetricasConta): EtapaFunil[] {
 }
 
 function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }) {
-  const m = somarContas(dado.contas, conta);
+  const m = somarContas(dado.contas, conta, dado.sem_conta);
   const t = taxasInstagram(m);
 
   return (
@@ -135,11 +135,12 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <AvisoFontes avisos={dado.avisos} />
       <FunilBarras
         titulo="Funil Instagram"
+        rotuloNoCanto
         conversaoTotal={t.conversaoTotal}
         aoLado={
           <Velocimetro
             rotulo="Números Captados"
-            valor={somarContas(dado.contas, null).numeros_captados}
+            valor={somarContas(dado.contas, null, dado.sem_conta).numeros_captados}
             meta={dado.meta_numeros_captados}
           />
         }
@@ -170,7 +171,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         rotuloConta="Perfil"
         colunas={COLUNAS_INSTAGRAM}
         linhas={dado.contas.map((c) => linhaInstagram(c.nome, c.metricas))}
-        total={linhaInstagram("TOTAL", somarContas(dado.contas, null))}
+        total={linhaInstagram("TOTAL", somarContas(dado.contas, null, dado.sem_conta))}
         destacada={conta}
       />
       <GraficoContasFunil contas={dado.contas} periodo={dado.periodo} metricas={METRICAS_GRAFICO_INSTAGRAM} />

@@ -177,6 +177,42 @@ it("clicar num mini-funil filtra o funil pelo LinkedIn escolhido", async () => {
   expect(screen.queryByRole("figure", { name: "Taxa de conversão por LinkedIn" })).toBeNull();
 });
 
+it("números captados sem conta entram no TOTAL", async () => {
+  const metricas = (numeros_captados: number) => ({
+    conexoes_enviadas: 0,
+    conexoes_aceitas: 0,
+    mensagens_abordagem: 0,
+    abordagens: 0,
+    follows_abordagem: 0,
+    respondidos: 0,
+    in_mails: 0,
+    fups: 0,
+    numeros_captados,
+    indicacoes: 0,
+  });
+  vi.mocked(buscarFunil).mockResolvedValueOnce({
+    periodo: { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
+    avisos: [],
+    contas: [{ id_conta: "1", nome: "Jacob", metricas: metricas(19), serie: [] }],
+    meta_numeros_captados: null,
+    sem_conta: metricas(5),
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("table", { name: "Por LinkedIn" });
+  expect(screen.getByRole("row", { name: /TOTAL/ }).textContent).toContain("24");
+  const linhaJacob = screen.getByRole("row", { name: /Jacob/ });
+  expect(linhaJacob.textContent).toContain("19");
+  expect(linhaJacob.textContent).not.toContain("24");
+});
+
 it("sem título da página", async () => {
   render(
     <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>

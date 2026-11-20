@@ -377,6 +377,8 @@ export interface RespostaFunil {
   periodo: Periodo;
   avisos: string[];
   contas: ContaFunil[];
+  /** Métricas do Pipedrive de negócios sem etiqueta de conta: só entram no consolidado. */
+  sem_conta: MetricasConta;
   /** Meta de números captados no período (sellers ligados às contas); null sem seller ou sem meta. */
   meta_numeros_captados: number | null;
 }
