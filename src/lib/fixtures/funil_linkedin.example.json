@@ -172,5 +172,17 @@
       ]
     }
   ],
+  "sem_conta": {
+    "conexoes_enviadas": 0,
+    "conexoes_aceitas": 0,
+    "mensagens_abordagem": 0,
+    "abordagens": 0,
+    "follows_abordagem": 0,
+    "respondidos": 0,
+    "in_mails": 0,
+    "fups": 0,
+    "numeros_captados": 0,
+    "indicacoes": 0
+  },
   "meta_numeros_captados": 154
 }
