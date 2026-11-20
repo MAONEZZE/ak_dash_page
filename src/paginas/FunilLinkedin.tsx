@@ -142,6 +142,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
       <AvisoFontes avisos={dado.avisos} />
       <FunilBarras
         titulo="Funil LinkedIn"
+        rotuloNoCanto
         conversaoTotal={t.conversaoTotal}
         aoLado={
           <Velocimetro
