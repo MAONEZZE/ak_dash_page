@@ -134,7 +134,7 @@ function etapasLinkedin(m: MetricasConta): EtapaFunil[] {
 }
 
 function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }) {
-  const m = somarContas(dado.contas, conta);
+  const m = somarContas(dado.contas, conta, dado.sem_conta);
   const t = taxasLinkedin(m);
 
   return (
@@ -147,7 +147,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         aoLado={
           <Velocimetro
             rotulo="Números Captados"
-            valor={somarContas(dado.contas, null).numeros_captados}
+            valor={somarContas(dado.contas, null, dado.sem_conta).numeros_captados}
             meta={dado.meta_numeros_captados}
           />
         }
@@ -175,7 +175,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
         rotuloConta="LinkedIn"
         colunas={COLUNAS_LINKEDIN}
         linhas={dado.contas.map((c) => linhaLinkedin(c.nome, c.metricas))}
-        total={linhaLinkedin("TOTAL", somarContas(dado.contas, null))}
+        total={linhaLinkedin("TOTAL", somarContas(dado.contas, null, dado.sem_conta))}
         destacada={conta}
       />
       <GraficoContasFunil contas={dado.contas} periodo={dado.periodo} metricas={METRICAS_GRAFICO_LINKEDIN} />
