@@ -2,15 +2,54 @@ import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { CardKpi } from "../componentes/CardKpi";
+import { FunilBarras, type EtapaFunil } from "../componentes/FunilBarras";
 import { buscarFunilEvento } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
-import { formatarTaxa } from "../lib/funil";
+import { formatarTaxa, razao } from "../lib/funil";
 import { formatarDataHoraEvento, formatarNumero } from "../lib/formato";
 import { useEventoSelecionado } from "../componentes/PillEvento";
 import { useFiltrosAtuais } from "../lib/periodo";
-import type { RespostaFunilEvento } from "../lib/tipos-api";
+import type {
+  EtapasFunilEvento,
+  RespostaFunilEvento,
+} from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
+
+function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
+  return [
+    {
+      rotulo: "Inscritos",
+      valor: f.inscritos,
+      passagem: {
+        taxa: razao(f.onboarding_agendado, f.inscritos),
+        texto: "agendaram onboarding",
+      },
+    },
+    {
+      rotulo: "Onboarding Agendado",
+      valor: f.onboarding_agendado,
+      passagem: {
+        taxa: razao(f.onboarding_realizado, f.onboarding_agendado),
+        texto: "fizeram onboarding",
+      },
+    },
+    {
+      rotulo: "Onboarding Realizado",
+      valor: f.onboarding_realizado,
+      passagem: {
+        taxa: razao(f.comparecimento, f.onboarding_realizado),
+        texto: "compareceram",
+      },
+    },
+    {
+      rotulo: "Comparecimento",
+      valor: f.comparecimento,
+      passagem: { taxa: razao(f.vendas, f.comparecimento), texto: "compraram" },
+    },
+    { rotulo: "Vendas", valor: f.vendas },
+  ];
+}
 
 interface EstadoFunil {
   dado: RespostaFunilEvento | null;
@@ -125,6 +164,12 @@ export function FunilEvento() {
           </section>
         </>
       )}
+      <FunilBarras
+        titulo="Funil do Evento"
+        rotuloNoCanto
+        etapas={etapasEvento(dado.funil)}
+        conversaoTotal={razao(dado.funil.vendas, dado.funil.inscritos)}
+      />
     </div>
   );
 }

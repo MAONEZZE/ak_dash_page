@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
@@ -39,4 +39,22 @@ it("mostra o evento e os cards do evento com a conversão inscritos → vendas",
     "Rejeitados1",
     "Conversãoinscritos → vendas20,0%",
   ]);
+});
+
+it("funil de cima pra baixo com as passagens entre etapas", async () => {
+  renderizar();
+  const funil = await screen.findByRole("list", { name: "Funil do Evento" });
+  const etapas = within(funil).getAllByRole("listitem");
+  expect(etapas.map((e) => e.querySelector("[data-segmento]")?.textContent)).toEqual([
+    "Inscritos5",
+    "Onboarding Agendado4",
+    "Onboarding Realizado3",
+    "Comparecimento2",
+    "Vendas1",
+  ]);
+  expect(etapas[0].textContent).toContain("80,0% agendaram onboarding");
+  expect(etapas[1].textContent).toContain("75,0% fizeram onboarding");
+  expect(etapas[2].textContent).toContain("66,7% compareceram");
+  expect(etapas[3].textContent).toContain("50,0% compraram");
+  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("20,0%");
 });
