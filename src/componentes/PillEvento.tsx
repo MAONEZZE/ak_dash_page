@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { buscarEventosFunilSdr } from "../lib/api";
 import { formatarDiaMesEvento } from "../lib/formato";
-import type { OpcaoEvento } from "../lib/tipos-api";
+import type { OpcaoEvento, RespostaEventosFunilSdr } from "../lib/tipos-api";
 
 /** Evento escolhido no filtro, lido da querystring (`evento=<id>`). Sem filtro, null (= próximo evento). */
 export function useEventoSelecionado(): string | null {
@@ -14,11 +14,17 @@ export function useEventoSelecionado(): string | null {
 const ROTULO_PADRAO = "Próximo evento";
 
 /**
- * Filtro de evento do header: escolhe qual evento (qualquer título, a partir de agora) alimenta o velocímetro e
- * os cards do evento do Funil SDR. Mora na querystring (`evento=`) e só fica
+ * Filtro de evento do header: escolhe qual evento alimenta a página (Funil SDR: qualquer evento futuro; Funil Evento:
+ * Imersões). A fonte da lista vem em `buscar`. Mora na querystring (`evento=`) e só fica
  * habilitado nessa página; a lista de eventos só é buscada quando habilitado.
  */
-export function PillEvento({ disabled = false }: { disabled?: boolean }) {
+export function PillEvento({
+  disabled = false,
+  buscar = buscarEventosFunilSdr,
+}: {
+  disabled?: boolean;
+  buscar?: () => Promise<RespostaEventosFunilSdr>;
+}) {
   const [params, setParams] = useSearchParams();
   const selecionado = params.get("evento");
   const [eventos, setEventos] = useState<OpcaoEvento[]>([]);
@@ -28,13 +34,13 @@ export function PillEvento({ disabled = false }: { disabled?: boolean }) {
   useEffect(() => {
     if (disabled) return;
     let ativo = true;
-    buscarEventosFunilSdr()
+    buscar()
       .then((r) => ativo && setEventos(r.eventos))
       .catch(() => ativo && setEventos([]));
     return () => {
       ativo = false;
     };
-  }, [disabled]);
+  }, [disabled, buscar]);
 
   useEffect(() => {
     if (!aberto) return;
