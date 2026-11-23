@@ -16,6 +16,7 @@ import type {
   RespostaFinanceiro,
   RespostaFunil,
   RespostaEventosFunilSdr,
+  RespostaFunilEvento,
   RespostaFunilSdr,
   RespostaGeral,
 } from "./tipos-api";
@@ -207,4 +208,17 @@ export async function buscarFunilSdr(params: ParametrosFunil & { evento?: string
 
 export async function buscarEventosFunilSdr(): Promise<RespostaEventosFunilSdr> {
   return requisitar<RespostaEventosFunilSdr>("/funil-sdr/eventos");
+}
+
+/** `evento`: id do evento escolhido no filtro; sem ele, o BFF usa a próxima Imersão. */
+export async function buscarFunilEvento(params: ParametrosFunil & { evento?: string | null }): Promise<RespostaFunilEvento> {
+  return requisitar<RespostaFunilEvento>("/funil-evento", {
+    granularidade: params.granularidade,
+    periodo: params.periodo,
+    evento: params.evento ?? undefined,
+  });
+}
+
+export async function buscarEventosFunilEvento(): Promise<RespostaEventosFunilSdr> {
+  return requisitar<RespostaEventosFunilSdr>("/funil-evento/eventos");
 }
