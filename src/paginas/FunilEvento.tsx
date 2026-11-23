@@ -16,6 +16,16 @@ import type {
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
+/**
+ * Número dos 5 cards do evento. Os 95px do `valorCentral` cortam "20,0%" na
+ * grade de 5 colunas (sobram ~150px úteis por card com a barra lateral de
+ * 240px a 1280px). O teto em vw sai da largura útil ÷ ~3,6em ("100,0%") no
+ * ponto mais estreito de cada grade: 2 colunas (360px), 3 colunas (640px) e
+ * 5 colunas (1280px). Depois aumentado 1,7× e reduzido 1,2× a pedido (mín., vw e teto).
+ */
+const TAMANHO_VALOR_EVENTO =
+  "text-[clamp(40px,12.75vw,135px)] sm:text-[clamp(40px,7.5vw,135px)] xl:text-[clamp(40px,4.53vw,135px)]";
+
 function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
   return [
     {
@@ -137,26 +147,31 @@ export function FunilEvento() {
           >
             <CardKpi
               valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
               label="Total"
               value={formatarNumero(dado.evento.total)}
             />
             <CardKpi
               valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
               label="Aprovados"
               value={formatarNumero(dado.evento.aprovados)}
             />
             <CardKpi
               valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
               label="Pendentes"
               value={formatarNumero(dado.evento.pendentes)}
             />
             <CardKpi
               valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
               label="Rejeitados"
               value={formatarNumero(dado.evento.rejeitados)}
             />
             <CardKpi
               valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
               label="Conversão"
               subtitulo="inscritos → vendas"
               value={formatarTaxa(conversao)}
