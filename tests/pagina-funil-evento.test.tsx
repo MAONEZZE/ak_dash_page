@@ -71,3 +71,15 @@ it("sem inscritos a conversão é 0,0% e não traço", async () => {
   const cards = bloco.querySelectorAll("article");
   expect(cards[cards.length - 1].textContent).toBe("Conversãoinscritos → vendas0,0%");
 });
+
+it("sem imersão mostra o aviso e nenhum card do evento", async () => {
+  vi.mocked(buscarFunilEvento).mockResolvedValueOnce({
+    ...RESPOSTA,
+    evento: null,
+    funil: { inscritos: 0, onboarding_agendado: 0, onboarding_realizado: 0, comparecimento: 0, vendas: 0 },
+  });
+  renderizar();
+  await screen.findByText("Nenhuma imersão encontrada");
+  expect(screen.queryByRole("region", { name: "Cards do evento" })).toBeNull();
+  expect(screen.getByRole("list", { name: "Funil do Evento" })).toBeTruthy();
+});

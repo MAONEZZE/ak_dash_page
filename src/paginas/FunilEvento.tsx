@@ -123,7 +123,7 @@ export function FunilEvento() {
   return (
     <div className="flex flex-col gap-6">
       <AvisoFontes avisos={dado.avisos} />
-      {dado.evento && (
+      {dado.evento ? (
         <>
           <h2 className="font-display text-[22px] font-bold tracking-tight">
             {dado.evento.titulo}
@@ -163,6 +163,8 @@ export function FunilEvento() {
             />
           </section>
         </>
+      ) : (
+        <p className="text-xl text-muted">Nenhuma imersão encontrada</p>
       )}
       <FunilBarras
         titulo="Funil do Evento"
