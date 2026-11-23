@@ -8,6 +8,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("../src/paginas/FunilLinkedin", () => ({ FunilLinkedin: () => <div>pagina-funil-linkedin</div> }));
 vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pagina-funil-instagram</div> }));
 vi.mock("../src/paginas/FunilSdr", () => ({ FunilSdr: () => <div>pagina-funil-sdr</div> }));
+vi.mock("../src/paginas/FunilEvento", () => ({ FunilEvento: () => <div>pagina-funil-evento</div> }));
+vi.mock("../src/lib/api", async (orig) => ({
+  ...(await orig<typeof import("../src/lib/api")>()),
+  buscarEventosFunilEvento: vi.fn(async () => ({
+    eventos: [{ id: "i2", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00" }],
+    avisos: [],
+  })),
+  buscarEventosFunilSdr: vi.fn(async () => ({ eventos: [], avisos: [] })),
+}));
 vi.mock("../src/paginas/Geral", () => ({ Geral: () => <div>pagina-geral</div> }));
 vi.mock("../src/paginas/Time", () => ({ Time: () => <div>pagina-time</div> }));
 vi.mock("../src/paginas/Financeiro", () => ({ Financeiro: () => <div>pagina-financeiro</div> }));
@@ -46,7 +55,7 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
-  it("navbar lista as seis páginas na ordem e a raiz abre a Geral", async () => {
+  it("navbar lista as sete páginas na ordem e a raiz abre a Geral", async () => {
     await montar("/");
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
 
@@ -54,6 +63,7 @@ describe("filtro de função no header", () => {
       "Funil LinkedIn",
       "Funil Instagram",
       "Funil SDR",
+      "Funil Evento",
       "Geral",
       "Financeiro",
       "Time",
@@ -63,6 +73,19 @@ describe("filtro de função no header", () => {
     cleanup();
     await montar("/funil-instagram");
     expect(screen.getByText("pagina-funil-instagram")).toBeTruthy();
+  });
+
+  it("funil evento: item no menu após o Funil SDR, abre a página e habilita o filtro de evento com as Imersões", async () => {
+    await montar("/funil-evento?granularidade=mes");
+    fireEvent.click(screen.getByRole("button", { name: "Evento: Próximo evento" }));
+
+    expect(screen.getByText("pagina-funil-evento")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Evento: Próximo evento" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(await screen.findByText("Imersão Alta Cadência")).toBeTruthy();
+
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+    const rotulos = within(navegacao).getAllByRole("link").map((l) => l.textContent);
+    expect(rotulos[rotulos.indexOf("Funil SDR") + 1]).toBe("Funil Evento");
   });
 
   it("abas das páginas ficam na barra lateral e os filtros continuam na navbar", async () => {

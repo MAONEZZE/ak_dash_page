@@ -66,6 +66,8 @@ interface CardKpiProps {
   destaque?: boolean;
   /** Número centralizado no card (nos dois eixos) e 1,9× maior (50px → 95px). Só para o tamanho "normal". */
   valorCentral?: boolean;
+  /** Classe de tamanho do número que substitui a escala padrão (ex.: grade de 5 cards do Funil Evento, onde 95px corta "20,0%"). */
+  classeTamanhoValor?: string;
 }
 
 /** Card de vidro do redesenho novo_template — usado nos grids de KPI de Comercial/Geral/Financeiro. */
@@ -103,6 +105,7 @@ export function CardKpi({
   destaque = false,
   pastel,
   valorCentral = false,
+  classeTamanhoValor,
 }: CardKpiProps) {
   const largura = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const escuro = variante === "escuro";
@@ -149,13 +152,14 @@ export function CardKpi({
       >
         <span
           className={`font-display font-extrabold leading-none tracking-tight ${
-            compacto
+            classeTamanhoValor ??
+            (compacto
               ? destaque
                 ? escalaValorCompactoDestaque(value)
                 : escalaValorCompacto(value)
               : valorCentral
                 ? "text-[95px]"
-                : escalaValorPadrao(value)
+                : escalaValorPadrao(value))
           } ${escuro ? "text-offwhite" : ""}`}
         >
           {value}

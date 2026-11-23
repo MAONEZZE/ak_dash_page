@@ -1,4 +1,5 @@
 import {
+  CalendarCheck,
   CalendarRange,
   ChevronLeft,
   ChevronRight,
@@ -24,11 +25,13 @@ import { CalendarioIntervalo, formatarDataCurta } from "./componentes/Calendario
 import { LogoInstagram, LogoLinkedin } from "./componentes/IconesMarca";
 import { PillEvento, useEventoSelecionado } from "./componentes/PillEvento";
 import { PillSquad } from "./componentes/PillSquad";
+import { buscarEventosFunilEvento, buscarEventosFunilSdr } from "./lib/api";
 import { formatarHora } from "./lib/formato";
 import { paraPeriodo, useDefinirGranularidade, useDefinirIntervalo, useFiltrosAtuais, useNavegarMes } from "./lib/periodo";
 import { SomProvider, useSom } from "./lib/som";
 import type { Granularidade } from "./lib/tipos-api";
 import { Financeiro } from "./paginas/Financeiro";
+import { FunilEvento } from "./paginas/FunilEvento";
 import { FunilInstagram } from "./paginas/FunilInstagram";
 import { FunilLinkedin } from "./paginas/FunilLinkedin";
 import { FunilSdr } from "./paginas/FunilSdr";
@@ -54,6 +57,7 @@ const NAV_ITENS = [
   { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: LogoLinkedin },
   { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: LogoInstagram },
   { rota: "/funil-sdr", rotulo: "Funil SDR", Icone: Headset },
+  { rota: "/funil-evento", rotulo: "Funil Evento", Icone: CalendarCheck },
   { rota: "/geral", rotulo: "Geral", Icone: LayoutDashboard },
   { rota: "/financeiro", rotulo: "Financeiro", Icone: Wallet },
   { rota: "/time", rotulo: "Time", Icone: Users },
@@ -63,7 +67,7 @@ const NAV_ITENS = [
 const PAGINAS_COM_SQUAD = ["/time"];
 
 /** Páginas que filtram por evento (evento do velocímetro e dos cards do evento). */
-const PAGINAS_COM_EVENTO = ["/funil-sdr"];
+const PAGINAS_COM_EVENTO = ["/funil-sdr", "/funil-evento"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
@@ -416,7 +420,10 @@ export default function App() {
                       <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
                     </div>
                     <div className={PAGINAS_COM_EVENTO.includes(location.pathname) ? "shrink-0" : "hidden sm:block"}>
-                      <PillEvento disabled={!PAGINAS_COM_EVENTO.includes(location.pathname)} />
+                      <PillEvento
+                        disabled={!PAGINAS_COM_EVENTO.includes(location.pathname)}
+                        buscar={location.pathname === "/funil-evento" ? buscarEventosFunilEvento : buscarEventosFunilSdr}
+                      />
                     </div>
                   </div>
                   <div className="col-start-2 row-start-1 flex items-center justify-end gap-2">
@@ -440,6 +447,7 @@ export default function App() {
                   <Route path="/funil-linkedin" element={<FunilLinkedin />} />
                   <Route path="/funil-instagram" element={<FunilInstagram />} />
                   <Route path="/funil-sdr" element={<FunilSdr />} />
+                  <Route path="/funil-evento" element={<FunilEvento />} />
                   <Route path="/geral" element={<Geral />} />
                   <Route path="/time" element={<Time />} />
                   <Route path="/financeiro" element={<Financeiro />} />

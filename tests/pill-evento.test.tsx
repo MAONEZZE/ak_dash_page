@@ -56,3 +56,17 @@ it("fora da página do SDR fica desabilitado e nem busca os eventos", () => {
   expect((screen.getByRole("button", { name: "Evento: Próximo evento" }) as HTMLButtonElement).disabled).toBe(true);
   expect(buscarEventosFunilSdr).not.toHaveBeenCalled();
 });
+
+it("com outra fonte de eventos, lista as opções dela e não busca as do SDR", async () => {
+  const buscar = vi.fn().mockResolvedValue({ eventos: [{ id: "i2", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00" }], avisos: [] });
+  render(
+    <MemoryRouter initialEntries={["/funil-evento"]}>
+      <PillEvento buscar={buscar} />
+    </MemoryRouter>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Evento: Próximo evento" }));
+
+  expect(await screen.findByText("Imersão Alta Cadência")).toBeTruthy();
+  expect(buscar).toHaveBeenCalledTimes(1);
+  expect(buscarEventosFunilSdr).not.toHaveBeenCalled();
+});

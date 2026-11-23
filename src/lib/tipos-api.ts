@@ -447,6 +447,35 @@ export interface RespostaEventosFunilSdr {
   avisos: string[];
 }
 
+export interface EventoFunilEvento {
+  id: string;
+  titulo: string;
+  /** `event_date` cru, em UTC — formatar com `formatarDataHoraEvento`. */
+  data: string | null;
+  /** Todas as inscrições do evento, qualquer status. */
+  total: number;
+  aprovados: number;
+  pendentes: number;
+  rejeitados: number;
+}
+
+/** Etapas do Funil Evento. `inscritos` e `comparecimento` são do evento inteiro; as outras seguem o filtro de data. */
+export interface EtapasFunilEvento {
+  inscritos: number;
+  onboarding_agendado: number;
+  onboarding_realizado: number;
+  comparecimento: number;
+  vendas: number;
+}
+
+export interface RespostaFunilEvento {
+  periodo: Periodo;
+  avisos: string[];
+  /** `null` quando não há Imersão (nem escolhida, nem agendada). */
+  evento: EventoFunilEvento | null;
+  funil: EtapasFunilEvento;
+}
+
 export interface EventoVelocimetro {
   id: string;
   titulo: string;
