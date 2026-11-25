@@ -159,6 +159,7 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
               ? formatarNumero(m.follows_abordagem)
               : `${formatarNumero(m.follows_abordagem)} (${umaCasa(t.followsPorAbordagem)} por abordagem)`,
           aoLadoDe: 2,
+          formato: "card",
         }}
       />
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
