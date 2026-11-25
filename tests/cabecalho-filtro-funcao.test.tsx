@@ -88,6 +88,22 @@ describe("filtro de função no header", () => {
     expect(rotulos[rotulos.indexOf("Funil SDR") + 1]).toBe("Funil Evento");
   });
 
+  it("funil evento: filtro de período e seletor de mês ficam desabilitados", async () => {
+    await montar("/funil-evento?granularidade=mes");
+    const botoesPeriodo = within(screen.getByRole("group", { name: "Período" })).getAllByRole("button") as HTMLButtonElement[];
+
+    expect(botoesPeriodo.length).toBeGreaterThan(0);
+    for (const botao of botoesPeriodo) expect(botao.disabled).toBe(true);
+    expect(screen.getByRole("group", { name: "Mês" }).getAttribute("aria-disabled")).toBe("true");
+
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+    fireEvent.click(within(navegacao).getByRole("link", { name: "Funil SDR" }));
+
+    expect(await screen.findByText("pagina-funil-sdr")).toBeTruthy();
+    const botoesDepois = within(screen.getByRole("group", { name: "Período" })).getAllByRole("button") as HTMLButtonElement[];
+    for (const botao of botoesDepois) expect(botao.disabled).toBe(false);
+  });
+
   it("abas das páginas ficam na barra lateral e os filtros continuam na navbar", async () => {
     await montar("/geral?granularidade=mes&periodo=2026-11");
     const lateral = screen.getByRole("complementary", { name: "Páginas" });
