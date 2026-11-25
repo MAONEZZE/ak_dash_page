@@ -277,6 +277,11 @@ export function escalaMetades(valores: number[]): [number, number, number] {
  * Média de números captados: por dia nos dias já passados do período (inclui hoje); no filtro Dia, por hora desde 00h (mínimo 1h).
  */
 export function mediaNumerosCaptados(total: number, periodo: Periodo, agora: Date): { valor: number; unidade: "dia" | "hora" } {
+  if (periodo.granularidade === "dia") {
+    const meiaNoite = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    const horas = Math.max(1, (agora.getTime() - meiaNoite.getTime()) / 3_600_000);
+    return { valor: total / horas, unidade: "hora" };
+  }
   const hoje = isoLocal(agora);
   const fim = periodo.fim < hoje ? periodo.fim : hoje;
   const [iniA, iniM, iniD] = periodo.inicio.split("-").map(Number);
