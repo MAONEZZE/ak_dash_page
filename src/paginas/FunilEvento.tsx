@@ -32,7 +32,15 @@ function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
       rotulo: "Inscritos",
       valor: f.inscritos,
       passagem: {
-        taxa: razao(f.onboarding_agendado, f.inscritos),
+        taxa: razao(f.aprovados, f.inscritos),
+        texto: "aprovados",
+      },
+    },
+    {
+      rotulo: "Aprovados",
+      valor: f.aprovados,
+      passagem: {
+        taxa: razao(f.onboarding_agendado, f.aprovados),
         texto: "agendaram onboarding",
       },
     },
