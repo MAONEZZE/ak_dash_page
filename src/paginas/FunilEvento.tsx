@@ -135,8 +135,8 @@ export function FunilEvento() {
     );
   }
 
-  const conversao =
-    dado.funil.inscritos === 0 ? 0 : dado.funil.vendas / dado.funil.inscritos;
+  const base = dado.funil.inscritos + dado.funil.aprovados;
+  const conversao = base === 0 ? 0 : dado.funil.vendas / base;
 
   return (
     <div className="flex flex-col gap-6">
@@ -193,7 +193,7 @@ export function FunilEvento() {
         titulo="Funil do Evento"
         rotuloNoCanto
         etapas={etapasEvento(dado.funil)}
-        conversaoTotal={razao(dado.funil.vendas, dado.funil.inscritos)}
+        conversaoTotal={razao(dado.funil.vendas, base)}
       />
     </div>
   );

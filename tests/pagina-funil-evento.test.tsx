@@ -38,7 +38,7 @@ it("mostra o evento e os cards do evento com a conversão inscritos → vendas",
     "Aprovados3",
     "Pendentes2",
     "Rejeitados1",
-    "Conversãoinscritos → vendas20,0%",
+    "Conversãoinscritos → vendas16,7%",
   ]);
 });
 
@@ -63,6 +63,20 @@ it("funil de 6 etapas com Aprovados logo após Inscritos e as passagens", async 
   expect(etapas[2].textContent).toContain("75,0% fizeram onboarding");
   expect(etapas[3].textContent).toContain("66,7% compareceram");
   expect(etapas[4].textContent).toContain("50,0% compraram");
+});
+
+it("conversão do evento é vendas ÷ (inscritos + aprovados)", async () => {
+  vi.mocked(buscarFunilEvento).mockResolvedValueOnce({
+    ...RESPOSTA,
+    funil: { inscritos: 10, aprovados: 30, onboarding_agendado: 0, onboarding_realizado: 0, comparecimento: 0, vendas: 4 },
+  });
+  renderizar();
+  await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
+  const bloco = screen.getByRole("region", { name: "Cards do evento" });
+  const cards = bloco.querySelectorAll("article");
+  expect(cards[cards.length - 1].textContent).toBe("Conversãoinscritos → vendas10,0%");
+  const conversaoTotal = screen.getByRole("group", { name: "Conversão total do funil" });
+  expect(conversaoTotal.textContent).toBe("Conversão total do funil10,0%");
 });
 
 it("sem inscritos a conversão é 0,0% e não traço", async () => {
