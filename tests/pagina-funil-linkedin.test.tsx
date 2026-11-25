@@ -229,6 +229,50 @@ it("números captados sem conta entram no TOTAL", async () => {
   expect(linhaJacob.textContent).not.toContain("24");
 });
 
+it("card mostra a média de números captados por dia do período", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(2026, 10, 25, 14, 30));
+  const metricas = (numeros_captados: number) => ({
+    conexoes_enviadas: 0,
+    conexoes_aceitas: 0,
+    mensagens_abordagem: 0,
+    abordagens: 0,
+    follows_abordagem: 0,
+    respondidos: 0,
+    in_mails: 0,
+    fups: 0,
+    numeros_captados,
+    indicacoes: 0,
+  });
+  vi.mocked(buscarFunil).mockResolvedValueOnce({
+    periodo: { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
+    avisos: [],
+    contas: [
+      { id_conta: "1", nome: "Jacob", metricas: metricas(30), serie: [] },
+      { id_conta: "2", nome: "Alex", metricas: metricas(15), serie: [] },
+    ],
+    meta_numeros_captados: null,
+    sem_conta: metricas(5),
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("list", { name: "Funil LinkedIn" });
+  const card = screen
+    .getAllByRole("article")
+    .find((a) => a.textContent?.includes("Média de números captados")) as HTMLElement;
+  expect(card).toBeDefined();
+  expect(card.textContent).toContain("por dia");
+  expect(within(card).getByText("2,0")).toBeDefined();
+  vi.useRealTimers();
+});
+
 it("sem título da página", async () => {
   render(
     <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>

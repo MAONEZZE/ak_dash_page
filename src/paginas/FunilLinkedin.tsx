@@ -10,7 +10,7 @@ import { PillConta, useContaSelecionada } from "../componentes/PillConta";
 import { TabelaContasFunil } from "../componentes/TabelaContasFunil";
 import { Velocimetro } from "../componentes/Velocimetro";
 import { buscarFunil } from "../lib/api";
-import { COLUNAS_LINKEDIN, linhaLinkedin, somarContas, taxasLinkedin, umaCasa } from "../lib/funil";
+import { COLUNAS_LINKEDIN, linhaLinkedin, mediaNumerosCaptados, somarContas, taxasLinkedin, umaCasa } from "../lib/funil";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { useFiltrosAtuais } from "../lib/periodo";
@@ -92,8 +92,8 @@ export function FunilLinkedin() {
         ) : (
           <>
             <CardEsqueleto className="min-h-[280px]" />
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {Array.from({ length: 3 }, (_, i) => (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+              {Array.from({ length: 4 }, (_, i) => (
                 <CardEsqueleto key={i} className="min-h-[168px]" />
               ))}
             </section>
@@ -136,6 +136,7 @@ function etapasLinkedin(m: MetricasConta): EtapaFunil[] {
 function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }) {
   const m = somarContas(dado.contas, conta, dado.sem_conta);
   const t = taxasLinkedin(m);
+  const media = mediaNumerosCaptados(m.numeros_captados, dado.periodo, new Date());
 
   return (
     <>
@@ -162,10 +163,11 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
           formato: "card",
         }}
       />
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         <CardKpi label="Abordagens + Follows" value={formatarNumero(m.abordagens)} />
         <CardKpi label="InMails enviados" value={formatarNumero(m.in_mails)} />
         <CardKpi label="Follow-ups" value={formatarNumero(m.fups)} />
+        <CardKpi label="Média de números captados" subtitulo={media.unidade === "hora" ? "por hora" : "por dia"} value={umaCasa(media.valor)} />
       </section>
       <MiniFunisContas
         titulo="Funil por LinkedIn"
