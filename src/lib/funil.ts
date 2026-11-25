@@ -272,3 +272,15 @@ export function escalaMetades(valores: number[]): [number, number, number] {
   const total = Math.max(2, Math.ceil(maior / 2) * 2);
   return [0, total / 2, total];
 }
+
+/**
+ * Média de números captados: por dia nos dias já passados do período (inclui hoje); no filtro Dia, por hora desde 00h (mínimo 1h).
+ */
+export function mediaNumerosCaptados(total: number, periodo: Periodo, agora: Date): { valor: number; unidade: "dia" | "hora" } {
+  const hoje = isoLocal(agora);
+  const fim = periodo.fim < hoje ? periodo.fim : hoje;
+  const [iniA, iniM, iniD] = periodo.inicio.split("-").map(Number);
+  const [fimA, fimM, fimD] = fim.split("-").map(Number);
+  const dias = Math.max(1, Math.round((Date.UTC(fimA, fimM - 1, fimD) - Date.UTC(iniA, iniM - 1, iniD)) / 86_400_000) + 1);
+  return { valor: total / dias, unidade: "dia" };
+}

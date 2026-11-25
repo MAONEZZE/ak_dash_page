@@ -7,6 +7,7 @@ import {
   indiceGargalo,
   formatoFunil,
   largurasEtapas,
+  mediaNumerosCaptados,
   somarContas,
   taxasInstagram,
   taxasLinkedin,
@@ -229,4 +230,10 @@ it("escalaMetades: 0, metade e o total, com total par pra metade ser inteira", (
   expect(escalaMetades([7])).toEqual([0, 4, 8]);
   expect(escalaMetades([0, 0])).toEqual([0, 1, 2]);
   expect(escalaMetades([])).toEqual([0, 1, 2]);
+});
+
+it("mediaNumerosCaptados no mês em andamento divide pelos dias já passados, contando hoje", () => {
+  expect(
+    mediaNumerosCaptados(50, { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" }, new Date(2026, 10, 25, 14, 30)),
+  ).toEqual({ valor: 2, unidade: "dia" });
 });
