@@ -237,3 +237,9 @@ it("mediaNumerosCaptados no mês em andamento divide pelos dias já passados, co
     mediaNumerosCaptados(50, { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" }, new Date(2026, 10, 25, 14, 30)),
   ).toEqual({ valor: 2, unidade: "dia" });
 });
+
+it("mediaNumerosCaptados em período fechado divide por todos os dias do período", () => {
+  expect(
+    mediaNumerosCaptados(62, { granularidade: "mes", inicio: "2026-10-01", fim: "2026-10-31" }, new Date(2026, 10, 25, 14, 30)),
+  ).toEqual({ valor: 2, unidade: "dia" });
+});
