@@ -72,8 +72,8 @@ function estiloRotuloNoCanto(base: number, texto: string) {
 /**
  * Funil de forma fixa (trapézios encaixados, do mais largo ao mais estreito),
  * com rótulo e valor dentro de cada etapa e a passagem para a próxima entre os
- * dois blocos, centralizados no card. A nota (`lateral`) vai no rodapé do card,
- * ligada à sua etapa por um asterisco no rótulo. `aoLado` fica à direita, com a mesma largura e
+ * dois blocos, centralizados no card. A nota (`lateral`) vai no rodapé (padrão) ou, com `formato: "card"`, num card à esquerda da etapa ligado por linha pontilhada.
+ * No rodapé, a etapa dela ganha um asterisco no rótulo. `aoLado` fica à direita, com a mesma largura e
  * altura do card do funil (o conteúdo traz o próprio card, ex.: Velocimetro).
  */
 export function FunilBarras({
@@ -86,7 +86,7 @@ export function FunilBarras({
 }: {
   titulo: string;
   etapas: EtapaFunil[];
-  lateral?: { rotulo: string; texto: string; aoLadoDe: number };
+  lateral?: { rotulo: string; texto: string; aoLadoDe: number; formato?: "rodape" | "card" };
   conversaoTotal: number | null;
   aoLado?: ReactNode;
   /** Rótulo da etapa no canto inferior direito do trapézio e número maior, sozinho no centro (página Funil SDR). */
@@ -96,6 +96,7 @@ export function FunilBarras({
   const gargalo = indiceGargalo(
     etapas.map((e) => (e.passagem ? e.passagem.taxa : null)),
   );
+  const comoCard = lateral?.formato === "card";
 
   const cardFunil = (
     <div className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
@@ -124,13 +125,15 @@ export function FunilBarras({
         {etapas.map((etapa, i) => {
           const [topo, base] = formato[i];
           const ehGargalo = gargalo === i;
-          const temNota = lateral !== undefined && lateral.aoLadoDe === i;
+          const temNota = !comoCard && lateral !== undefined && lateral.aoLadoDe === i;
+          const notaCard = comoCard && lateral?.aoLadoDe === i;
+          const bordaEsquerda = 50 - (topo + base) / 4;
 
           return (
             <li key={etapa.rotulo} className="flex flex-col">
               <div
                 data-linha-etapa
-                className="mx-auto w-full max-w-[60%] min-w-[220px]"
+                className={`mx-auto w-full max-w-[60%] min-w-[220px]${notaCard ? " relative" : ""}`}
               >
                 <div
                   data-segmento
@@ -157,6 +160,20 @@ export function FunilBarras({
                     {formatarNumero(etapa.valor)}
                   </span>
                 </div>
+                {notaCard && lateral && (
+                  <>
+                    <span
+                      data-conector
+                      aria-hidden
+                      className="absolute top-1/2 hidden border-t-2 border-dashed border-border-forte sm:block"
+                      style={{ left: -12, right: `${100 - bordaEsquerda}%` }}
+                    />
+                    <div data-nota-lateral className="mt-2 flex flex-col items-center rounded-[12px] bg-surface-2 px-3 py-1.5 text-center sm:absolute sm:right-[calc(100%+12px)] sm:top-1/2 sm:mt-0 sm:w-max sm:max-w-[200px] sm:-translate-y-1/2 sm:items-end sm:text-right">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
+                      <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {etapa.passagem && (
@@ -181,7 +198,7 @@ export function FunilBarras({
           );
         })}
       </ol>
-      {lateral && (
+      {lateral && !comoCard && (
         <footer
           data-nota-rodape
           className="border-t border-line pt-3 text-[13px] font-semibold text-muted"

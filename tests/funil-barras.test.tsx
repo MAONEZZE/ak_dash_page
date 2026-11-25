@@ -193,3 +193,24 @@ it("mostra o conteúdo de `aoLado` em um card separado, à direita do funil", ()
   expect(cardFunil.nextElementSibling?.contains(screen.getByText("velocimetro"))).toBe(true);
   expect(cardFunil.parentElement?.className).toContain("lg:grid-cols-2");
 });
+
+it("nota em formato card fica ao lado da etapa, ligada por linha pontilhada, sem rodapé nem asterisco", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "A", valor: 100, passagem: { taxa: 0.5, texto: "aceitaram" } },
+    { rotulo: "B", valor: 50, passagem: { taxa: 0.2, texto: "abordados" } },
+    { rotulo: "C", valor: 10 },
+  ];
+  const lateral = { rotulo: "Follow de abordagem", texto: "12 (1,5 por abordagem)", aoLadoDe: 1, formato: "card" as const };
+
+  render(<FunilBarras titulo="Funil" etapas={etapas} lateral={lateral} conversaoTotal={null} rotuloNoCanto />);
+
+  const [primeiro, segundo, terceiro] = within(screen.getByRole("list", { name: "Funil" })).getAllByRole("listitem");
+  const nota = segundo.querySelector<HTMLElement>("[data-nota-lateral]") as HTMLElement;
+  expect(nota.textContent).toContain("Follow de abordagem");
+  expect(nota.textContent).toContain("12 (1,5 por abordagem)");
+  expect(segundo.querySelector("[data-conector]")?.classList.contains("border-dashed")).toBe(true);
+  expect(primeiro.querySelector("[data-nota-lateral]")).toBeNull();
+  expect(terceiro.querySelector("[data-nota-lateral]")).toBeNull();
+  expect(document.querySelector("[data-nota-rodape]")).toBeNull();
+  expect(document.querySelector("[data-marca-nota]")).toBeNull();
+});
