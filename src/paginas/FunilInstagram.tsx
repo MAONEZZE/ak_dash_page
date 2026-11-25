@@ -151,7 +151,8 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
             t.fupsPorAbordagem === null
               ? formatarNumero(m.fups)
               : `${formatarNumero(m.fups)} (${umaCasa(t.fupsPorAbordagem)} por abordagem)`,
-          aoLadoDe: 0,
+          aoLadoDe: 1,
+          formato: "card",
         }}
       />
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">

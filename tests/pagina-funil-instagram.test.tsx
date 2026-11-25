@@ -89,7 +89,10 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(etapas[2].textContent).toContain("Números Captados");
   expect(etapas[2].textContent).toContain("10");
 
-  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Follow-ups: 200 (1,0 por abordagem)");
+  const respondidosCard = within(lista)
+    .getAllByRole("listitem")
+    .find((etapa) => etapa.textContent?.includes("Respondidos"));
+  expect(respondidosCard?.querySelector("[data-nota-lateral]")?.textContent).toContain("200 (1,0 por abordagem)");
 
   expect(etapas[0].textContent).not.toContain("não responderam");
   expect(etapas[1].textContent).not.toContain("não viraram número");
@@ -241,7 +244,24 @@ it("sem abordagens registradas, follow-ups mostram só o total", async () => {
   );
 
   await screen.findByRole("list", { name: "Funil Instagram" });
-  const nota = document.querySelector("[data-nota-rodape]")?.textContent;
+  const nota = document.querySelector("[data-nota-lateral]")?.textContent;
   expect(nota).toContain("225");
   expect(nota).not.toContain("por abordagem");
+});
+
+it("follow-ups aparecem em card ligado à etapa Respondidos", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-instagram?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilInstagram />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  const lista = await screen.findByRole("list", { name: "Funil Instagram" });
+  const respondidos = within(lista)
+    .getAllByRole("listitem")
+    .find((etapa) => etapa.textContent?.includes("Respondidos"));
+  expect(respondidos?.querySelector("[data-nota-lateral]")?.textContent).toContain("Follow-ups");
+  expect(document.querySelector("[data-nota-rodape]")).toBeNull();
 });
