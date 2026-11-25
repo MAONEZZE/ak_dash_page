@@ -249,3 +249,9 @@ it("mediaNumerosCaptados no filtro dia divide pelas horas passadas desde 00h", (
     mediaNumerosCaptados(29, { granularidade: "dia", inicio: "2026-11-25", fim: "2026-11-25" }, new Date(2026, 10, 25, 14, 30)),
   ).toEqual({ valor: 2, unidade: "hora" });
 });
+
+it("mediaNumerosCaptados antes de 01h divide por 1 hora", () => {
+  expect(
+    mediaNumerosCaptados(3, { granularidade: "dia", inicio: "2026-11-25", fim: "2026-11-25" }, new Date(2026, 10, 25, 0, 20)),
+  ).toEqual({ valor: 3, unidade: "hora" });
+});
