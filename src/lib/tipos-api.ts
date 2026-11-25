@@ -459,9 +459,10 @@ export interface EventoFunilEvento {
   rejeitados: number;
 }
 
-/** Etapas do Funil Evento. `inscritos` e `comparecimento` são do evento inteiro; as outras seguem o filtro de data. */
+/** Etapas do Funil Evento: retrato de agora, sem filtro de data. inscritos = pendentes; aprovados = aprovados (SED). */
 export interface EtapasFunilEvento {
   inscritos: number;
+  aprovados: number;
   onboarding_agendado: number;
   onboarding_realizado: number;
   comparecimento: number;
@@ -489,6 +490,12 @@ export interface EventoVelocimetro {
   aprovados: number;
   pendentes: number;
   rejeitados: number;
-  /** Meta do velocímetro; `null` = evento sem limite cadastrado. */
+  /** Negócios hoje na coluna Onboarding realizado com a etiqueta do evento e Almoço pago (198 ou 199). */
+  almocos_pagos: number;
+  /** `null` = evento sem limite cadastrado. */
   capacidade: number | null;
+  /** Meta do velocímetro no filtro atual. Dia: (capacidade − inscritos até ontem) ÷ dias até a véspera do evento
+   * sem domingos, para cima. Semana: diária × 6, limitada ao que falta. Mês, ano e custom: a capacidade.
+   * 0 = capacidade atingida; `null` = sem capacidade ou, no dia/semana, do dia do evento em diante. */
+  meta_velocimetro: number | null;
 }
