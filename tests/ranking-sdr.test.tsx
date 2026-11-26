@@ -50,6 +50,11 @@ describe("RankingSdr", () => {
     expect(itens[0].getAttribute("data-lider")).toBe("true");
     expect(itens[1].hasAttribute("data-lider")).toBe(false);
     expect(itens[2].hasAttribute("data-lider")).toBe(false);
+
+    expect(itens[0].classList.contains("bg-warn-bg")).toBe(true);
+    for (const item of itens) {
+      expect(item.getAttribute("class") ?? "").not.toMatch(/\bbg-[a-z][\w-]*\/\d+\b/);
+    }
   });
 
   it("mostra aviso quando não há SDR ativo", () => {

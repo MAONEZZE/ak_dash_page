@@ -29,7 +29,7 @@ export function RankingSdr({ sdrs }: { sdrs: SdrPaginaSdr[] }) {
               <li
                 key={s.id_user}
                 data-lider={lider ? "true" : undefined}
-                className={`flex min-w-0 items-center gap-[clamp(8px,1vw,16px)] rounded-lg px-2 py-[clamp(3px,0.6vh,8px)] ${lider ? "bg-warn-bar/20" : ""}`}
+                className={`flex min-w-0 items-center gap-[clamp(8px,1vw,16px)] rounded-lg px-2 py-[clamp(3px,0.6vh,8px)] ${lider ? "bg-warn-bg" : ""}`}
               >
                 <span data-posicao className="w-[clamp(36px,3.2vw,56px)] shrink-0 font-display text-[clamp(21px,2.7vh,42px)] font-extrabold leading-none">
                   {s.posicao}º
