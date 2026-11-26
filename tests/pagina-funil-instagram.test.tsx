@@ -106,7 +106,7 @@ it("mostra o funil e os cards somando todos os perfis", async () => {
   expect(rotulos).not.toContain("Conversão total do funil");
   expect(rotulos).not.toContain("Taxa de resposta");
 
-  expect(screen.getByText("Consolidado de Mary, akeel e Jacob")).toBeTruthy();
+  expect(screen.queryByText(/Consolidado de/)).toBeNull();
 });
 
 it("escolher um perfil filtra funil e cards", async () => {

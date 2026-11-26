@@ -34,7 +34,7 @@ it("mostra o evento e os cards do evento com a conversão inscritos → vendas",
   await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
   const bloco = screen.getByRole("region", { name: "Cards do evento" });
   expect([...bloco.querySelectorAll("article")].map((c) => c.textContent)).toEqual([
-    "Total6",
+    "Total (SED)6",
     "Aprovados3",
     "Pendentes2",
     "Rejeitados1",
