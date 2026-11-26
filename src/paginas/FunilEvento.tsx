@@ -27,14 +27,11 @@ const TAMANHO_VALOR_EVENTO =
   "text-[clamp(40px,12.75vw,135px)] sm:text-[clamp(40px,7.5vw,135px)] xl:text-[clamp(40px,4.53vw,135px)]";
 
 /**
- * Cada inscrito está numa etapa só. A etapa Aprovados não aparece, mas os
- * aprovados que ainda não avançaram contam na base: a passagem da 1ª etapa é
- * sobre o total de inscritos. A passagem usa o acumulado: quem está na etapa
- * seguinte ou além ÷ quem está nesta etapa ou além.
+ * A passagem usa o acumulado: quem está na etapa seguinte ou além ÷ quem está nesta etapa ou além.
  */
 function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
   const etapas: { rotulo: string; valor: number; texto?: string }[] = [
-    { rotulo: "Pendentes", valor: f.pendentes, texto: "agendaram onboarding" },
+    { rotulo: "Inscritos", valor: f.inscritos, texto: "agendaram onboarding" },
     { rotulo: "Onboarding Agendado", valor: f.onboarding_agendado, texto: "fizeram onboarding" },
     { rotulo: "Onboarding Realizado", valor: f.onboarding_realizado, texto: "compareceram" },
     { rotulo: "Comparecimento", valor: f.comparecimento, texto: "compraram" },
@@ -43,7 +40,6 @@ function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
   const acumulado = etapas.map((_, i) =>
     etapas.slice(i).reduce((soma, e) => soma + e.valor, 0),
   );
-  acumulado[0] += f.aprovados;
   return etapas.map(({ rotulo, valor, texto }, i) => ({
     rotulo,
     valor,
@@ -55,8 +51,7 @@ function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
 
 function totalDoFunil(f: EtapasFunilEvento): number {
   return (
-    f.pendentes +
-    f.aprovados +
+    f.inscritos +
     f.onboarding_agendado +
     f.onboarding_realizado +
     f.comparecimento +
