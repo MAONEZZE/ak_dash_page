@@ -498,3 +498,56 @@ export interface EventoVelocimetro {
    * 0 = capacidade atingida; `null` = sem capacidade ou, no dia/semana, do dia do evento em diante. */
   meta_velocimetro: number | null;
 }
+
+// ---- /sdr ----
+
+/** Um dia da janela do evento (1ª inscrição → véspera, sem domingo). */
+export interface PontoSerieSdr {
+  data: string;
+  /** Inscrições acumuladas desde o início da janela; `null` em dia futuro. */
+  acumulado: number | null;
+  /** Acumulado até o dia anterior + meta diária; `null` sem meta diária. */
+  ritmo: number | null;
+}
+
+export interface PrevisaoSdr {
+  /** Inscrições projetadas até a véspera do evento pela média dos dias decorridos. */
+  valor: number;
+  /** Meta diária × dias da janela; `null` sem meta diária. */
+  meta: number | null;
+  pct_meta: number | null;
+}
+
+export interface SdrPaginaSdr {
+  id_user: string;
+  nome: string;
+  imagem_url: string | null;
+  /** Inscrições no período do filtro. */
+  inscricoes: number;
+  meta_inscricoes: number | null;
+  /** Ligações realizadas no período do filtro (metricas_sdrs). */
+  ligacoes: number;
+  /** ligacoes × 8 + inscricoes × 10. */
+  pontuacao: number;
+  posicao: number;
+  meta_diaria: number | null;
+  previsao: PrevisaoSdr | null;
+  serie_evento: PontoSerieSdr[];
+}
+
+export interface EventoPaginaSdr {
+  id: string;
+  titulo: string;
+  data: string;
+  capacidade: number | null;
+}
+
+export interface RespostaPaginaSdr {
+  periodo: Periodo;
+  avisos: string[];
+  evento: EventoPaginaSdr | null;
+  /** `null` sem evento ou sem inscrição antes da véspera. */
+  janela: { inicio: string; fim: string } | null;
+  /** Em ordem de posição do ranking. */
+  sdrs: SdrPaginaSdr[];
+}
