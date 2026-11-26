@@ -26,47 +26,42 @@ const INTERVALO_AUTO_REFRESH_MS = 60_000;
 const TAMANHO_VALOR_EVENTO =
   "text-[clamp(40px,12.75vw,135px)] sm:text-[clamp(40px,7.5vw,135px)] xl:text-[clamp(40px,4.53vw,135px)]";
 
+/**
+ * Cada inscrito está numa etapa só. A etapa Aprovados não aparece, mas os
+ * aprovados que ainda não avançaram contam na base: a passagem da 1ª etapa é
+ * sobre o total de inscritos. A passagem usa o acumulado: quem está na etapa
+ * seguinte ou além ÷ quem está nesta etapa ou além.
+ */
 function etapasEvento(f: EtapasFunilEvento): EtapaFunil[] {
-  return [
-    {
-      rotulo: "Inscritos",
-      valor: f.inscritos,
-      passagem: {
-        taxa: razao(f.aprovados, f.inscritos),
-        texto: "aprovados",
-      },
-    },
-    {
-      rotulo: "Aprovados",
-      valor: f.aprovados,
-      passagem: {
-        taxa: razao(f.onboarding_agendado, f.aprovados),
-        texto: "agendaram onboarding",
-      },
-    },
-    {
-      rotulo: "Onboarding Agendado",
-      valor: f.onboarding_agendado,
-      passagem: {
-        taxa: razao(f.onboarding_realizado, f.onboarding_agendado),
-        texto: "fizeram onboarding",
-      },
-    },
-    {
-      rotulo: "Onboarding Realizado",
-      valor: f.onboarding_realizado,
-      passagem: {
-        taxa: razao(f.comparecimento, f.onboarding_realizado),
-        texto: "compareceram",
-      },
-    },
-    {
-      rotulo: "Comparecimento",
-      valor: f.comparecimento,
-      passagem: { taxa: razao(f.vendas, f.comparecimento), texto: "compraram" },
-    },
+  const etapas: { rotulo: string; valor: number; texto?: string }[] = [
+    { rotulo: "Pendentes", valor: f.pendentes, texto: "agendaram onboarding" },
+    { rotulo: "Onboarding Agendado", valor: f.onboarding_agendado, texto: "fizeram onboarding" },
+    { rotulo: "Onboarding Realizado", valor: f.onboarding_realizado, texto: "compareceram" },
+    { rotulo: "Comparecimento", valor: f.comparecimento, texto: "compraram" },
     { rotulo: "Vendas", valor: f.vendas },
   ];
+  const acumulado = etapas.map((_, i) =>
+    etapas.slice(i).reduce((soma, e) => soma + e.valor, 0),
+  );
+  acumulado[0] += f.aprovados;
+  return etapas.map(({ rotulo, valor, texto }, i) => ({
+    rotulo,
+    valor,
+    ...(texto && {
+      passagem: { taxa: razao(acumulado[i + 1], acumulado[i]), texto },
+    }),
+  }));
+}
+
+function totalDoFunil(f: EtapasFunilEvento): number {
+  return (
+    f.pendentes +
+    f.aprovados +
+    f.onboarding_agendado +
+    f.onboarding_realizado +
+    f.comparecimento +
+    f.vendas
+  );
 }
 
 interface EstadoFunil {
@@ -135,7 +130,7 @@ export function FunilEvento() {
     );
   }
 
-  const base = dado.funil.inscritos + dado.funil.aprovados;
+  const base = totalDoFunil(dado.funil);
   const conversao = base === 0 ? 0 : dado.funil.vendas / base;
 
   return (
@@ -156,12 +151,12 @@ export function FunilEvento() {
             <CardKpi
               valorCentral
               classeTamanhoValor={TAMANHO_VALOR_EVENTO}
-              label="Total"
+              label="Total (SED)"
               value={formatarNumero(dado.evento.total)}
             />
             <CardKpi
               valorCentral
-              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO} 
               label="Aprovados"
               value={formatarNumero(dado.evento.aprovados)}
             />

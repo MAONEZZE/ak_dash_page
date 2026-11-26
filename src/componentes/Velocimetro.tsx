@@ -76,8 +76,9 @@ export function Velocimetro({
   foto?: ReactNode;
 }) {
   const c = tamanho === "compacto";
-  const temMeta = meta !== null && meta > 0;
-  const pct = temMeta ? (valor / meta) * 100 : null;
+  // Meta 0 = nada a fazer (ex.: capacidade do evento já atingida): conta como atingida.
+  const temMeta = meta !== null && meta >= 0;
+  const pct = !temMeta ? null : meta === 0 ? 100 : (valor / meta) * 100;
   const status = statusDoAtingimento(pct);
   const marcado = pct === null ? 0 : Math.min(Math.max(pct, 0), 100);
   const angulo =

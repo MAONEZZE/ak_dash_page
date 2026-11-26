@@ -229,8 +229,12 @@ function diasAntes(dia: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** No filtro de dia o gráfico mostra os 7 dias até ele (a API manda a série desde então): um ponto só não vira linha. */
-const DIAS_SERIE_FILTRO_DIA = 7;
+/**
+ * Nos filtros de dia e de semana o gráfico mostra os 7 dias até o fim do filtro
+ * (ou até hoje, na semana corrente). A API manda a série desde então. Sem isso,
+ * o dia e a segunda-feira da semana corrente viram um ponto só, sem linha.
+ */
+const DIAS_SERIE_CURTA = 7;
 
 /**
  * Uma série por conta com a `metrica` escolhida ao longo do período: um ponto
@@ -245,7 +249,8 @@ export interface SerieDiaria<K extends string> {
 
 export function serieGraficoContas<K extends string>(contas: SerieDiaria<K>[], metrica: K, periodo: Periodo, hoje: Date): GraficoContas {
   const fim = periodo.fim < isoLocal(hoje) ? periodo.fim : isoLocal(hoje);
-  const inicio = periodo.granularidade === "dia" ? diasAntes(periodo.inicio, DIAS_SERIE_FILTRO_DIA - 1) : periodo.inicio;
+  const serieCurta = periodo.granularidade === "dia" || periodo.granularidade === "semana";
+  const inicio = serieCurta ? diasAntes(fim, DIAS_SERIE_CURTA - 1) : periodo.inicio;
   const porMes = periodo.granularidade === "ano";
   const chaves = porMes
     ? [...new Set(diasEntre(inicio, fim).map((d) => d.slice(0, 7)))]

@@ -188,7 +188,7 @@ export function FunilSdr() {
             <Velocimetro
               rotulo="Inscrições Realizadas"
               valor={dado.evento?.inscritos_periodo ?? 0}
-              meta={dado.evento?.capacidade ?? null}
+              meta={dado.evento?.meta_velocimetro ?? null}
               fonte={
                 dado.evento
                   ? {
@@ -225,8 +225,8 @@ export function FunilSdr() {
           <>
             <CardKpi
               valorCentral
-              label="Pendentes"
-              value={formatarNumero(dado.evento.pendentes)}
+              label="Almoços Pagos"
+              value={formatarNumero(dado.evento.almocos_pagos)}
             />
             <CardKpi
               valorCentral

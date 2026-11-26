@@ -460,8 +460,9 @@ export interface EventoFunilEvento {
 }
 
 /** Etapas do Funil Evento: retrato de agora, sem filtro de data. inscritos = pendentes; aprovados = aprovados (SED). */
+/** Cada inscrito numa etapa só: a soma das etapas = pendentes + aprovados do SED. */
 export interface EtapasFunilEvento {
-  inscritos: number;
+  pendentes: number;
   aprovados: number;
   onboarding_agendado: number;
   onboarding_realizado: number;

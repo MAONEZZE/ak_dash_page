@@ -202,6 +202,25 @@ it("serieGraficoContas: no filtro de dia mostra os 7 dias até ele, pra ter linh
   });
 });
 
+it("serieGraficoContas: no filtro de semana mostra os 7 dias até hoje, mesmo na segunda-feira", () => {
+  const contas = [conta("Jacob", [["2026-11-18", { fups: 2 }], ["2026-11-23", { fups: 5 }]])];
+  const semana = { granularidade: "semana" as const, inicio: "2026-11-23", fim: "2026-11-29" };
+
+  expect(serieGraficoContas(contas, "fups", semana, new Date(2026, 10, 23, 15))).toEqual({
+    rotulos: ["17/11", "18/11", "19/11", "20/11", "21/11", "22/11", "23/11"],
+    series: [{ nome: "Jacob", valores: [0, 2, 0, 0, 0, 0, 5] }],
+  });
+});
+
+it("serieGraficoContas: semana passada mostra os 7 dias dela", () => {
+  const contas = [conta("Jacob", [["2026-11-18", { fups: 2 }]])];
+  const semana = { granularidade: "semana" as const, inicio: "2026-11-16", fim: "2026-11-22" };
+
+  expect(serieGraficoContas(contas, "fups", semana, new Date(2026, 10, 23)).rotulos).toEqual([
+    "16/11", "17/11", "18/11", "19/11", "20/11", "21/11", "22/11",
+  ]);
+});
+
 it("serieGraficoContas: ano soma por mês, até o mês corrente", () => {
   const contas = [
     conta("Jacob", [

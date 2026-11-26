@@ -82,7 +82,6 @@ export function FunilInstagram() {
     <div className="flex flex-col gap-6">
       {dado && (
         <header className="flex flex-col gap-3">
-          <p className="text-lg text-muted">Consolidado de {listarNomes(dado.contas.map((c) => c.nome))}</p>
           <PillConta rotulo="Perfil" contas={dado.contas.map((c) => c.nome)} />
         </header>
       )}
