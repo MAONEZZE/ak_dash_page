@@ -78,6 +78,22 @@ describe("GraficoRitmoSdr", () => {
     expect(screen.getByText("Ritmo de inscrições — Imersão")).toBeTruthy();
   });
 
+  it("com janela longa mostra no máximo ~8 rótulos no eixo X, sempre o 1º e o último", () => {
+    const novembro = Array.from({ length: 30 }, (_, i) => `2026-11-${String(i + 1).padStart(2, "0")}`);
+    const longas = [...novembro, "2026-12-01"];
+    const serieLonga: SdrPaginaSdr = {
+      ...sdr("Juca Silva", "1", [], []),
+      serie_evento: longas.map((data, i) => ({ data, acumulado: i, ritmo: i })),
+    };
+
+    const { container } = render(
+      <GraficoRitmoSdr janela={{ inicio: "2026-11-01", fim: "2026-12-01" }} sdrs={[serieLonga]} titulo="Imersão" />,
+    );
+
+    const rotulosX = Array.from(container.querySelectorAll('[data-eixo="x"] span')).map((s) => s.textContent);
+    expect(rotulosX).toEqual(["01/11", "05/11", "09/11", "13/11", "17/11", "21/11", "25/11", "29/11", "01/12"]);
+  });
+
   it("sem janela e com semEvento, diz que não há evento", () => {
     render(<GraficoRitmoSdr janela={null} sdrs={[]} titulo="Imersão" semEvento />);
 

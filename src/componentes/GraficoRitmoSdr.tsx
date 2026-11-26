@@ -40,6 +40,9 @@ export function GraficoRitmoSdr({
 
   const n = serie.length;
   const fracaoX = (i: number) => (n > 1 ? i / (n - 1) : 0);
+  const passo = Math.ceil(n / 8);
+  const mostraRotulo = (i: number) =>
+    i === 0 || i === n - 1 || (i % passo === 0 && n - 1 - i >= passo / 2);
   const todos = sdrs.flatMap((s) => s.serie_evento.flatMap((p) => [p.acumulado, p.ritmo]));
   const maxY = Math.max(1, ...todos.filter((v): v is number => v !== null));
   const ponto = (i: number, v: number) => `${(fracaoX(i) * W).toFixed(1)},${(H - (v / maxY) * H).toFixed(1)}`;
@@ -105,7 +108,7 @@ export function GraficoRitmoSdr({
         </div>
         <div className="relative mt-2 h-[19px]" data-eixo="x" aria-hidden>
           {serie.map((p, i) => (
-            <span
+            mostraRotulo(i) && <span
               key={p.data}
               className="absolute top-0 text-[clamp(9px,1.05vw,14px)] font-medium leading-none text-muted"
               style={{ left: `${fracaoX(i) * 100}%`, transform: i === 0 ? "none" : i === n - 1 ? "translateX(-100%)" : "translateX(-50%)" }}
