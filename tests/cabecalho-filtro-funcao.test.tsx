@@ -9,6 +9,7 @@ vi.mock("../src/paginas/FunilLinkedin", () => ({ FunilLinkedin: () => <div>pagin
 vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pagina-funil-instagram</div> }));
 vi.mock("../src/paginas/FunilSdr", () => ({ FunilSdr: () => <div>pagina-funil-sdr</div> }));
 vi.mock("../src/paginas/FunilEvento", () => ({ FunilEvento: () => <div>pagina-funil-evento</div> }));
+vi.mock("../src/paginas/Sdr", () => ({ Sdr: () => <div>pagina-sdr</div> }));
 vi.mock("../src/lib/api", async (orig) => ({
   ...(await orig<typeof import("../src/lib/api")>()),
   buscarEventosFunilEvento: vi.fn(async () => ({
@@ -55,7 +56,7 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
-  it("navbar lista as sete páginas na ordem e a raiz abre a Geral", async () => {
+  it("navbar lista as oito páginas na ordem e a raiz abre a Geral", async () => {
     await montar("/");
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
 
@@ -63,6 +64,7 @@ describe("filtro de função no header", () => {
       "Funil LinkedIn",
       "Funil Instagram",
       "Funil SDR",
+      "SDR",
       "Funil Evento",
       "Geral",
       "Financeiro",
@@ -85,7 +87,21 @@ describe("filtro de função no header", () => {
 
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
     const rotulos = within(navegacao).getAllByRole("link").map((l) => l.textContent);
-    expect(rotulos[rotulos.indexOf("Funil SDR") + 1]).toBe("Funil Evento");
+    expect(rotulos[rotulos.indexOf("SDR") + 1]).toBe("Funil Evento");
+  });
+
+  it("sdr: item no menu após o Funil SDR, abre a página e habilita o filtro de evento", async () => {
+    await montar("/sdr?granularidade=mes");
+
+    expect(screen.getByText("pagina-sdr")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Evento: Próximo evento" }) as HTMLButtonElement).disabled).toBe(false);
+
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+    const rotulos = within(navegacao).getAllByRole("link").map((l) => l.textContent);
+    expect(rotulos[rotulos.indexOf("Funil SDR") + 1]).toBe("SDR");
+
+    const { buscarEventosFunilSdr } = await import("../src/lib/api");
+    expect(buscarEventosFunilSdr).toHaveBeenCalled();
   });
 
   it("funil evento: filtro de período e seletor de mês ficam desabilitados", async () => {

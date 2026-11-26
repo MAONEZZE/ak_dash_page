@@ -10,6 +10,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Phone,
   RefreshCw,
   Sun,
   Users,
@@ -37,6 +38,7 @@ import { FunilLinkedin } from "./paginas/FunilLinkedin";
 import { FunilSdr } from "./paginas/FunilSdr";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
+import { Sdr } from "./paginas/Sdr";
 import { Time } from "./paginas/Time";
 
 type Tema = "light" | "dark";
@@ -57,6 +59,7 @@ const NAV_ITENS = [
   { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: LogoLinkedin },
   { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: LogoInstagram },
   { rota: "/funil-sdr", rotulo: "Funil SDR", Icone: Headset },
+  { rota: "/sdr", rotulo: "SDR", Icone: Phone },
   { rota: "/funil-evento", rotulo: "Funil Evento", Icone: CalendarCheck },
   { rota: "/geral", rotulo: "Geral", Icone: LayoutDashboard },
   { rota: "/financeiro", rotulo: "Financeiro", Icone: Wallet },
@@ -67,7 +70,7 @@ const NAV_ITENS = [
 const PAGINAS_COM_SQUAD = ["/time"];
 
 /** Páginas que filtram por evento (evento do velocímetro e dos cards do evento). */
-const PAGINAS_COM_EVENTO = ["/funil-sdr", "/funil-evento"];
+const PAGINAS_COM_EVENTO = ["/funil-sdr", "/sdr", "/funil-evento"];
 
 /** Páginas que não usam o filtro de período (o filtro de data fica desabilitado nelas). */
 const PAGINAS_SEM_PERIODO = ["/funil-evento"];
@@ -444,7 +447,9 @@ export default function App() {
                 </div>
               </header>
 
-              <main className="px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 md:overflow-y-auto md:pb-6">
+              <main
+                className={`px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 ${location.pathname === "/sdr" ? "md:flex md:flex-col md:overflow-hidden" : "md:overflow-y-auto"} md:pb-6`}
+              >
                 {/*
                  * Trocar um filtro que refaz a busca (período, mês, evento) remonta a
                  * página: o dado velho some e os componentes voltam ao esqueleto até
@@ -459,6 +464,7 @@ export default function App() {
                   <Route path="/funil-instagram" element={<FunilInstagram />} />
                   <Route path="/funil-sdr" element={<FunilSdr />} />
                   <Route path="/funil-evento" element={<FunilEvento />} />
+                  <Route path="/sdr" element={<Sdr />} />
                   <Route path="/geral" element={<Geral />} />
                   <Route path="/time" element={<Time />} />
                   <Route path="/financeiro" element={<Financeiro />} />
