@@ -60,7 +60,7 @@ it("mostra inscrições só de Juca e Jennifer, ranking de todos e o gráfico do
 
   const pagina = document.querySelector('[data-pagina="sdr"]') as HTMLElement;
   expect(pagina).not.toBeNull();
-  for (const classe of ["md:h-full", "md:overflow-hidden", "md:grid-rows-2"]) expect(pagina.classList.contains(classe)).toBe(true);
+  for (const classe of ["md:h-full", "md:overflow-hidden", "md:grid-rows-2", "md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"]) expect(pagina.classList.contains(classe)).toBe(true);
 
   const wrapperRanking = ranking.closest("article")!.parentElement!;
   expect(wrapperRanking.classList.contains("md:row-span-2")).toBe(true);

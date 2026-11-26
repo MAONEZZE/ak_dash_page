@@ -94,7 +94,7 @@ export function Sdr() {
       <AvisoFontes avisos={dado.avisos} />
       <div
         data-pagina="sdr"
-        className="flex flex-col gap-4 md:grid md:h-full md:min-h-0 md:overflow-hidden md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:grid-rows-2"
+        className="flex flex-col gap-4 md:grid md:h-full md:min-h-0 md:overflow-hidden md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:grid-rows-2"
       >
         <div className="min-h-0 md:col-start-1 md:row-start-1">
           <CardInscricoesSdr sdrs={sdrsComCard} />
