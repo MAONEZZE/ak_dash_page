@@ -19,6 +19,7 @@ import type {
   RespostaFunilEvento,
   RespostaFunilSdr,
   RespostaGeral,
+  RespostaPaginaSdr,
 } from "./tipos-api";
 import { supabase } from "./supabase";
 
@@ -200,6 +201,15 @@ export async function buscarFunil(canal: Canal, params: ParametrosFunil): Promis
 /** `evento`: id do evento escolhido no filtro; sem ele, o BFF usa o próximo. */
 export async function buscarFunilSdr(params: ParametrosFunil & { evento?: string | null }): Promise<RespostaFunilSdr> {
   return requisitar<RespostaFunilSdr>("/funil-sdr", {
+    granularidade: params.granularidade,
+    periodo: params.periodo,
+    evento: params.evento ?? undefined,
+  });
+}
+
+/** `evento`: id do evento escolhido no filtro; sem ele, o BFF usa o próximo. */
+export async function buscarPaginaSdr(params: ParametrosFunil & { evento?: string | null }): Promise<RespostaPaginaSdr> {
+  return requisitar<RespostaPaginaSdr>("/sdr", {
     granularidade: params.granularidade,
     periodo: params.periodo,
     evento: params.evento ?? undefined,
