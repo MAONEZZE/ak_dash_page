@@ -159,21 +159,21 @@ it("rotuloNoCanto: rótulo de cada etapa no canto inferior direito do trapézio,
   expect(rotulos.every((r) => r.classList.contains("absolute") && r.classList.contains("bottom-2"))).toBe(true);
   // Caixa entre as duas bordas inclinadas na base: recuo igual dos dois lados, maior na etapa mais estreita (base 34) que na 1ª (base 67).
   expect(rotulos.every((r) => r.style.left !== "" && r.style.left === r.style.right)).toBe(true);
-  expect(rotulos[0].style.right).toContain("16.5cqi");
-  expect(rotulos[1].style.right).toContain("33cqi");
+  expect(rotulos[0].style.right).toContain("16.5%");
+  expect(rotulos[1].style.right).toContain("33%");
+  expect(rotulos.every((r) => !r.style.right.includes("cqi"))).toBe(true);
+  expect(document.querySelector("[data-segmento]")?.className).not.toContain("container-type");
 });
 
-it("rotuloNoCanto: a fonte do rótulo encolhe para caber na base do trapézio, entre 9px e 11px", () => {
+it("rotuloNoCanto: rótulo sem fonte dependente de container, quebra linha alinhado à direita", () => {
   const etapas: EtapaFunil[] = [
     { rotulo: "Respondidos", valor: 10, passagem: { taxa: 0.5, texto: "viraram número" } },
     { rotulo: "Números Captados", valor: 5 },
   ];
   render(<FunilBarras titulo="Funil" etapas={etapas} conversaoTotal={0.5} rotuloNoCanto />);
-  const [curto, longo] = [...document.querySelectorAll<HTMLElement>("[data-rotulo-etapa]")];
-  // Largura da base do trapézio ÷ (nº de caracteres × 0,8em), limitada a 9–11px.
-  for (const r of [curto, longo]) expect(r.style.fontSize).toMatch(/^clamp\(9px, .+, 11px\)$/);
-  expect(curto.style.fontSize).toContain("67cqi");
-  expect(longo.style.fontSize).toContain("34cqi");
+  const rotulos = [...document.querySelectorAll<HTMLElement>("[data-rotulo-etapa]")];
+  expect(rotulos.every((r) => r.style.fontSize === "")).toBe(true);
+  expect(rotulos.every((r) => r.classList.contains("text-[11px]") && r.classList.contains("text-right") && r.classList.contains("leading-tight"))).toBe(true);
 });
 
 it("sem rotuloNoCanto o rótulo fica centralizado acima do número", () => {

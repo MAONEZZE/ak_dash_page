@@ -45,28 +45,19 @@ function TrapezioArredondado({ topo, base }: { topo: number; base: number }) {
 /** Marca a etapa que tem nota no rodapé do card e abre a nota. */
 const MARCA_NOTA = "*";
 
-/** Largura de um caractere do rótulo (maiúsculo, peso 600, com tracking), em em: medido 0,72–0,78 no navegador. */
-const EM_POR_CARACTERE = 0.8;
-/** Padding horizontal do segmento (px-2): `cqi` mede a caixa de conteúdo, sem ele. */
-const PADDING_SEGMENTO = 8;
-
 /**
  * Rótulo no canto: a caixa vai de uma borda inclinada à outra na altura da
  * base do trapézio (largura visível = base% do SVG + o contorno, menos RAIO
- * de folga de cada lado). A fonte encolhe para caber numa linha (11px → 9px);
- * abaixo de 9px o texto quebra, alinhado à direita.
+ * de folga de cada lado). `left/right` em % mede a caixa de padding do
+ * segmento; o recuo `lado cqi + fixo px` (cqi = caixa de conteúdo, largura −
+ * 2·padding) equivale a `lado% + RAIO·(1 − lado/50) px`. Não usa container
+ * query porque a TV é Chromium 94; o texto longo quebra em linhas, alinhado à
+ * direita.
  */
-function estiloRotuloNoCanto(base: number, texto: string) {
+function estiloRotuloNoCanto(base: number) {
   const lado = (100 - base) / 2; // % da largura do segmento fora do trapézio, de cada lado, na base
-  const fixo = (lado * (2 * PADDING_SEGMENTO - 2 * RAIO)) / 100 + RAIO;
-  const recuo = `calc(${lado}cqi + ${+fixo.toFixed(2)}px)`;
-  const largura = `(${base}cqi + ${+(2 * PADDING_SEGMENTO - 2 * fixo).toFixed(2)}px)`;
-  const ems = +(texto.length * EM_POR_CARACTERE).toFixed(1);
-  return {
-    right: recuo,
-    left: recuo,
-    fontSize: `clamp(9px, calc(${largura} / ${ems}), 11px)`,
-  };
+  const recuo = `calc(${lado}% + ${+(RAIO * (1 - lado / 50)).toFixed(2)}px)`;
+  return { right: recuo, left: recuo };
 }
 
 /**
@@ -139,17 +130,13 @@ export function FunilBarras({
                   data-segmento
                   data-largura-topo={topo}
                   data-largura-base={base}
-                  className={`relative flex flex-col items-center justify-center px-2 text-center text-surface ${rotuloNoCanto ? "min-h-[80px] pb-4 [container-type:inline-size]" : "min-h-[60px]"}`}
+                  className={`relative flex flex-col items-center justify-center px-2 text-center text-surface ${rotuloNoCanto ? "min-h-[80px] pb-4" : "min-h-[60px]"}`}
                 >
                   <TrapezioArredondado topo={topo} base={base} />
                   <span
                     data-rotulo-etapa
                     className={`text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em] ${rotuloNoCanto ? "absolute bottom-2 order-2 text-right leading-tight" : "relative"}`}
-                    style={
-                      rotuloNoCanto
-                        ? estiloRotuloNoCanto(base, etapa.rotulo + (temNota ? MARCA_NOTA : ""))
-                        : undefined
-                    }
+                    style={rotuloNoCanto ? estiloRotuloNoCanto(base) : undefined}
                   >
                     {etapa.rotulo}
                     {temNota && <span data-marca-nota>{MARCA_NOTA}</span>}
