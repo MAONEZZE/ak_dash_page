@@ -33,12 +33,6 @@ interface EstadoFunil {
   erro: string | null;
 }
 
-/** Nomes das contas: "A, B e C". */
-function listarNomes(nomes: string[]): string {
-  if (nomes.length <= 1) return nomes.join("");
-  return `${nomes.slice(0, -1).join(", ")} e ${nomes[nomes.length - 1]}`;
-}
-
 export function FunilInstagram() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const conta = useContaSelecionada();
