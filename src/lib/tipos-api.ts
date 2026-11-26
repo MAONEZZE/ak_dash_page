@@ -459,11 +459,9 @@ export interface EventoFunilEvento {
   rejeitados: number;
 }
 
-/** Etapas do Funil Evento: retrato de agora, sem filtro de data. inscritos = pendentes; aprovados = aprovados (SED). */
-/** Cada inscrito numa etapa só: a soma das etapas = pendentes + aprovados do SED. */
+/** Etapas do Funil Evento: retrato de agora do pipeline akeel 2.0, negócios com a etiqueta do evento. inscritos = coluna "3. Inscrito"; comparecimento vem do SED. */
 export interface EtapasFunilEvento {
-  pendentes: number;
-  aprovados: number;
+  inscritos: number;
   onboarding_agendado: number;
   onboarding_realizado: number;
   comparecimento: number;
