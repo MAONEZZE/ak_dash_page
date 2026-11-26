@@ -73,7 +73,7 @@ const PAGINAS_COM_SQUAD = ["/time"];
 const PAGINAS_COM_EVENTO = ["/funil-sdr", "/sdr", "/funil-evento"];
 
 /** Páginas que não usam o filtro de período (o filtro de data fica desabilitado nelas). */
-const PAGINAS_SEM_PERIODO = ["/funil-evento"];
+const PAGINAS_SEM_PERIODO = ["/funil-evento", "/sdr"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },

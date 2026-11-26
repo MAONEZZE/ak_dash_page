@@ -16,6 +16,7 @@ function sdr(parcial: Pick<SdrPaginaSdr, "id_user" | "nome" | "posicao" | "inscr
     meta_diaria: null,
     previsao: null,
     serie_evento: [],
+    ranking_mes: { negocios: 0, inscricoes: 0, inscricoes_hoje: 0, meta: 40 },
     ...parcial,
   };
 }
@@ -25,6 +26,8 @@ const RESPOSTA: RespostaPaginaSdr = {
   avisos: [],
   evento: { id: "e1", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", capacidade: 80 },
   janela: { inicio: "2026-11-01", fim: "2026-12-01" },
+  mes_ranking: { inicio: "2026-11-01", fim: "2026-11-30" },
+  inscritos_sed_mes: 57,
   sdrs: [
     sdr({ id_user: "7", nome: "Ana Lima", posicao: 1, inscricoes: 30 }),
     sdr({ id_user: "11", nome: "Juca Silva", posicao: 2, inscricoes: 10 }),
@@ -47,28 +50,26 @@ function renderizar(url = "/sdr?granularidade=mes&periodo=2026-11") {
   );
 }
 
-it("mostra inscrições só de Juca e Jennifer, ranking de todos e o gráfico do evento no grid da viewport", async () => {
+it("mostra só o card de ranking, com todos os SDRs e o total de inscritos do SED", async () => {
   renderizar();
-  const card = await screen.findByRole("region", { name: "Inscrições Realizadas" });
-  expect([...card.querySelectorAll("[data-sdr]")].map((e) => e.getAttribute("data-sdr"))).toEqual(["Juca Silva", "Jennifer Souza"]);
-
-  const ranking = screen.getByRole("list", { name: "Ranking SDR" });
+  const ranking = await screen.findByRole("list", { name: "Ranking SDR" });
   expect(within(ranking).getAllByRole("listitem")).toHaveLength(3);
+  expect(document.querySelector("[data-total-geral]")?.textContent).toBe("57 inscritos");
+  expect(buscarPaginaSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: mesCorrente(), evento: null });
 
-  expect(screen.getByText("Ritmo de inscrições — Imersão Alta Cadência")).toBeTruthy();
-  expect(buscarPaginaSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: "2026-11", evento: null });
-
+  expect(screen.queryByRole("region", { name: "Inscrições Realizadas" })).toBeNull();
+  expect(screen.queryByText(/Ritmo de inscrições/)).toBeNull();
   const pagina = document.querySelector('[data-pagina="sdr"]') as HTMLElement;
-  expect(pagina).not.toBeNull();
-  for (const classe of ["md:h-full", "md:overflow-hidden", "md:grid-rows-2", "md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"]) expect(pagina.classList.contains(classe)).toBe(true);
-
-  const wrapperRanking = ranking.closest("article")!.parentElement!;
-  expect(wrapperRanking.classList.contains("md:row-span-2")).toBe(true);
+  expect(pagina.querySelectorAll("article")).toHaveLength(1);
 });
 
-it("sem evento e sem janela, o gráfico mostra 'Nenhum evento'", async () => {
-  vi.mocked(buscarPaginaSdr).mockResolvedValueOnce({ ...RESPOSTA, evento: null, janela: null });
-  renderizar();
-  await screen.findByRole("region", { name: "Inscrições Realizadas" });
-  expect(screen.getByText("Nenhum evento")).toBeTruthy();
+it("ignora o período da URL: sempre pede o mês corrente", async () => {
+  renderizar("/sdr?granularidade=dia&periodo=2026-09-10");
+  await screen.findByRole("list", { name: "Ranking SDR" });
+  expect(buscarPaginaSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: mesCorrente(), evento: null });
 });
+
+function mesCorrente(): string {
+  const hoje = new Date();
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+}

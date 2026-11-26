@@ -1,23 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { CardInscricoesSdr } from "../componentes/CardInscricoesSdr";
-import { GraficoRitmoSdr } from "../componentes/GraficoRitmoSdr";
 import { RankingSdr } from "../componentes/RankingSdr";
 import { useEventoSelecionado } from "../componentes/PillEvento";
 import { buscarPaginaSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
-import { useFiltrosAtuais } from "../lib/periodo";
-import type { RespostaPaginaSdr, SdrPaginaSdr } from "../lib/tipos-api";
+import { paraPeriodo } from "../lib/periodo";
+import type { RespostaPaginaSdr } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
-
-/** SDRs com card próprio de inscrições do período, pelo primeiro nome, na ordem daqui. */
-const SDRS_COM_CARD = ["juca", "jennifer"];
-
-function primeiroNome(nome: string): string {
-  return nome.trim().split(/\s+/)[0].toLowerCase();
-}
 
 interface EstadoSdr {
   dado: RespostaPaginaSdr | null;
@@ -26,7 +17,6 @@ interface EstadoSdr {
 }
 
 export function Sdr() {
-  const { granularidade, periodo } = useFiltrosAtuais();
   const evento = useEventoSelecionado();
   const [estado, setEstado] = useState<EstadoSdr>({
     dado: null,
@@ -41,7 +31,9 @@ export function Sdr() {
   const carregar = useCallback(async () => {
     setAtualizando(true);
     setEstado((atual) => ({ ...atual, carregando: true }));
-    await buscarPaginaSdr({ granularidade, periodo, evento })
+    // Filtro de data desabilitado nesta página (App.tsx): sempre o mês corrente, calculado a cada
+    // carga para virar sozinho no dia 1º; o período da URL (vindo de outra página) é ignorado.
+    await buscarPaginaSdr({ granularidade: "mes", periodo: paraPeriodo("mes", new Date()), evento })
       .then((dado) => setEstado({ dado, carregando: false, erro: null }))
       .catch((erro: unknown) =>
         setEstado((atual) => ({
@@ -55,7 +47,7 @@ export function Sdr() {
       );
     setAtualizadoEm(new Date());
     setAtualizando(false);
-  }, [granularidade, periodo, evento]);
+  }, [evento]);
 
   useEffect(() => {
     carregar();
@@ -85,31 +77,11 @@ export function Sdr() {
     );
   }
 
-  const sdrsComCard: SdrPaginaSdr[] = SDRS_COM_CARD.flatMap((nome) =>
-    dado.sdrs.filter((s) => primeiroNome(s.nome) === nome),
-  );
-
   return (
     <>
       <AvisoFontes avisos={dado.avisos} />
-      <div
-        data-pagina="sdr"
-        className="flex flex-col gap-4 md:grid md:h-full md:min-h-0 md:overflow-hidden md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:grid-rows-2"
-      >
-        <div className="min-h-0 md:col-start-1 md:row-start-1">
-          <CardInscricoesSdr sdrs={sdrsComCard} />
-        </div>
-        <div className="min-h-0 md:col-start-1 md:row-start-2">
-          <GraficoRitmoSdr
-            janela={dado.janela}
-            sdrs={sdrsComCard}
-            titulo={dado.evento?.titulo ?? ""}
-            semEvento={dado.evento === null}
-          />
-        </div>
-        <div className="md:col-start-2 md:row-span-2 md:row-start-1 min-h-0">
-          <RankingSdr sdrs={dado.sdrs} />
-        </div>
+      <div data-pagina="sdr" className="flex flex-col md:h-full md:min-h-0 md:overflow-hidden">
+        <RankingSdr sdrs={dado.sdrs} mesRanking={dado.mes_ranking} inscritosSed={dado.inscritos_sed_mes} />
       </div>
     </>
   );

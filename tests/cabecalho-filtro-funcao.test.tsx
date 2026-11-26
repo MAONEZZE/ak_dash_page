@@ -104,8 +104,8 @@ describe("filtro de função no header", () => {
     expect(buscarEventosFunilSdr).toHaveBeenCalled();
   });
 
-  it("funil evento: filtro de período e seletor de mês ficam desabilitados", async () => {
-    await montar("/funil-evento?granularidade=mes");
+  it.each(["/funil-evento", "/sdr"])("%s: filtro de período e seletor de mês ficam desabilitados", async (rota) => {
+    await montar(`${rota}?granularidade=mes`);
     const botoesPeriodo = within(screen.getByRole("group", { name: "Período" })).getAllByRole("button") as HTMLButtonElement[];
 
     expect(botoesPeriodo.length).toBeGreaterThan(0);

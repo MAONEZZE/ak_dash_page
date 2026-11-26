@@ -52,6 +52,10 @@ const TOKENS_PERMITIDOS = new Set([
   // fundos pastel da Geral
   "#d7ecc9",
   "#34503c",
+  // medalhas do ranking de leads da página SDR: ouro, prata e bronze
+  "#d4a017",
+  "#a8b0b8",
+  "#b8733a",
 ]);
 const HEXES_BANIDOS_DO_BLOG = new Set(["#5ca838", "#dfe3e1", "#8b9a9f", "#51636a", "#16262b"]);
 
