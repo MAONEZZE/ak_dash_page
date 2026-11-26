@@ -42,7 +42,7 @@ export function GraficoRitmoSdr({
   const fracaoX = (i: number) => (n > 1 ? i / (n - 1) : 0);
   const passo = Math.ceil(n / 8);
   const mostraRotulo = (i: number) =>
-    i === 0 || i === n - 1 || (i % passo === 0 && n - 1 - i >= passo / 2);
+    i === 0 || i === n - 1 || (i % passo === 0 && n - 1 - i >= passo);
   const todos = sdrs.flatMap((s) => s.serie_evento.flatMap((p) => [p.acumulado, p.ritmo]));
   const maxY = Math.max(1, ...todos.filter((v): v is number => v !== null));
   const ponto = (i: number, v: number) => `${(fracaoX(i) * W).toFixed(1)},${(H - (v / maxY) * H).toFixed(1)}`;

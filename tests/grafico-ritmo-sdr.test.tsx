@@ -91,7 +91,7 @@ describe("GraficoRitmoSdr", () => {
     );
 
     const rotulosX = Array.from(container.querySelectorAll('[data-eixo="x"] span')).map((s) => s.textContent);
-    expect(rotulosX).toEqual(["01/11", "05/11", "09/11", "13/11", "17/11", "21/11", "25/11", "29/11", "01/12"]);
+    expect(rotulosX).toEqual(["01/11", "05/11", "09/11", "13/11", "17/11", "21/11", "25/11", "01/12"]);
   });
 
   it("sem janela e com semEvento, diz que não há evento", () => {
