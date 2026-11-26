@@ -54,6 +54,10 @@ describe("RankingSdr", () => {
     expect(itens[0].classList.contains("bg-warn-bg")).toBe(true);
     for (const item of itens) {
       expect(item.getAttribute("class") ?? "").not.toMatch(/\bbg-[a-z][\w-]*\/\d+\b/);
+      const fundo = item.querySelector("[data-avatar-fundo]");
+      expect(fundo).not.toBeNull();
+      expect(fundo?.classList.contains("bg-surface")).toBe(true);
+      expect(fundo?.classList.contains("rounded-full")).toBe(true);
     }
   });
 

@@ -34,7 +34,9 @@ export function RankingSdr({ sdrs }: { sdrs: SdrPaginaSdr[] }) {
                 <span data-posicao className="w-[clamp(36px,3.2vw,56px)] shrink-0 font-display text-[clamp(21px,2.7vh,42px)] font-extrabold leading-none">
                   {s.posicao}º
                 </span>
-                <Avatar nome={s.nome} imagemUrl={s.imagem_url ?? fotoConta(s.nome)} tamanho="clamp(40px,5.4vh,80px)" />
+                <span data-avatar-fundo className="shrink-0 rounded-full bg-surface">
+                  <Avatar nome={s.nome} imagemUrl={s.imagem_url ?? fotoConta(s.nome)} tamanho="clamp(40px,5.4vh,80px)" />
+                </span>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="line-clamp-1 text-[clamp(19.5px,2.4vh,36px)] font-bold leading-tight tracking-tight">{s.nome}</span>
                   <span className="line-clamp-1 text-[clamp(16.5px,1.95vh,27px)] leading-tight text-muted">
