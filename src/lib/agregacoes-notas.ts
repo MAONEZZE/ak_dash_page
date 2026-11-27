@@ -150,6 +150,21 @@ export function agruparPorCanal(notas: NotaFinanceiro[], inicio: string, fim: st
   return agrupar(CANAIS_CANONICOS, contribuicoes, true);
 }
 
+export const FORMAS_CANONICAS: ItemCanonico[] = ["PIX", "Cartão", "Boleto"].map((c) => ({ chave: c, rotulo: c }));
+
+/** Por forma de pagamento: receita (valor_pago) das notas cujo mês da aba cai em `inicio..fim`. "Outros" só aparece com valor. */
+export function agruparPorForma(notas: NotaFinanceiro[], inicio: string, fim: string): LinhaAgrupada[] {
+  const meses = new Set(mesesDoPeriodo(inicio, fim));
+  const contribuicoes = notas.filter((n) => meses.has(n.mes)).map((n) => ({
+    chave: n.forma_pagamento,
+    rotulo: n.forma_pagamento,
+    vendas: 0,
+    faturamento: 0,
+    receita: n.valor_pago,
+  }));
+  return agrupar(FORMAS_CANONICAS, contribuicoes, true).filter((l) => !(l.chave === "Outros" && l.receita === 0));
+}
+
 export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
   return linhas.reduce(
     (acc, l) => ({ ...acc, vendas: acc.vendas + l.vendas, faturamento: acc.faturamento + l.faturamento, receita: acc.receita + l.receita }),

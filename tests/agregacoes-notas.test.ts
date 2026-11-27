@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acumuladoDoAno, agruparPorCanal, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
+import { acumuladoDoAno, agruparPorCanal, agruparPorForma, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
 import type { NotaFinanceiro } from "../src/lib/tipos-api";
 
 function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
@@ -67,5 +67,18 @@ describe("agruparPorCanal", () => {
     expect(linhas.find((l) => l.rotulo === "Cliente")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
     expect(linhas.find((l) => l.rotulo === "Sem canal")).toMatchObject({ vendas: 0, faturamento: 8000, receita: 0 });
     expect(totalDeLinhas(linhas)).toEqual({ chave: "__total__", rotulo: "Total", vendas: 2, faturamento: 88000, receita: 0 });
+  });
+});
+
+describe("agruparPorForma", () => {
+  it("agruparPorForma soma a receita do mês por forma e só mostra Outros com valor", () => {
+    const setembro = agruparPorForma(NOTAS, "2026-09-01", "2026-09-30");
+    expect(setembro.map((l) => l.rotulo)).toEqual(["PIX", "Cartão", "Boleto", "Outros"]);
+    expect(setembro.map((l) => l.receita)).toEqual([5000, 10000, 2000, 3000]);
+    expect(setembro.every((l) => l.vendas === 0 && l.faturamento === 0)).toBe(true);
+
+    const agosto = agruparPorForma(NOTAS, "2026-08-01", "2026-08-31");
+    expect(agosto.map((l) => l.rotulo)).toEqual(["PIX", "Cartão", "Boleto"]);
+    expect(agosto.map((l) => l.receita)).toEqual([7000, 0, 0]);
   });
 });
