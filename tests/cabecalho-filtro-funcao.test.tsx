@@ -10,6 +10,7 @@ vi.mock("../src/paginas/FunilInstagram", () => ({ FunilInstagram: () => <div>pag
 vi.mock("../src/paginas/FunilSdr", () => ({ FunilSdr: () => <div>pagina-funil-sdr</div> }));
 vi.mock("../src/paginas/FunilEvento", () => ({ FunilEvento: () => <div>pagina-funil-evento</div> }));
 vi.mock("../src/paginas/Sdr", () => ({ Sdr: () => <div>pagina-sdr</div> }));
+vi.mock("../src/paginas/Seller", () => ({ Seller: () => <div>pagina-seller</div> }));
 vi.mock("../src/lib/api", async (orig) => ({
   ...(await orig<typeof import("../src/lib/api")>()),
   buscarEventosFunilEvento: vi.fn(async () => ({
@@ -56,7 +57,7 @@ afterEach(() => {
 });
 
 describe("filtro de função no header", () => {
-  it("navbar lista as oito páginas na ordem e a raiz abre a Geral", async () => {
+  it("navbar lista as nove páginas na ordem e a raiz abre a Geral", async () => {
     await montar("/");
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
 
@@ -65,6 +66,7 @@ describe("filtro de função no header", () => {
       "Funil Instagram",
       "Funil SDR",
       "SDR",
+      "Seller",
       "Funil Evento",
       "Geral",
       "Financeiro",
@@ -87,7 +89,18 @@ describe("filtro de função no header", () => {
 
     const navegacao = screen.getByRole("navigation", { name: "Navegação" });
     const rotulos = within(navegacao).getAllByRole("link").map((l) => l.textContent);
-    expect(rotulos[rotulos.indexOf("SDR") + 1]).toBe("Funil Evento");
+    expect(rotulos[rotulos.indexOf("Seller") + 1]).toBe("Funil Evento");
+  });
+
+  it("seller: item no menu após o SDR, abre a página e deixa o filtro de evento desabilitado", async () => {
+    await montar("/seller?granularidade=mes");
+
+    expect(screen.getByText("pagina-seller")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Evento: Próximo evento" }) as HTMLButtonElement).disabled).toBe(true);
+
+    const navegacao = screen.getByRole("navigation", { name: "Navegação" });
+    const rotulos = within(navegacao).getAllByRole("link").map((l) => l.textContent);
+    expect(rotulos[rotulos.indexOf("SDR") + 1]).toBe("Seller");
   });
 
   it("sdr: item no menu após o Funil SDR, abre a página e habilita o filtro de evento", async () => {
@@ -104,7 +117,7 @@ describe("filtro de função no header", () => {
     expect(buscarEventosFunilSdr).toHaveBeenCalled();
   });
 
-  it.each(["/funil-evento", "/sdr"])("%s: filtro de período e seletor de mês ficam desabilitados", async (rota) => {
+  it.each(["/funil-evento", "/sdr", "/seller"])("%s: filtro de período e seletor de mês ficam desabilitados", async (rota) => {
     await montar(`${rota}?granularidade=mes`);
     const botoesPeriodo = within(screen.getByRole("group", { name: "Período" })).getAllByRole("button") as HTMLButtonElement[];
 
