@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { tetoElastico } from "../lib/agregacoes-financeiro";
+import { tetoElastico } from "../lib/agregacoes-notas";
 import { formatarMoeda, formatarNumero } from "../lib/formato";
 
 export interface SerieFinanceiro {
