@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { buscarPaginaSdr } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
+import { SomProvider } from "../src/lib/som";
+import { tocarArquivo } from "../src/lib/som-audio";
 import type { RespostaPaginaSdr, SdrPaginaSdr } from "../src/lib/tipos-api";
 import { Sdr } from "../src/paginas/Sdr";
 
@@ -16,7 +18,7 @@ function sdr(parcial: Pick<SdrPaginaSdr, "id_user" | "nome" | "posicao" | "inscr
     meta_diaria: null,
     previsao: null,
     serie_evento: [],
-    ranking_mes: { inscricoes: 0, inscricoes_hoje: 0, meta: 40 },
+    ranking_mes: { inscricoes: parcial.inscricoes, inscricoes_hoje: 0, meta: 40 },
     ...parcial,
   };
 }
@@ -37,15 +39,29 @@ const RESPOSTA: RespostaPaginaSdr = {
 };
 
 vi.mock("../src/lib/api", () => ({ buscarPaginaSdr: vi.fn(async () => RESPOSTA) }));
+vi.mock("../src/lib/som-audio", () => ({
+  plin: vi.fn(),
+  liberar: vi.fn(async () => true),
+  estaLiberado: vi.fn(() => true),
+  tocarArquivo: vi.fn(),
+}));
 
-beforeEach(() => vi.clearAllMocks());
-afterEach(() => cleanup());
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+});
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 function renderizar(url = "/sdr?granularidade=mes&periodo=2026-11") {
   render(
     <MemoryRouter initialEntries={[url]}>
       <AtualizacaoProvider>
-        <Sdr />
+        <SomProvider>
+          <Sdr />
+        </SomProvider>
       </AtualizacaoProvider>
     </MemoryRouter>,
   );
@@ -91,6 +107,28 @@ it("não mostra negócios embaixo do nome dos SDRs", async () => {
   const ranking = await screen.findByRole("list", { name: "Ranking SDR" });
   expect(document.querySelector("[data-negocios]")).toBeNull();
   expect(ranking.textContent).not.toContain("negócio");
+});
+
+it("inscrição de um SDR sobe no refresh → toca o som de inscrito", async () => {
+  vi.useFakeTimers();
+  renderizar();
+  await vi.advanceTimersByTimeAsync(0);
+
+  vi.mocked(buscarPaginaSdr).mockResolvedValueOnce({
+    ...RESPOSTA,
+    sdrs: [
+      sdr({ id_user: "7", nome: "Ana Lima", posicao: 1, inscricoes: 31 }),
+      RESPOSTA.sdrs[1],
+      RESPOSTA.sdrs[2],
+    ],
+  });
+  expect(tocarArquivo).not.toHaveBeenCalled();
+
+  await vi.advanceTimersByTimeAsync(60_000);
+  await vi.advanceTimersByTimeAsync(500);
+
+  expect(tocarArquivo).toHaveBeenCalledTimes(1);
+  expect(tocarArquivo).toHaveBeenCalledWith("inscrito");
 });
 
 function mesCorrente(): string {
