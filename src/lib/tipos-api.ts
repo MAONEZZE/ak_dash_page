@@ -424,6 +424,8 @@ export interface EventoFunilEvento {
   aprovados: number;
   pendentes: number;
   rejeitados: number;
+  /** Negócios hoje em Onboarding realizado com a etiqueta do evento e Almoço pago (198 ou 199). */
+  almocos_pagos: number;
 }
 
 /** Etapas do Funil Evento: retrato de agora do pipeline akeel 2.0, negócios com a etiqueta do evento. inscritos = coluna "3. Inscrito"; comparecimento vem do SED. */

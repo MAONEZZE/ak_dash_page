@@ -17,14 +17,15 @@ import type {
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
 
 /**
- * Número dos 5 cards do evento. Os 95px do `valorCentral` cortam "20,0%" na
+ * Número dos 6 cards do evento. Os 95px do `valorCentral` cortam "20,0%" na
  * grade de 5 colunas (sobram ~150px úteis por card com a barra lateral de
  * 240px a 1280px). O teto em vw sai da largura útil ÷ ~3,6em ("100,0%") no
  * ponto mais estreito de cada grade: 2 colunas (360px), 3 colunas (640px) e
- * 5 colunas (1280px). Depois aumentado 1,7× e reduzido 1,2× a pedido (mín., vw e teto).
+ * 6 cards (1280px). Depois aumentado 1,7× e reduzido 1,2× a pedido (mín., vw e teto).
+ * 6 cards; no xl, 4,53vw × 5/6 = 3,78vw.
  */
 const TAMANHO_VALOR_EVENTO =
-  "text-[clamp(40px,12.75vw,135px)] sm:text-[clamp(40px,7.5vw,135px)] xl:text-[clamp(40px,4.53vw,135px)]";
+  "text-[clamp(40px,12.75vw,135px)] sm:text-[clamp(40px,7.5vw,135px)] xl:text-[clamp(40px,3.78vw,135px)]";
 
 /**
  * A passagem usa o acumulado: quem está na etapa seguinte ou além ÷ quem está nesta etapa ou além.
@@ -141,7 +142,7 @@ export function FunilEvento() {
           </h2>
           <section
             aria-label="Cards do evento"
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5"
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6"
           >
             <CardKpi
               valorCentral
@@ -173,6 +174,12 @@ export function FunilEvento() {
               label="Conversão"
               subtitulo="inscritos → vendas"
               value={formatarTaxa(conversao)}
+            />
+            <CardKpi
+              valorCentral
+              classeTamanhoValor={TAMANHO_VALOR_EVENTO}
+              label="Almoços pagos"
+              value={formatarNumero(dado.evento.almocos_pagos)}
             />
           </section>
         </>

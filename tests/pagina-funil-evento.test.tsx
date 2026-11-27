@@ -10,7 +10,7 @@ import { FunilEvento } from "../src/paginas/FunilEvento";
 const RESPOSTA: RespostaFunilEvento = {
   periodo: { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
   avisos: [],
-  evento: { id: "i2", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", total: 6, aprovados: 3, pendentes: 2, rejeitados: 1 },
+  evento: { id: "i2", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", total: 6, aprovados: 3, pendentes: 2, rejeitados: 1, almocos_pagos: 7 },
   funil: { inscritos: 2, onboarding_agendado: 1, onboarding_realizado: 1, comparecimento: 1, vendas: 1 },
 };
 
@@ -29,7 +29,7 @@ function renderizar(url = "/funil-evento?granularidade=mes&periodo=2026-11") {
   );
 }
 
-it("mostra o evento e os cards do evento com a conversão inscritos → vendas", async () => {
+it("mostra o evento e os cards do evento com a conversão inscritos → vendas e os almoços pagos", async () => {
   renderizar();
   await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
   const bloco = screen.getByRole("region", { name: "Cards do evento" });
@@ -39,7 +39,9 @@ it("mostra o evento e os cards do evento com a conversão inscritos → vendas",
     "Pendentes2",
     "Rejeitados1",
     "Conversãoinscritos → vendas16,7%",
+    "Almoços pagos7",
   ]);
+  expect(bloco.classList.contains("xl:grid-cols-6")).toBe(true);
 });
 
 it("funil começa em Inscritos e as passagens usam o acumulado das etapas", async () => {
@@ -72,7 +74,7 @@ it("conversão do evento é vendas ÷ soma de todas as etapas", async () => {
   await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
   const bloco = screen.getByRole("region", { name: "Cards do evento" });
   const cards = bloco.querySelectorAll("article");
-  expect(cards[cards.length - 1].textContent).toBe("Conversãoinscritos → vendas10,0%");
+  expect([...cards].find((c) => c.textContent?.startsWith("Conversão"))!.textContent).toBe("Conversãoinscritos → vendas10,0%");
   const conversaoTotal = screen.getByRole("group", { name: "Conversão total do funil" });
   expect(conversaoTotal.textContent).toBe("Conversão total do funil10,0%");
 });
@@ -86,7 +88,7 @@ it("sem inscritos a conversão é 0,0% e não traço", async () => {
   await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
   const bloco = screen.getByRole("region", { name: "Cards do evento" });
   const cards = bloco.querySelectorAll("article");
-  expect(cards[cards.length - 1].textContent).toBe("Conversãoinscritos → vendas0,0%");
+  expect([...cards].find((c) => c.textContent?.startsWith("Conversão"))!.textContent).toBe("Conversãoinscritos → vendas0,0%");
 });
 
 it("sem imersão mostra o aviso e nenhum card do evento", async () => {
