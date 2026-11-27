@@ -214,3 +214,21 @@ it("nota em formato card fica ao lado da etapa, ligada por linha pontilhada, sem
   expect(document.querySelector("[data-nota-rodape]")).toBeNull();
   expect(document.querySelector("[data-marca-nota]")).toBeNull();
 });
+
+it("nota lateral em card tem o texto 1,2× menor: rótulo 9,2px e valor 13,3px", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "A", valor: 100, passagem: { taxa: 0.5, texto: "aceitaram" } },
+    { rotulo: "B", valor: 50, passagem: { taxa: 0.2, texto: "abordados" } },
+    { rotulo: "C", valor: 10 },
+  ];
+  const lateral = { rotulo: "Follow de abordagem", texto: "12 (1,5 por abordagem)", aoLadoDe: 1, formato: "card" as const };
+
+  render(<FunilBarras titulo="Funil" etapas={etapas} lateral={lateral} conversaoTotal={null} rotuloNoCanto />);
+
+  const [, segundo] = within(screen.getByRole("list", { name: "Funil" })).getAllByRole("listitem");
+  const [rotulo, texto] = Array.from(segundo.querySelector("[data-nota-lateral]")?.querySelectorAll("span") ?? []);
+  expect(rotulo.classList.contains("text-[9.2px]")).toBe(true);
+  expect(rotulo.classList.contains("text-[11px]")).toBe(false);
+  expect(texto.classList.contains("text-[13.3px]")).toBe(true);
+  expect(texto.classList.contains("text-[16px]")).toBe(false);
+});

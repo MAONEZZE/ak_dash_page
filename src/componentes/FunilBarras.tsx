@@ -156,8 +156,8 @@ export function FunilBarras({
                       style={{ left: -12, right: `${100 - bordaEsquerda}%` }}
                     />
                     <div data-nota-lateral className="mt-2 flex flex-col items-center rounded-[12px] bg-surface-2 px-3 py-1.5 text-center sm:absolute sm:right-[calc(100%+12px)] sm:top-1/2 sm:mt-0 sm:w-max sm:max-w-[200px] sm:-translate-y-1/2 sm:items-end sm:text-right">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
-                      <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
+                      <span className="text-[9.2px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
+                      <span className="font-display text-[13.3px] font-extrabold">{lateral.texto}</span>
                     </div>
                   </>
                 )}
