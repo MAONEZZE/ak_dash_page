@@ -93,7 +93,7 @@ export function Sdr() {
             meta: s.ranking_mes.meta,
             negocios: s.ranking_mes.negocios,
           }))}
-          janela={dado.mes_ranking}
+          janela={dado.janela_meta ?? dado.mes_ranking}
           unidade={{ singular: "inscrição", plural: "inscrições" }}
           legendaHoje="Inscrições de hoje"
           badge={dado.inscritos_sed_mes !== null ? `${formatarNumero(dado.inscritos_sed_mes)} inscritos` : null}
