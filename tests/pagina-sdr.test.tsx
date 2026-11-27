@@ -16,7 +16,7 @@ function sdr(parcial: Pick<SdrPaginaSdr, "id_user" | "nome" | "posicao" | "inscr
     meta_diaria: null,
     previsao: null,
     serie_evento: [],
-    ranking_mes: { negocios: 0, inscricoes: 0, inscricoes_hoje: 0, meta: 40 },
+    ranking_mes: { inscricoes: 0, inscricoes_hoje: 0, meta: 40 },
     ...parcial,
   };
 }
@@ -84,6 +84,13 @@ it("o ranking usa a janela da meta (até a véspera do evento) e cai para o mês
   renderizar();
   const rankingSemJanela = await screen.findByRole("list", { name: "Ranking SDR" });
   expect(rankingSemJanela.closest("article")?.textContent).toContain("Meta até 30/11:");
+});
+
+it("não mostra negócios embaixo do nome dos SDRs", async () => {
+  renderizar();
+  const ranking = await screen.findByRole("list", { name: "Ranking SDR" });
+  expect(document.querySelector("[data-negocios]")).toBeNull();
+  expect(ranking.textContent).not.toContain("negócio");
 });
 
 function mesCorrente(): string {

@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
 //
 // Card de ranking contra a meta: valor acumulado do mês (Pipedrive) contra a meta do mês, com o dia
-// em verde claro e o acumulado em verde escuro, negócios embaixo do nome (quando informados),
-// marcadores 70/100/120%, tick de ritmo, run rate e o badge opcional.
+// em verde claro e o acumulado em verde escuro, marcadores 70/100/120%, tick de ritmo, run rate
+// e o badge opcional.
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { diasUteisDecorridos, type ItemRanking, RankingMeta } from "../src/componentes/RankingMeta";
 
 afterEach(() => cleanup());
 
-function item(nome: string, valor: number, valorHoje = 0, negocios: number | undefined = 0, meta: number | null = 40): ItemRanking {
-  return { id: nome.toLowerCase(), nome, valor, valorHoje, meta, negocios };
+function item(nome: string, valor: number, valorHoje = 0, meta: number | null = 40): ItemRanking {
+  return { id: nome.toLowerCase(), nome, valor, valorHoje, meta };
 }
 
 const NOVEMBRO = { inicio: "2026-11-01", fim: "2026-11-30" };
@@ -43,18 +43,16 @@ describe("RankingMeta", () => {
     expect(itens[3].querySelector("[data-posicao]")?.textContent).toBe("4º");
   });
 
-  it("mostra negócios embaixo do nome e inscrições de hoje, total, meta do mês e %", () => {
-    renderizar([item("Ana", 30, 2, 295), item("Bia", 10, 0, 1)]);
+  it("mostra inscrições de hoje, total, meta do mês e %", () => {
+    renderizar([item("Ana", 30, 2), item("Bia", 10)]);
 
     const [ana, bia] = screen.getAllByRole("listitem");
-    expect(ana.querySelector("[data-negocios]")?.textContent).toBe("295 negócios");
-    expect(bia.querySelector("[data-negocios]")?.textContent).toBe("1 negócio");
     expect(ana.querySelector("[data-numeros]")?.textContent).toBe("+2 hoje30/ 4075%");
     expect(bia.querySelector("[data-hoje]")).toBeNull();
   });
 
   it("header traz a meta do mês do time e o badge informado", () => {
-    renderizar([item("Ana", 30, 0, 0, 47), item("Bia", 10, 0, 0, 41)]);
+    renderizar([item("Ana", 30, 0, 47), item("Bia", 10, 0, 41)]);
 
     expect(screen.getByText("Meta até 30/11:").textContent).toContain("88");
     expect(document.querySelector("[data-total-geral]")?.textContent).toBe("57 inscritos");
@@ -97,7 +95,7 @@ describe("RankingMeta", () => {
   });
 
   it("sem meta: sem marcadores, sem % e barra vazia", () => {
-    renderizar([item("Ana", 30, 0, 0, null)]);
+    renderizar([item("Ana", 30, 0, null)]);
 
     const linha = screen.getByRole("listitem");
     expect(linha.querySelectorAll("[data-marcador]")).toHaveLength(0);
@@ -136,14 +134,8 @@ describe("RankingMeta", () => {
     expect(screen.getByText("Nenhum SDR ativo.")).toBeTruthy();
   });
 
-  it("sem negocios no item, não mostra a linha embaixo do nome", () => {
-    renderizar([{ ...item("Ana", 30), negocios: undefined }]);
-
-    expect(document.querySelector("[data-negocios]")).toBeNull();
-  });
-
   it("textos e ícones do card ficam em dobro", () => {
-    renderizar([item("Ana", 30, 2, 295), item("Bia", 12), item("Caio", 5), item("Duda", 1)]);
+    renderizar([item("Ana", 30, 2), item("Bia", 12), item("Caio", 5), item("Duda", 1)]);
 
     expect(screen.getByRole("heading", { level: 2 }).classList.contains("text-[40px]")).toBe(true);
     expect(screen.getByText("Meta até 30/11:").parentElement?.classList.contains("text-[24px]")).toBe(true);
@@ -151,7 +143,6 @@ describe("RankingMeta", () => {
 
     const [ana] = screen.getAllByRole("listitem");
     expect(ana.querySelector("span.truncate")?.classList.contains("text-[36px]")).toBe(true);
-    expect(ana.querySelector("[data-negocios]")?.classList.contains("text-[26px]")).toBe(true);
     expect(ana.querySelector("[data-hoje]")?.classList.contains("text-[32px]")).toBe(true);
     expect(ana.querySelector("[data-total]")?.classList.contains("text-[44px]")).toBe(true);
     expect(ana.querySelector("[data-pct]")?.classList.contains("text-[28px]")).toBe(true);

@@ -91,7 +91,6 @@ export function Sdr() {
             valor: s.ranking_mes.inscricoes,
             valorHoje: s.ranking_mes.inscricoes_hoje,
             meta: s.ranking_mes.meta,
-            negocios: s.ranking_mes.negocios,
           }))}
           janela={dado.janela_meta ?? dado.mes_ranking}
           unidade={{ singular: "inscrição", plural: "inscrições" }}
