@@ -63,19 +63,19 @@ function Posicao({ posicao }: { posicao: number }) {
   if (posicao <= 3) {
     return (
       <span data-posicao={`${posicao}º`} title={`${posicao}º`} className="flex shrink-0">
-        <Medalha cor={CORES_MEDALHA[posicao - 1]} tamanho={26} />
+        <Medalha cor={CORES_MEDALHA[posicao - 1]} tamanho={52} />
       </span>
     );
   }
   return (
-    <span data-posicao={`${posicao}º`} className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-track text-[12px] font-semibold text-muted">
+    <span data-posicao={`${posicao}º`} className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-track text-[24px] font-semibold text-muted">
       {posicao}º
     </span>
   );
 }
 
 function Bolinha({ cor }: { cor: string }) {
-  return <span className="inline-block h-2 w-2 rounded-full" style={{ background: cor }} />;
+  return <span className="inline-block h-4 w-4 rounded-full" style={{ background: cor }} />;
 }
 
 const MARCADORES = [
@@ -112,9 +112,9 @@ function LinhaRanking({
         <div className="flex min-w-0 items-center gap-2.5">
           <Posicao posicao={posicao} />
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-[18px] font-medium leading-tight">{item.nome}</span>
+            <span className="truncate text-[36px] font-medium leading-tight">{item.nome}</span>
             {negocios !== undefined && (
-              <span data-negocios className="text-[13px] text-muted">
+              <span data-negocios className="text-[26px] text-muted">
                 {formatarNumero(negocios)} {negocios === 1 ? "negócio" : "negócios"}
               </span>
             )}
@@ -122,17 +122,17 @@ function LinhaRanking({
         </div>
         <div data-numeros className="flex shrink-0 items-baseline gap-2">
           {valorHoje > 0 && (
-            <span data-hoje className="text-[16px] font-semibold text-ok">+{formatarNumero(valorHoje)} hoje</span>
+            <span data-hoje className="text-[32px] font-semibold text-ok">+{formatarNumero(valorHoje)} hoje</span>
           )}
-          <span data-total className="text-[22px] font-bold text-fogo">{formatarNumero(valor)}</span>
-          <span className="text-[14px] text-faint">/ {metaValida !== null ? formatarNumero(metaValida) : "—"}</span>
+          <span data-total className="text-[44px] font-bold text-fogo">{formatarNumero(valor)}</span>
+          <span className="text-[28px] text-faint">/ {metaValida !== null ? formatarNumero(metaValida) : "—"}</span>
           {metaValida !== null && (
-            <span data-pct className="text-[14px] font-bold">{Math.round((valor / metaValida) * 100)}%</span>
+            <span data-pct className="text-[28px] font-bold">{Math.round((valor / metaValida) * 100)}%</span>
           )}
         </div>
       </div>
 
-      <div className="relative pt-6">
+      <div className="relative pt-12">
         {metaValida !== null &&
           MARCADORES.map((m) => {
             const atingido = valor >= metaValida * m.fracao;
@@ -149,7 +149,7 @@ function LinhaRanking({
                   transform: m.trofeu ? "translateX(-100%)" : "translateX(-50%)",
                 }}
               >
-                {m.trofeu ? <Trofeu cor={cor} tamanho={20} /> : <Medalha cor={cor} tamanho={20} />}
+                {m.trofeu ? <Trofeu cor={cor} tamanho={40} /> : <Medalha cor={cor} tamanho={40} />}
               </span>
             );
           })}
@@ -168,7 +168,7 @@ function LinhaRanking({
         </div>
       </div>
 
-      <p data-run-rate className="text-[13px] text-muted">
+      <p data-run-rate className="text-[26px] text-muted">
         Run rate · previsão de fechamento:{" "}
         <span className={`font-semibold ${pctProjecao !== null && pctProjecao >= 100 ? "text-ok" : "text-fogo"}`}>
           {formatarNumero(projecao)} {projecao === 1 ? unidade.singular : unidade.plural}
@@ -217,10 +217,10 @@ export function RankingMeta({
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
-          <Trofeu cor="var(--color-fogo)" />
-          <h2 className="text-[20px] font-semibold">{titulo}</h2>
+          <Trofeu cor="var(--color-fogo)" tamanho={44} />
+          <h2 className="text-[40px] font-semibold">{titulo}</h2>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[24px] text-muted">
           <span>
             {rotuloMeta} <strong>{formatarNumero(metaDoMes)}</strong>
           </span>
@@ -237,7 +237,7 @@ export function RankingMeta({
         </div>
       </header>
       {ordenados.length === 0 ? (
-        <p className="text-[14px] text-muted">{vazio}</p>
+        <p className="text-[28px] text-muted">{vazio}</p>
       ) : (
         <ol aria-label={rotuloLista} className="flex flex-col gap-4">
           {ordenados.map((item, i) => (

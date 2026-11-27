@@ -141,4 +141,36 @@ describe("RankingMeta", () => {
 
     expect(document.querySelector("[data-negocios]")).toBeNull();
   });
+
+  it("textos e ícones do card ficam em dobro", () => {
+    renderizar([item("Ana", 30, 2, 295), item("Bia", 12), item("Caio", 5), item("Duda", 1)]);
+
+    expect(screen.getByRole("heading", { level: 2 }).classList.contains("text-[40px]")).toBe(true);
+    expect(screen.getByText("Meta até 30/11:").parentElement?.classList.contains("text-[24px]")).toBe(true);
+    expect(document.querySelector("header svg")?.getAttribute("width")).toBe("44");
+
+    const [ana] = screen.getAllByRole("listitem");
+    expect(ana.querySelector("span.truncate")?.classList.contains("text-[36px]")).toBe(true);
+    expect(ana.querySelector("[data-negocios]")?.classList.contains("text-[26px]")).toBe(true);
+    expect(ana.querySelector("[data-hoje]")?.classList.contains("text-[32px]")).toBe(true);
+    expect(ana.querySelector("[data-total]")?.classList.contains("text-[44px]")).toBe(true);
+    expect(ana.querySelector("[data-pct]")?.classList.contains("text-[28px]")).toBe(true);
+    expect(ana.querySelector("[data-run-rate]")?.classList.contains("text-[26px]")).toBe(true);
+    expect(ana.querySelector("[data-posicao] svg")?.getAttribute("width")).toBe("52");
+    for (const marcador of Array.from(ana.querySelectorAll("[data-marcador] svg"))) {
+      expect(marcador.getAttribute("width")).toBe("40");
+    }
+
+    const quarto = screen.getAllByRole("listitem")[3].querySelector("[data-posicao]");
+    expect(quarto?.classList.contains("h-[52px]")).toBe(true);
+    expect(quarto?.classList.contains("w-[52px]")).toBe(true);
+    expect(quarto?.classList.contains("text-[24px]")).toBe(true);
+
+    const bolinhas = Array.from(document.querySelectorAll("header span.inline-block"));
+    expect(bolinhas).toHaveLength(2);
+    for (const bolinha of bolinhas) {
+      expect(bolinha.classList.contains("h-4")).toBe(true);
+      expect(bolinha.classList.contains("w-4")).toBe(true);
+    }
+  });
 });
