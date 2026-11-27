@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acumuladoDoAno, agruparPorCanal, agruparPorForma, agruparPorProduto, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
+import { acumuladoDoAno, agruparPorCanal, agruparPorForma, agruparPorProduto, mesesDoPeriodo, serieMensal, tetoElastico, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
 import type { NotaFinanceiro } from "../src/lib/tipos-api";
 
 function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
@@ -91,5 +91,13 @@ describe("agruparPorProduto", () => {
     expect(linhas.find((l) => l.rotulo === "Tração")).toMatchObject({ vendas: 0, faturamento: 8000, receita: 5000 });
     expect(linhas.find((l) => l.rotulo === "Aceleração")).toMatchObject({ vendas: 1, faturamento: 60000, receita: 10000 });
     expect(linhas.find((l) => l.rotulo === "The Green House")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
+  });
+});
+
+describe("tetoElastico", () => {
+  it("tetoElastico usa o piso e sobe pro próximo múltiplo", () => {
+    expect(tetoElastico([100_000, 250_000], 1_000_000, 250_000)).toBe(1_000_000);
+    expect(tetoElastico([1_100_000], 1_000_000, 250_000)).toBe(1_250_000);
+    expect(tetoElastico([], 300_000, 100_000)).toBe(300_000);
   });
 });

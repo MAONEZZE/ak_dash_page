@@ -193,3 +193,14 @@ export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
     { chave: "__total__", rotulo: "Total", vendas: 0, faturamento: 0, receita: 0 },
   );
 }
+
+/**
+ * Teto do eixo Y dos gráficos de linha: `piso` quando nenhum valor o
+ * ultrapassa, senão o próximo múltiplo de `multiplo` acima do maior valor —
+ * "teto elástico" (ver GraficoLinhasFinanceiro).
+ */
+export function tetoElastico(valores: number[], piso: number, multiplo: number): number {
+  const max = Math.max(0, ...valores);
+  if (max <= piso) return piso;
+  return Math.ceil(max / multiplo) * multiplo;
+}
