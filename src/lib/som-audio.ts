@@ -4,12 +4,16 @@
  * docs/plans/som-agendamento-nathan-jennifer.md.
  */
 
-export type PerfilSom = "nathan" | "jennifer";
+export type PerfilSom = "nathan" | "jennifer" | "seller";
 
-/** Duas notas por plin, uma oitava acima pra Jennifer — mesmo gesto sonoro, altura diferente. */
+/**
+ * Duas notas por plin, uma oitava acima pra Jennifer — mesmo gesto sonoro, altura diferente.
+ * Sellers usam um plin mais grave que os SDRs.
+ */
 const NOTAS: Record<PerfilSom, [number, number]> = {
   nathan: [587.33, 783.99], // D5 -> G5
   jennifer: [1174.66, 1567.98], // D6 -> G6
+  seller: [440, 659.25], // A4 -> E5
 };
 
 const DURACAO_NOTA_S = 0.09;
