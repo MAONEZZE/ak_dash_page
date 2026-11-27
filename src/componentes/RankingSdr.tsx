@@ -168,12 +168,12 @@ export function RankingSdr({
   return (
     <article
       className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-[16px] bg-surface p-6 shadow-sm"
-      aria-label="Ranking SDR — Leads gerados"
+      aria-label="Ranking SDR — Inscritos gerados"
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <Trofeu cor="var(--color-fogo)" />
-          <h2 className="text-[20px] font-semibold">Ranking SDR — Leads gerados</h2>
+          <h2 className="text-[20px] font-semibold">Ranking SDR — Inscritos gerados</h2>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
           <span>

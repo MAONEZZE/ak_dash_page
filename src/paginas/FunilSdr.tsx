@@ -187,8 +187,9 @@ export function FunilSdr() {
           aoLado={
             <Velocimetro
               rotulo="Inscrições Realizadas"
-              valor={dado.evento?.inscritos_periodo ?? 0}
-              meta={dado.evento?.meta_velocimetro ?? null}
+              // Fixo, fora do filtro de data: total do evento no SED (aprovados + pendentes) contra a capacidade.
+              valor={dado.evento?.inscritos ?? 0}
+              meta={dado.evento?.capacidade ?? null}
               fonte={
                 dado.evento
                   ? {

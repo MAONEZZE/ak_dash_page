@@ -78,32 +78,29 @@ it("com um evento escolhido no filtro, busca o funil de SDR com os números dele
 it("velocímetro mostra os inscritos da próxima Confraria contra a capacidade, com título e data do evento", async () => {
   renderizar();
   const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
-  // Segue o filtro de data: só os inscritos (aprovados + pendentes) feitos no período.
-  expect(velocimetro.getAttribute("aria-valuenow")).toBe("12");
+  // Fixo: todos os inscritos do evento (aprovados + pendentes), não só os do período.
+  expect(velocimetro.getAttribute("aria-valuenow")).toBe("39");
   expect(velocimetro.getAttribute("aria-valuemax")).toBe("80");
   expect(velocimetro.textContent).toContain("Confraria Akeel SP");
   // 22:00 UTC = 19:00 em São Paulo.
   expect(velocimetro.textContent).toContain("20/11 · 19:00");
 });
 
-it("no filtro de dia a meta do velocímetro é a que vem do BFF (meta diária), não a capacidade", async () => {
+it("velocímetro mostra o total de inscritos do evento no SED (aprovados + pendentes) contra a capacidade, fixo em qualquer filtro", async () => {
   vi.mocked(buscarFunilSdr).mockResolvedValueOnce({
     ...RESPOSTA,
     periodo: { granularidade: "dia", inicio: "2026-11-17", fim: "2026-11-17" },
-    evento: { ...RESPOSTA.evento!, meta_velocimetro: 4 },
+    evento: { ...RESPOSTA.evento!, inscritos_periodo: 2, meta_velocimetro: 4 },
   });
   renderizar("/funil-sdr?granularidade=dia&periodo=2026-11-17");
   const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
-  expect(velocimetro.getAttribute("aria-valuemax")).toBe("4");
+  expect(velocimetro.getAttribute("aria-valuenow")).toBe("39");
+  expect(velocimetro.getAttribute("aria-valuemax")).toBe("80");
 });
 
-it("no filtro de dia, sem meta diária (dia do evento ou sem capacidade), a meta fica aberta", async () => {
-  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({
-    ...RESPOSTA,
-    periodo: { granularidade: "dia", inicio: "2026-11-17", fim: "2026-11-17" },
-    evento: { ...RESPOSTA.evento!, meta_velocimetro: null },
-  });
-  renderizar("/funil-sdr?granularidade=dia&periodo=2026-11-17");
+it("evento sem capacidade: meta aberta", async () => {
+  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({ ...RESPOSTA, evento: { ...RESPOSTA.evento!, capacidade: null } });
+  renderizar();
   const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
   expect(velocimetro.textContent).toContain("Meta aberta");
 });
