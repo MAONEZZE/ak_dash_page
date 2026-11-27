@@ -124,7 +124,7 @@ export function FunilBarras({
             <li key={etapa.rotulo} className="flex flex-col">
               <div
                 data-linha-etapa
-                className={`mx-auto w-full max-w-[60%] min-w-[220px]${notaCard ? " relative" : ""}`}
+                className={`mx-auto w-full max-w-[60%] min-w-[220px]${comoCard ? " sm:ml-[30%] sm:mr-[10%]" : ""}${notaCard ? " relative" : ""}`}
               >
                 <div
                   data-segmento
@@ -155,16 +155,16 @@ export function FunilBarras({
                       className="absolute top-1/2 hidden border-t-2 border-dashed border-border-forte sm:block"
                       style={{ left: -12, right: `${100 - bordaEsquerda}%` }}
                     />
-                    <div data-nota-lateral className="mt-2 flex flex-col items-center rounded-[12px] bg-surface-2 px-3 py-1.5 text-center sm:absolute sm:right-[calc(100%+12px)] sm:top-1/2 sm:mt-0 sm:w-max sm:max-w-[200px] sm:-translate-y-1/2 sm:items-end sm:text-right">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
-                      <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
+                    <div data-nota-lateral className="mt-2 flex flex-col items-center rounded-[12px] bg-surface-2 px-3 py-1.5 text-center sm:absolute sm:right-[calc(100%+12px)] sm:top-1/2 sm:mt-0 sm:w-max sm:max-w-[calc(50%-12px)] sm:-translate-y-1/2 sm:items-end sm:text-right">
+                      <span className="text-[9.2px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
+                      <span className="font-display text-[13.3px] font-extrabold">{lateral.texto}</span>
                     </div>
                   </>
                 )}
               </div>
 
               {etapa.passagem && (
-                <div data-entre-etapas className="py-1.5">
+                <div data-entre-etapas className={`py-1.5${comoCard ? " sm:ml-[30%] sm:mr-[10%]" : ""}`}>
                   <div
                     data-passagem
                     data-gargalo={ehGargalo ? "true" : undefined}

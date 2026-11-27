@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
-import { RankingSdr } from "../componentes/RankingSdr";
+import { RankingMeta } from "../componentes/RankingMeta";
 import { useEventoSelecionado } from "../componentes/PillEvento";
 import { buscarPaginaSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
+import { formatarNumero } from "../lib/formato";
 import { paraPeriodo } from "../lib/periodo";
 import type { RespostaPaginaSdr } from "../lib/tipos-api";
 
@@ -81,7 +82,23 @@ export function Sdr() {
     <>
       <AvisoFontes avisos={dado.avisos} />
       <div data-pagina="sdr" className="flex flex-col md:h-full md:min-h-0 md:overflow-hidden">
-        <RankingSdr sdrs={dado.sdrs} mesRanking={dado.mes_ranking} inscritosSed={dado.inscritos_sed_mes} />
+        <RankingMeta
+          titulo="Ranking SDR — Inscritos gerados"
+          rotuloLista="Ranking SDR"
+          itens={dado.sdrs.map((s) => ({
+            id: s.id_user,
+            nome: s.nome,
+            valor: s.ranking_mes.inscricoes,
+            valorHoje: s.ranking_mes.inscricoes_hoje,
+            meta: s.ranking_mes.meta,
+            negocios: s.ranking_mes.negocios,
+          }))}
+          janela={dado.janela_meta ?? dado.mes_ranking}
+          unidade={{ singular: "inscrição", plural: "inscrições" }}
+          legendaHoje="Inscrições de hoje"
+          badge={dado.inscritos_sed_mes !== null ? `${formatarNumero(dado.inscritos_sed_mes)} inscritos` : null}
+          vazio="Nenhum SDR ativo."
+        />
       </div>
     </>
   );

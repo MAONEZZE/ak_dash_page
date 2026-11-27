@@ -147,7 +147,7 @@ export function useNavegarMes(): {
 /**
  * Intervalo [inicio, fim] (AAAA-MM-DD) de uma granularidade+período — mesma
  * regra de `resolver_periodo` no backend (`app/periodo.py`), pra recortar em
- * memória o ano inteiro que a Financeiro busca (ver `agregacoes-financeiro.ts`).
+ * memória o ano inteiro que a Financeiro busca (ver `agregacoes-notas.ts`).
  */
 export function limitesPeriodo(granularidade: Granularidade, periodo: string): { inicio: string; fim: string } {
   if (granularidade === "dia") return { inicio: periodo, fim: periodo };

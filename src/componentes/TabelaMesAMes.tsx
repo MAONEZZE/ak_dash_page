@@ -1,4 +1,4 @@
-import type { PontoSerieMensal } from "../lib/agregacoes-financeiro";
+import type { PontoSerieMensal } from "../lib/agregacoes-notas";
 import { formatarMoeda, formatarNumero } from "../lib/formato";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -9,13 +9,9 @@ interface LinhaMes {
 }
 
 const LINHAS: LinhaMes[] = [
-  { rotulo: "Contrato bruto vendido", valor: (p) => formatarMoeda(p.vendido) },
-  { rotulo: "Recebimento bruto", valor: (p) => formatarMoeda(p.recebimentoBruto) },
-  { rotulo: "Liquidou na conta", valor: (p) => formatarMoeda(p.liquidouVendasDoMes) },
-  { rotulo: "· pago de parcelas anteriores", valor: (p) => formatarMoeda(p.parcelasAnteriores) },
-  { rotulo: "Total recebido no mês", valor: (p) => formatarMoeda(p.totalRecebido) },
-  { rotulo: "Nº de contratos fechados", valor: (p) => formatarNumero(p.contratos) },
+  { rotulo: "Receita líquida", valor: (p) => formatarMoeda(p.receita) },
   { rotulo: "Ticket médio", valor: (p) => (p.ticketMedio === null ? "—" : formatarMoeda(p.ticketMedio)) },
+  { rotulo: "Nº de vendas", valor: (p) => formatarNumero(p.vendas) },
 ];
 
 interface Props {

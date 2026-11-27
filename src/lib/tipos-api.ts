@@ -2,8 +2,7 @@
  * Contrato BFF (ak_dash) <-> Frontend (ak_dash_page).
  * Espelha openapi.yaml — qualquer mudança de campo precisa mudar os dois.
  * Fonte única de dado: Supabase (dash2.vw_metricas, dash2.metas,
- * dash2.users/dash2.user_cargos, dash2.metricas_faturamento,
- * dash2.cliente_faturamento). Escopo:
+ * dash2.users/dash2.user_cargos, notas_financeiro). Escopo:
  * /pessoas, /comercial/seller, /comercial/sdr, /comercial/closer, /geral, /financeiro. Os
  * demais KPIs da página Financeiro (inadimplência, margem, despesas,
  * EBITDA, contas a receber/pagar) seguem pendentes (ver ak_dash/README.md).
@@ -279,64 +278,32 @@ export interface ParametrosGeral {
 
 // ---- /financeiro ----
 
-export interface CardFinanceiro {
-  metrica: string;
-  nome_exibicao: string;
-  /** Soma de valor_bruto_contrato (faturamento) ou liquido_entrada (liquidado) das vendas do período — 0, nunca null, sem venda. Sem meta: card mais simples que CardGeral. */
-  realizado: number;
-}
-
-/** Um mês do calendário de recebimentos da planilha (colunas PAGO/LÍQUIDO da BASE_VENDAS). */
-export interface RecebimentoMes {
-  /** AAAA-MM */
+/** Uma linha de uma aba "NFS <mês>" da planilha do financeiro (tabela notas_financeiro). */
+export interface NotaFinanceiro {
+  /** "AAAA-MM:<nº da linha na aba>" */
+  chave: string;
+  /** AAAA-MM da aba — a receita líquida (valor_pago) cai neste mês. */
   mes: string;
-  pago: number;
-  liquido: number;
-}
-
-export interface VendaFinanceiro {
-  id: number;
-  /** ID da coluna A da BASE_VENDAS; null em venda antiga sem correspondência. */
-  id_planilha: number | null;
-  /** metricas_faturamento.data_venda cru (ex. "2026-01-26T00:00:00") — cortar os 10 primeiros caracteres antes de formatarData. */
-  data_venda: string;
-  /** cliente_faturamento.nome via id_cliente; null sem id_cliente ou sem cliente correspondente. */
+  /** AAAA-MM-DD: Data de Venda válida, senão dia 1 do mês da aba — faturamento e nº de vendas caem aqui. */
+  data_referencia: string;
   cliente: string | null;
+  categoria: "venda nova" | "mensalidade cliente" | "upsell" | null;
+  /** "Ativação" | "Tração" | "Aceleração" | "The Green House", ou o texto cru da planilha. */
   produto: string | null;
+  /** Receita líquida (coluna "Valor pago"); 0 quando vazia. */
+  valor_pago: number;
+  /** Faturamento (coluna "Valor da venda"); 0 quando vazia. */
+  valor_venda: number;
+  forma_pagamento: "PIX" | "Cartão" | "Boleto" | "Outros";
+  /** Coluna "Origem do lead"; null quando vazia. */
   canal: string | null;
-  metodo_pagamento: string | null;
-  num_parcelas: number | null;
-  valor_bruto_contrato: number;
-  /** Valor efetivamente pago pelo cliente (bruto de imposto/taxa) — "Pago". */
-  valor_entrada: number;
-  /** liquido_entrada = valor_entrada × (1 − imposto) × (1 − taxa). */
-  liquido_entrada: number;
-  /** Percentual decimal (ex. 0.1 = 10%). */
-  imposto: number;
-  /** Percentual decimal da maquininha; 0 em boa parte das vendas. */
-  taxa: number;
-  /** Bruto do SEGUNDO pagamento da venda (ex. entrada no PIX + resto no cartão) — 0 sem segundo pagamento. */
-  valor_pgto_2: number;
-  /** Percentual decimal da maquininha do segundo pagamento — mesmo `imposto` da venda se aplica aos dois. 0 sem segundo pagamento. */
-  taxa_pgto_2: number;
-  /** Líquido do segundo pagamento — soma com liquido_entrada pro líquido total da venda. 0 sem segundo pagamento. */
-  liquido_pgto_2: number;
-  /** Forma de pagamento do segundo pagamento — pode diferir de metodo_pagamento. null sem segundo pagamento. Não entra em "Como entrou o dinheiro": o calendário não diz a forma de cada parcela, então todo o recebido vai para metodo_pagamento (igual à planilha). */
-  forma_pgto_2: string | null;
-  /** FK dash.users.id do closer. Agrupar por ESTE campo, não por `closer` — dois ids podem compartilhar o mesmo nome (ex. dois "Jonathan" cadastrados). */
-  user_closer: number | null;
-  /** dash.users.nome via user_closer — inclui closer inativo (saiu do time mas vendeu no período); null sem user_closer ou sem correspondente. */
-  closer: string | null;
-  /** Calendário nos meses do período pedido — base de pago/líquido/recebido. */
-  recebimentos: RecebimentoMes[];
 }
 
 export interface RespostaFinanceiro {
   periodo: Periodo;
   avisos?: string[];
-  cards: CardFinanceiro[];
-  /** Ordenadas por data_venda decrescente (venda mais recente primeiro). */
-  vendas: VendaFinanceiro[];
+  /** Notas do ano pedido, por data_referencia decrescente. */
+  notas: NotaFinanceiro[];
 }
 
 // ---- /funil/{canal} ----
@@ -540,11 +507,11 @@ export interface SdrPaginaSdr {
 export interface RankingMesSdr {
   /** Negócios do Pipedrive de que o SDR é dono, criados no mês. */
   negocios: number;
-  /** Negócios do SDR que entraram no estágio Inscrito do Pipedrive no mês (cada um uma vez). */
+  /** Inscrições do SDR no mês (planilha → metricas_funil_sdr). */
   inscricoes: number;
-  /** Desses, os que entraram hoje. */
+  /** Desses, as da linha de hoje. */
   inscricoes_hoje: number;
-  /** Meta de inscrições do SDR no mês; `null` sem meta diária. */
+  /** Meta diária do SDR (planilha) × dias seg–sex de `janela_meta`; `null` sem meta diária ou sem janela. */
   meta: number | null;
 }
 
@@ -563,8 +530,29 @@ export interface RespostaPaginaSdr {
   janela: { inicio: string; fim: string } | null;
   /** Mês do card "Ranking SDR" (o que contém o fim do filtro). */
   mes_ranking: { inicio: string; fim: string } | null;
+  /** Janela da meta do ranking: do dia 1º do mês até a véspera do evento (no máximo o fim do mês); `null` se o evento é antes do mês. */
+  janela_meta: { inicio: string; fim: string } | null;
   /** Inscritos (approved/pending) do evento no SED no mês; `null` sem evento. */
   inscritos_sed_mes: number | null;
   /** Em ordem de posição do ranking. */
   sdrs: SdrPaginaSdr[];
+}
+
+// ---- /seller ----
+export interface SellerPaginaSeller {
+  id_user: string;
+  nome: string;
+  imagem_url: string | null;
+  /** Números captados no mês: contas dos funis ligadas ao seller + o sem_conta do canal em que ele é o único seller. */
+  numeros_captados: number;
+  /** Desses, os de hoje (só os com perfil: o sem_conta não tem série). */
+  numeros_captados_hoje: number;
+  /** Meta do mês inteiro (diária × 22, a mesma do velocímetro dos funis); `null` sem meta. */
+  meta: number | null;
+}
+export interface RespostaPaginaSeller {
+  periodo: Periodo;
+  avisos: string[];
+  /** Sellers ativos, por id. */
+  sellers: SellerPaginaSeller[];
 }

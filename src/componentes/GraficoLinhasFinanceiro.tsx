@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { tetoElastico } from "../lib/agregacoes-financeiro";
+import { tetoElastico } from "../lib/agregacoes-notas";
 import { formatarMoeda, formatarNumero } from "../lib/formato";
 
 export interface SerieFinanceiro {
   rotulo: string;
   valores: number[]; // 12 pontos, jan..dez
-  /** Série principal em brand; a segunda (ex. Líquido) em closer — sempre com legenda. */
-  cor: "brand" | "closer";
+  /** Série principal em brand; a segunda (ex. Líquido) em closer; a terceira (ex. Base) em warn — sempre com legenda. */
+  cor: "brand" | "closer" | "warn";
   tracejada?: boolean;
 }
 
@@ -39,10 +39,12 @@ const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "O
 const STROKE: Record<SerieFinanceiro["cor"], string> = {
   brand: "stroke-brand",
   closer: "stroke-closer",
+  warn: "stroke-warn",
 };
 const SWATCH: Record<SerieFinanceiro["cor"], string> = {
   brand: "bg-brand",
   closer: "bg-closer",
+  warn: "bg-warn",
 };
 
 /*

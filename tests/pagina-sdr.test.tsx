@@ -27,6 +27,7 @@ const RESPOSTA: RespostaPaginaSdr = {
   evento: { id: "e1", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", capacidade: 80 },
   janela: { inicio: "2026-11-01", fim: "2026-12-01" },
   mes_ranking: { inicio: "2026-11-01", fim: "2026-11-30" },
+  janela_meta: { inicio: "2026-11-01", fim: "2026-11-30" },
   inscritos_sed_mes: 57,
   sdrs: [
     sdr({ id_user: "7", nome: "Ana Lima", posicao: 1, inscricoes: 30 }),
@@ -67,6 +68,22 @@ it("ignora o período da URL: sempre pede o mês corrente", async () => {
   renderizar("/sdr?granularidade=dia&periodo=2026-09-10");
   await screen.findByRole("list", { name: "Ranking SDR" });
   expect(buscarPaginaSdr).toHaveBeenCalledWith({ granularidade: "mes", periodo: mesCorrente(), evento: null });
+});
+
+it("o ranking usa a janela da meta (até a véspera do evento) e cai para o mês sem ela", async () => {
+  vi.mocked(buscarPaginaSdr).mockResolvedValueOnce({
+    ...RESPOSTA,
+    janela_meta: { inicio: "2026-11-01", fim: "2026-11-25" },
+  });
+  renderizar();
+  const ranking = await screen.findByRole("list", { name: "Ranking SDR" });
+  expect(ranking.closest("article")?.textContent).toContain("Meta até 25/11:");
+  cleanup();
+
+  vi.mocked(buscarPaginaSdr).mockResolvedValueOnce({ ...RESPOSTA, janela_meta: null });
+  renderizar();
+  const rankingSemJanela = await screen.findByRole("list", { name: "Ranking SDR" });
+  expect(rankingSemJanela.closest("article")?.textContent).toContain("Meta até 30/11:");
 });
 
 function mesCorrente(): string {

@@ -179,6 +179,25 @@ describe("GraficoLinhasFinanceiro — cores e compatibilidade com a TV", () => {
     expect(screen.getByText("Líquido")).toBeTruthy();
   });
 
+  it("terceira série em warn, com legenda", () => {
+    const { container } = render(
+      <GraficoLinhasFinanceiro
+        titulo="Pago × Líquido × Base"
+        series={[
+          { rotulo: "Total", valores: Array(12).fill(100_000), cor: "brand" },
+          { rotulo: "Time comercial", valores: Array(12).fill(80_000), cor: "closer" },
+          { rotulo: "Base", valores: Array(12).fill(60_000), cor: "warn", tracejada: true },
+        ]}
+        piso={300_000}
+        multiploTeto={100_000}
+      />,
+    );
+    const polylines = Array.from(container.querySelectorAll("polyline"));
+    expect(polylines[2].getAttribute("class")).toContain("stroke-warn");
+    const swatchBase = screen.getByText("Base").firstElementChild;
+    expect(swatchBase?.getAttribute("class")).toContain("bg-warn");
+  });
+
   it("não usa as utilities translate-* do Tailwind (propriedade `translate` não existe no Chromium 94)", () => {
     const { container } = render(
       <GraficoLinhasFinanceiro
