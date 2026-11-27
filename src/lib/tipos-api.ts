@@ -570,3 +570,22 @@ export interface RespostaPaginaSdr {
   /** Em ordem de posição do ranking. */
   sdrs: SdrPaginaSdr[];
 }
+
+// ---- /seller ----
+export interface SellerPaginaSeller {
+  id_user: string;
+  nome: string;
+  imagem_url: string | null;
+  /** Números captados no mês: contas dos funis ligadas ao seller + o sem_conta do canal em que ele é o único seller. */
+  numeros_captados: number;
+  /** Desses, os de hoje (só os com perfil: o sem_conta não tem série). */
+  numeros_captados_hoje: number;
+  /** Meta do mês inteiro (diária × 22, a mesma do velocímetro dos funis); `null` sem meta. */
+  meta: number | null;
+}
+export interface RespostaPaginaSeller {
+  periodo: Periodo;
+  avisos: string[];
+  /** Sellers ativos, por id. */
+  sellers: SellerPaginaSeller[];
+}
