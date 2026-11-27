@@ -165,6 +165,28 @@ export function agruparPorForma(notas: NotaFinanceiro[], inicio: string, fim: st
   return agrupar(FORMAS_CANONICAS, contribuicoes, true).filter((l) => !(l.chave === "Outros" && l.receita === 0));
 }
 
+export const PRODUTOS_CANONICOS: ItemCanonico[] = ["Ativação", "Tração", "Aceleração", "The Green House"].map((c) => ({ chave: c, rotulo: c }));
+
+/** Por produto: faturamento e vendas pela data_referencia, receita pelo mês da aba. Só os produtos canônicos saem; notas sem produto são ignoradas. */
+export function agruparPorProduto(notas: NotaFinanceiro[], inicio: string, fim: string): LinhaAgrupada[] {
+  const meses = new Set(mesesDoPeriodo(inicio, fim));
+  const contribuicoes = notas.flatMap((n) => {
+    const produto = n.produto;
+    if (produto === null) return [];
+    const dentroDaData = naData(n, inicio, fim);
+    const noMes = meses.has(n.mes);
+    if (!dentroDaData && !noMes) return [];
+    return [{
+      chave: produto,
+      rotulo: produto,
+      vendas: dentroDaData && ehVenda(n) ? 1 : 0,
+      faturamento: dentroDaData ? n.valor_venda : 0,
+      receita: noMes ? n.valor_pago : 0,
+    }];
+  });
+  return agrupar(PRODUTOS_CANONICOS, contribuicoes, false);
+}
+
 export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
   return linhas.reduce(
     (acc, l) => ({ ...acc, vendas: acc.vendas + l.vendas, faturamento: acc.faturamento + l.faturamento, receita: acc.receita + l.receita }),

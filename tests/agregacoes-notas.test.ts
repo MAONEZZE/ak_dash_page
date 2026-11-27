@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acumuladoDoAno, agruparPorCanal, agruparPorForma, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
+import { acumuladoDoAno, agruparPorCanal, agruparPorForma, agruparPorProduto, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
 import type { NotaFinanceiro } from "../src/lib/tipos-api";
 
 function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
@@ -80,5 +80,16 @@ describe("agruparPorForma", () => {
     const agosto = agruparPorForma(NOTAS, "2026-08-01", "2026-08-31");
     expect(agosto.map((l) => l.rotulo)).toEqual(["PIX", "Cartão", "Boleto"]);
     expect(agosto.map((l) => l.receita)).toEqual([7000, 0, 0]);
+  });
+});
+
+describe("agruparPorProduto", () => {
+  it("agruparPorProduto mostra só Ativação, Tração, Aceleração e The Green House", () => {
+    const linhas = agruparPorProduto(NOTAS, "2026-09-01", "2026-09-30");
+    expect(linhas.map((l) => l.rotulo)).toEqual(["Ativação", "Tração", "Aceleração", "The Green House"]);
+    expect(linhas.find((l) => l.rotulo === "Ativação")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Tração")).toMatchObject({ vendas: 0, faturamento: 8000, receita: 5000 });
+    expect(linhas.find((l) => l.rotulo === "Aceleração")).toMatchObject({ vendas: 1, faturamento: 60000, receita: 10000 });
+    expect(linhas.find((l) => l.rotulo === "The Green House")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
   });
 });
