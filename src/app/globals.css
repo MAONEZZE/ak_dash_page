@@ -69,6 +69,11 @@
   --color-gelo-claro: #e6f2fc;
   --color-fogo-claro: #fde6d6;
 
+  /* Medalhas do ranking de leads da página SDR: ouro, prata e bronze. */
+  --color-ouro: #d4a017;
+  --color-prata: #a8b0b8;
+  --color-bronze: #b8733a;
+
   /* Fundos pastel dos cards da Geral (pedido do usuário, 2026-10-05) — ver .card-pastel. */
   --color-pastel-verde: #d7ecc9;
   --color-pastel-verde-escuro: #34503c;

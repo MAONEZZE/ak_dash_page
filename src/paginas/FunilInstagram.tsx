@@ -33,12 +33,6 @@ interface EstadoFunil {
   erro: string | null;
 }
 
-/** Nomes das contas: "A, B e C". */
-function listarNomes(nomes: string[]): string {
-  if (nomes.length <= 1) return nomes.join("");
-  return `${nomes.slice(0, -1).join(", ")} e ${nomes[nomes.length - 1]}`;
-}
-
 export function FunilInstagram() {
   const { granularidade, periodo } = useFiltrosAtuais();
   const conta = useContaSelecionada();
@@ -82,7 +76,6 @@ export function FunilInstagram() {
     <div className="flex flex-col gap-6">
       {dado && (
         <header className="flex flex-col gap-3">
-          <p className="text-lg text-muted">Consolidado de {listarNomes(dado.contas.map((c) => c.nome))}</p>
           <PillConta rotulo="Perfil" contas={dado.contas.map((c) => c.nome)} />
         </header>
       )}
@@ -151,7 +144,8 @@ function Conteudo({ dado, conta }: { dado: RespostaFunil; conta: string | null }
             t.fupsPorAbordagem === null
               ? formatarNumero(m.fups)
               : `${formatarNumero(m.fups)} (${umaCasa(t.fupsPorAbordagem)} por abordagem)`,
-          aoLadoDe: 0,
+          aoLadoDe: 1,
+          formato: "card",
         }}
       />
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">

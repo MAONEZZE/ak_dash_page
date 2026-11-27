@@ -229,8 +229,12 @@ function diasAntes(dia: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** No filtro de dia o gráfico mostra os 7 dias até ele (a API manda a série desde então): um ponto só não vira linha. */
-const DIAS_SERIE_FILTRO_DIA = 7;
+/**
+ * Nos filtros de dia e de semana o gráfico mostra os 7 dias até o fim do filtro
+ * (ou até hoje, na semana corrente). A API manda a série desde então. Sem isso,
+ * o dia e a segunda-feira da semana corrente viram um ponto só, sem linha.
+ */
+const DIAS_SERIE_CURTA = 7;
 
 /**
  * Uma série por conta com a `metrica` escolhida ao longo do período: um ponto
@@ -245,7 +249,8 @@ export interface SerieDiaria<K extends string> {
 
 export function serieGraficoContas<K extends string>(contas: SerieDiaria<K>[], metrica: K, periodo: Periodo, hoje: Date): GraficoContas {
   const fim = periodo.fim < isoLocal(hoje) ? periodo.fim : isoLocal(hoje);
-  const inicio = periodo.granularidade === "dia" ? diasAntes(periodo.inicio, DIAS_SERIE_FILTRO_DIA - 1) : periodo.inicio;
+  const serieCurta = periodo.granularidade === "dia" || periodo.granularidade === "semana";
+  const inicio = serieCurta ? diasAntes(fim, DIAS_SERIE_CURTA - 1) : periodo.inicio;
   const porMes = periodo.granularidade === "ano";
   const chaves = porMes
     ? [...new Set(diasEntre(inicio, fim).map((d) => d.slice(0, 7)))]
@@ -271,4 +276,21 @@ export function escalaMetades(valores: number[]): [number, number, number] {
   const maior = Math.max(0, ...valores);
   const total = Math.max(2, Math.ceil(maior / 2) * 2);
   return [0, total / 2, total];
+}
+
+/**
+ * Média de números captados: por dia nos dias já passados do período (inclui hoje); no filtro Dia, por hora desde 00h (mínimo 1h).
+ */
+export function mediaNumerosCaptados(total: number, periodo: Periodo, agora: Date): { valor: number; unidade: "dia" | "hora" } {
+  if (periodo.granularidade === "dia") {
+    const meiaNoite = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    const horas = Math.max(1, (agora.getTime() - meiaNoite.getTime()) / 3_600_000);
+    return { valor: total / horas, unidade: "hora" };
+  }
+  const hoje = isoLocal(agora);
+  const fim = periodo.fim < hoje ? periodo.fim : hoje;
+  const [iniA, iniM, iniD] = periodo.inicio.split("-").map(Number);
+  const [fimA, fimM, fimD] = fim.split("-").map(Number);
+  const dias = Math.max(1, Math.round((Date.UTC(fimA, fimM - 1, fimD) - Date.UTC(iniA, iniM - 1, iniD)) / 86_400_000) + 1);
+  return { valor: total / dias, unidade: "dia" };
 }

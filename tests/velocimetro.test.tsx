@@ -35,6 +35,13 @@ it("acima da meta o arco fica cheio e o % passa de 100", () => {
   expect(card().getAttribute("data-alerta")).toBe("no_ritmo");
 });
 
+it("meta 0 (nada a fazer) conta como atingida", () => {
+  render(<Velocimetro rotulo="Inscrições Realizadas" valor={0} meta={0} />);
+  const medidor = screen.getByRole("meter", { name: "Inscrições Realizadas" });
+  expect(medidor.textContent).toContain("100");
+  expect(medidor.textContent).not.toContain("Meta aberta");
+});
+
 it("sem meta mostra o realizado e 'Meta aberta', sem %", () => {
   render(<Velocimetro rotulo="Números Captados" valor={31} meta={null} />);
 

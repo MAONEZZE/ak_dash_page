@@ -45,35 +45,26 @@ function TrapezioArredondado({ topo, base }: { topo: number; base: number }) {
 /** Marca a etapa que tem nota no rodapé do card e abre a nota. */
 const MARCA_NOTA = "*";
 
-/** Largura de um caractere do rótulo (maiúsculo, peso 600, com tracking), em em: medido 0,72–0,78 no navegador. */
-const EM_POR_CARACTERE = 0.8;
-/** Padding horizontal do segmento (px-2): `cqi` mede a caixa de conteúdo, sem ele. */
-const PADDING_SEGMENTO = 8;
-
 /**
  * Rótulo no canto: a caixa vai de uma borda inclinada à outra na altura da
  * base do trapézio (largura visível = base% do SVG + o contorno, menos RAIO
- * de folga de cada lado). A fonte encolhe para caber numa linha (11px → 9px);
- * abaixo de 9px o texto quebra, alinhado à direita.
+ * de folga de cada lado). `left/right` em % mede a caixa de padding do
+ * segmento; o recuo `lado cqi + fixo px` (cqi = caixa de conteúdo, largura −
+ * 2·padding) equivale a `lado% + RAIO·(1 − lado/50) px`. Não usa container
+ * query porque a TV é Chromium 94; o texto longo quebra em linhas, alinhado à
+ * direita.
  */
-function estiloRotuloNoCanto(base: number, texto: string) {
+function estiloRotuloNoCanto(base: number) {
   const lado = (100 - base) / 2; // % da largura do segmento fora do trapézio, de cada lado, na base
-  const fixo = (lado * (2 * PADDING_SEGMENTO - 2 * RAIO)) / 100 + RAIO;
-  const recuo = `calc(${lado}cqi + ${+fixo.toFixed(2)}px)`;
-  const largura = `(${base}cqi + ${+(2 * PADDING_SEGMENTO - 2 * fixo).toFixed(2)}px)`;
-  const ems = +(texto.length * EM_POR_CARACTERE).toFixed(1);
-  return {
-    right: recuo,
-    left: recuo,
-    fontSize: `clamp(9px, calc(${largura} / ${ems}), 11px)`,
-  };
+  const recuo = `calc(${lado}% + ${+(RAIO * (1 - lado / 50)).toFixed(2)}px)`;
+  return { right: recuo, left: recuo };
 }
 
 /**
  * Funil de forma fixa (trapézios encaixados, do mais largo ao mais estreito),
  * com rótulo e valor dentro de cada etapa e a passagem para a próxima entre os
- * dois blocos, centralizados no card. A nota (`lateral`) vai no rodapé do card,
- * ligada à sua etapa por um asterisco no rótulo. `aoLado` fica à direita, com a mesma largura e
+ * dois blocos, centralizados no card. A nota (`lateral`) vai no rodapé (padrão) ou, com `formato: "card"`, num card à esquerda da etapa ligado por linha pontilhada.
+ * No rodapé, a etapa dela ganha um asterisco no rótulo. `aoLado` fica à direita, com a mesma largura e
  * altura do card do funil (o conteúdo traz o próprio card, ex.: Velocimetro).
  */
 export function FunilBarras({
@@ -86,7 +77,7 @@ export function FunilBarras({
 }: {
   titulo: string;
   etapas: EtapaFunil[];
-  lateral?: { rotulo: string; texto: string; aoLadoDe: number };
+  lateral?: { rotulo: string; texto: string; aoLadoDe: number; formato?: "rodape" | "card" };
   conversaoTotal: number | null;
   aoLado?: ReactNode;
   /** Rótulo da etapa no canto inferior direito do trapézio e número maior, sozinho no centro (página Funil SDR). */
@@ -96,6 +87,7 @@ export function FunilBarras({
   const gargalo = indiceGargalo(
     etapas.map((e) => (e.passagem ? e.passagem.taxa : null)),
   );
+  const comoCard = lateral?.formato === "card";
 
   const cardFunil = (
     <div className="glass-panel flex flex-col gap-4 rounded-[24px] p-5">
@@ -124,29 +116,27 @@ export function FunilBarras({
         {etapas.map((etapa, i) => {
           const [topo, base] = formato[i];
           const ehGargalo = gargalo === i;
-          const temNota = lateral !== undefined && lateral.aoLadoDe === i;
+          const temNota = !comoCard && lateral !== undefined && lateral.aoLadoDe === i;
+          const notaCard = comoCard && lateral?.aoLadoDe === i;
+          const bordaEsquerda = 50 - (topo + base) / 4;
 
           return (
             <li key={etapa.rotulo} className="flex flex-col">
               <div
                 data-linha-etapa
-                className="mx-auto w-full max-w-[60%] min-w-[220px]"
+                className={`mx-auto w-full max-w-[60%] min-w-[220px]${notaCard ? " relative" : ""}`}
               >
                 <div
                   data-segmento
                   data-largura-topo={topo}
                   data-largura-base={base}
-                  className={`relative flex flex-col items-center justify-center px-2 text-center text-surface ${rotuloNoCanto ? "min-h-[80px] pb-4 [container-type:inline-size]" : "min-h-[60px]"}`}
+                  className={`relative flex flex-col items-center justify-center px-2 text-center text-surface ${rotuloNoCanto ? "min-h-[80px] pb-4" : "min-h-[60px]"}`}
                 >
                   <TrapezioArredondado topo={topo} base={base} />
                   <span
                     data-rotulo-etapa
                     className={`text-[11px] font-semibold uppercase tracking-[0.06em] opacity-85 sm:tracking-[0.13em] ${rotuloNoCanto ? "absolute bottom-2 order-2 text-right leading-tight" : "relative"}`}
-                    style={
-                      rotuloNoCanto
-                        ? estiloRotuloNoCanto(base, etapa.rotulo + (temNota ? MARCA_NOTA : ""))
-                        : undefined
-                    }
+                    style={rotuloNoCanto ? estiloRotuloNoCanto(base) : undefined}
                   >
                     {etapa.rotulo}
                     {temNota && <span data-marca-nota>{MARCA_NOTA}</span>}
@@ -157,6 +147,20 @@ export function FunilBarras({
                     {formatarNumero(etapa.valor)}
                   </span>
                 </div>
+                {notaCard && lateral && (
+                  <>
+                    <span
+                      data-conector
+                      aria-hidden
+                      className="absolute top-1/2 hidden border-t-2 border-dashed border-border-forte sm:block"
+                      style={{ left: -12, right: `${100 - bordaEsquerda}%` }}
+                    />
+                    <div data-nota-lateral className="mt-2 flex flex-col items-center rounded-[12px] bg-surface-2 px-3 py-1.5 text-center sm:absolute sm:right-[calc(100%+12px)] sm:top-1/2 sm:mt-0 sm:w-max sm:max-w-[200px] sm:-translate-y-1/2 sm:items-end sm:text-right">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{lateral.rotulo}</span>
+                      <span className="font-display text-[16px] font-extrabold">{lateral.texto}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {etapa.passagem && (
@@ -181,7 +185,7 @@ export function FunilBarras({
           );
         })}
       </ol>
-      {lateral && (
+      {lateral && !comoCard && (
         <footer
           data-nota-rodape
           className="border-t border-line pt-3 text-[13px] font-semibold text-muted"

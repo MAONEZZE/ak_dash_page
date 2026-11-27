@@ -45,7 +45,7 @@ const RESPOSTA: RespostaFunilSdr = {
     { id_user: "11", nome: "Juca", imagem_url: null, metricas: JUCA, meta_inscricoes: 44, serie: [{ data: "2026-11-03", metricas: JUCA }] },
     { id_user: "14", nome: "Jennifer", imagem_url: null, metricas: JENNIFER, meta_inscricoes: null, serie: [] },
   ],
-  evento: { id: "e1", titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, inscritos_periodo: 12, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80 },
+  evento: { id: "e1", titulo: "Confraria Akeel SP", data: "2026-11-20T22:00:00", inscritos: 39, inscritos_periodo: 12, aprovados: 30, pendentes: 9, rejeitados: 3, capacidade: 80, meta_velocimetro: 80, almocos_pagos: 3 },
 };
 
 vi.mock("../src/lib/api", () => ({ buscarFunilSdr: vi.fn(async () => RESPOSTA) }));
@@ -84,6 +84,28 @@ it("velocímetro mostra os inscritos da próxima Confraria contra a capacidade, 
   expect(velocimetro.textContent).toContain("Confraria Akeel SP");
   // 22:00 UTC = 19:00 em São Paulo.
   expect(velocimetro.textContent).toContain("20/11 · 19:00");
+});
+
+it("no filtro de dia a meta do velocímetro é a que vem do BFF (meta diária), não a capacidade", async () => {
+  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({
+    ...RESPOSTA,
+    periodo: { granularidade: "dia", inicio: "2026-11-17", fim: "2026-11-17" },
+    evento: { ...RESPOSTA.evento!, meta_velocimetro: 4 },
+  });
+  renderizar("/funil-sdr?granularidade=dia&periodo=2026-11-17");
+  const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
+  expect(velocimetro.getAttribute("aria-valuemax")).toBe("4");
+});
+
+it("no filtro de dia, sem meta diária (dia do evento ou sem capacidade), a meta fica aberta", async () => {
+  vi.mocked(buscarFunilSdr).mockResolvedValueOnce({
+    ...RESPOSTA,
+    periodo: { granularidade: "dia", inicio: "2026-11-17", fim: "2026-11-17" },
+    evento: { ...RESPOSTA.evento!, meta_velocimetro: null },
+  });
+  renderizar("/funil-sdr?granularidade=dia&periodo=2026-11-17");
+  const velocimetro = await screen.findByRole("meter", { name: "Inscrições Realizadas" });
+  expect(velocimetro.textContent).toContain("Meta aberta");
 });
 
 it("sem Confraria agendada o velocímetro avisa e fica sem meta", async () => {
@@ -129,12 +151,13 @@ it("velocímetros dos SDRs piscam na cor do atingimento; sem meta não piscam", 
   ]);
 });
 
-it("na mesma linha dos velocímetros: pendentes e o total de inscrições do evento (somatório fixo)", async () => {
+it("na mesma linha dos velocímetros: almoços pagos e o total de inscrições do evento (somatório fixo)", async () => {
   renderizar();
   const bloco = await screen.findByRole("region", { name: "Inscrições por SDR e do evento" });
   expect(bloco.children).toHaveLength(4);
   const cards = [...bloco.querySelectorAll("article")].map((c) => c.textContent ?? "");
-  expect(cards).toEqual(["Pendentes9", "Inscrições Realizadassomatório fixo39"]);
+  expect(cards).toEqual(["Almoços Pagos3", "Inscrições Realizadassomatório fixo39"]);
+  expect(bloco.textContent).not.toContain("Pendentes");
 });
 
 it("sem evento somem os cards do evento; SDR sem linha no período mostra 0", async () => {

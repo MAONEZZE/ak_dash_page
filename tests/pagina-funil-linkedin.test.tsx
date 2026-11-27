@@ -56,8 +56,7 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(etapas[2].textContent).toContain("Mensagem de Abordagem");
   expect(etapas[2].textContent).toContain("840");
   expect(etapas[2].textContent).toContain("↓ 57,4% responderam");
-  expect(etapas[2].querySelector("[data-marca-nota]")).not.toBeNull();
-  expect(document.querySelector("[data-nota-rodape]")?.textContent).toBe("* Follow de abordagem: 713 (0,8 por abordagem)");
+  expect(etapas[2].querySelector("[data-nota-lateral]")?.textContent).toContain("713 (0,8 por abordagem)");
   expect(etapas[3].textContent).toContain("Respondidos");
   expect(etapas[3].textContent).toContain("482");
   expect(etapas[3].textContent).toContain("↓ 18,5% viraram número");
@@ -71,6 +70,23 @@ it("mostra o funil e os cards somando todos os LinkedIns", async () => {
   expect(valorDe("Abordagens + Follows")).toBe("1.565");
   expect(valorDe("InMails enviados")).toBe("103");
   expect(valorDe("Follow-ups")).toBe("128");
+});
+
+it("follow de abordagem aparece em card ligado à etapa Mensagem de Abordagem", async () => {
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  const lista = await screen.findByRole("list", { name: "Funil LinkedIn" });
+  const etapa = within(lista)
+    .getAllByRole("listitem")
+    .find((li) => li.textContent?.includes("Mensagem de Abordagem"));
+  expect(etapa?.querySelector("[data-nota-lateral]")?.textContent).toContain("Follow de abordagem");
+  expect(document.querySelector("[data-nota-rodape]")).toBeNull();
 });
 
 /** Cells de uma linha da tabela, pelo nome da conta (ou TOTAL). */
@@ -211,6 +227,50 @@ it("números captados sem conta entram no TOTAL", async () => {
   const linhaJacob = screen.getByRole("row", { name: /Jacob/ });
   expect(linhaJacob.textContent).toContain("19");
   expect(linhaJacob.textContent).not.toContain("24");
+});
+
+it("card mostra a média de números captados por dia do período", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(2026, 10, 25, 14, 30));
+  const metricas = (numeros_captados: number) => ({
+    conexoes_enviadas: 0,
+    conexoes_aceitas: 0,
+    mensagens_abordagem: 0,
+    abordagens: 0,
+    follows_abordagem: 0,
+    respondidos: 0,
+    in_mails: 0,
+    fups: 0,
+    numeros_captados,
+    indicacoes: 0,
+  });
+  vi.mocked(buscarFunil).mockResolvedValueOnce({
+    periodo: { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
+    avisos: [],
+    contas: [
+      { id_conta: "1", nome: "Jacob", metricas: metricas(30), serie: [] },
+      { id_conta: "2", nome: "Alex", metricas: metricas(15), serie: [] },
+    ],
+    meta_numeros_captados: null,
+    sem_conta: metricas(5),
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/funil-linkedin?granularidade=mes&periodo=2026-11"]}>
+      <AtualizacaoProvider>
+        <FunilLinkedin />
+      </AtualizacaoProvider>
+    </MemoryRouter>,
+  );
+
+  await screen.findByRole("list", { name: "Funil LinkedIn" });
+  const card = screen
+    .getAllByRole("article")
+    .find((a) => a.textContent?.includes("Média de números captados")) as HTMLElement;
+  expect(card).toBeDefined();
+  expect(card.textContent).toContain("por dia");
+  expect(within(card).getByText("2,0")).toBeDefined();
+  vi.useRealTimers();
 });
 
 it("sem título da página", async () => {

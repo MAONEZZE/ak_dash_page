@@ -459,7 +459,7 @@ export interface EventoFunilEvento {
   rejeitados: number;
 }
 
-/** Etapas do Funil Evento. `inscritos` e `comparecimento` são do evento inteiro; as outras seguem o filtro de data. */
+/** Etapas do Funil Evento: retrato de agora do pipeline akeel 2.0, negócios com a etiqueta do evento. inscritos = coluna "3. Inscrito"; comparecimento vem do SED. */
 export interface EtapasFunilEvento {
   inscritos: number;
   onboarding_agendado: number;
@@ -489,6 +489,82 @@ export interface EventoVelocimetro {
   aprovados: number;
   pendentes: number;
   rejeitados: number;
-  /** Meta do velocímetro; `null` = evento sem limite cadastrado. */
+  /** Negócios hoje na coluna Onboarding realizado com a etiqueta do evento e Almoço pago (198 ou 199). */
+  almocos_pagos: number;
+  /** `null` = evento sem limite cadastrado. */
   capacidade: number | null;
+  /** Meta do velocímetro no filtro atual. Dia: (capacidade − inscritos até ontem) ÷ dias até a véspera do evento
+   * sem domingos, para cima. Semana: diária × 6, limitada ao que falta. Mês, ano e custom: a capacidade.
+   * 0 = capacidade atingida; `null` = sem capacidade ou, no dia/semana, do dia do evento em diante. */
+  meta_velocimetro: number | null;
+}
+
+// ---- /sdr ----
+
+/** Um dia da janela do evento (1ª inscrição → véspera, sem domingo). */
+export interface PontoSerieSdr {
+  data: string;
+  /** Inscrições acumuladas desde o início da janela; `null` em dia futuro. */
+  acumulado: number | null;
+  /** Acumulado até o dia anterior + meta diária; `null` sem meta diária. */
+  ritmo: number | null;
+}
+
+export interface PrevisaoSdr {
+  /** Inscrições projetadas até a véspera do evento pela média dos dias decorridos. */
+  valor: number;
+  /** Meta diária × dias da janela; `null` sem meta diária. */
+  meta: number | null;
+  pct_meta: number | null;
+}
+
+export interface SdrPaginaSdr {
+  id_user: string;
+  nome: string;
+  imagem_url: string | null;
+  /** Inscrições no período do filtro. */
+  inscricoes: number;
+  meta_inscricoes: number | null;
+  /** Ligações realizadas no período do filtro (metricas_sdrs). */
+  ligacoes: number;
+  /** ligacoes × 8 + inscricoes × 10. */
+  pontuacao: number;
+  posicao: number;
+  meta_diaria: number | null;
+  previsao: PrevisaoSdr | null;
+  serie_evento: PontoSerieSdr[];
+  /** Card "Ranking SDR", no mês `mes_ranking`. */
+  ranking_mes: RankingMesSdr;
+}
+
+export interface RankingMesSdr {
+  /** Negócios do Pipedrive de que o SDR é dono, criados no mês. */
+  negocios: number;
+  /** Negócios do SDR que entraram no estágio Inscrito do Pipedrive no mês (cada um uma vez). */
+  inscricoes: number;
+  /** Desses, os que entraram hoje. */
+  inscricoes_hoje: number;
+  /** Meta de inscrições do SDR no mês; `null` sem meta diária. */
+  meta: number | null;
+}
+
+export interface EventoPaginaSdr {
+  id: string;
+  titulo: string;
+  data: string;
+  capacidade: number | null;
+}
+
+export interface RespostaPaginaSdr {
+  periodo: Periodo;
+  avisos: string[];
+  evento: EventoPaginaSdr | null;
+  /** `null` sem evento ou sem inscrição antes da véspera. */
+  janela: { inicio: string; fim: string } | null;
+  /** Mês do card "Ranking SDR" (o que contém o fim do filtro). */
+  mes_ranking: { inicio: string; fim: string } | null;
+  /** Inscritos (approved/pending) do evento no SED no mês; `null` sem evento. */
+  inscritos_sed_mes: number | null;
+  /** Em ordem de posição do ranking. */
+  sdrs: SdrPaginaSdr[];
 }

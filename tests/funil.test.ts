@@ -7,6 +7,7 @@ import {
   indiceGargalo,
   formatoFunil,
   largurasEtapas,
+  mediaNumerosCaptados,
   somarContas,
   taxasInstagram,
   taxasLinkedin,
@@ -201,6 +202,25 @@ it("serieGraficoContas: no filtro de dia mostra os 7 dias até ele, pra ter linh
   });
 });
 
+it("serieGraficoContas: no filtro de semana mostra os 7 dias até hoje, mesmo na segunda-feira", () => {
+  const contas = [conta("Jacob", [["2026-11-18", { fups: 2 }], ["2026-11-23", { fups: 5 }]])];
+  const semana = { granularidade: "semana" as const, inicio: "2026-11-23", fim: "2026-11-29" };
+
+  expect(serieGraficoContas(contas, "fups", semana, new Date(2026, 10, 23, 15))).toEqual({
+    rotulos: ["17/11", "18/11", "19/11", "20/11", "21/11", "22/11", "23/11"],
+    series: [{ nome: "Jacob", valores: [0, 2, 0, 0, 0, 0, 5] }],
+  });
+});
+
+it("serieGraficoContas: semana passada mostra os 7 dias dela", () => {
+  const contas = [conta("Jacob", [["2026-11-18", { fups: 2 }]])];
+  const semana = { granularidade: "semana" as const, inicio: "2026-11-16", fim: "2026-11-22" };
+
+  expect(serieGraficoContas(contas, "fups", semana, new Date(2026, 10, 23)).rotulos).toEqual([
+    "16/11", "17/11", "18/11", "19/11", "20/11", "21/11", "22/11",
+  ]);
+});
+
 it("serieGraficoContas: ano soma por mês, até o mês corrente", () => {
   const contas = [
     conta("Jacob", [
@@ -229,4 +249,28 @@ it("escalaMetades: 0, metade e o total, com total par pra metade ser inteira", (
   expect(escalaMetades([7])).toEqual([0, 4, 8]);
   expect(escalaMetades([0, 0])).toEqual([0, 1, 2]);
   expect(escalaMetades([])).toEqual([0, 1, 2]);
+});
+
+it("mediaNumerosCaptados no mês em andamento divide pelos dias já passados, contando hoje", () => {
+  expect(
+    mediaNumerosCaptados(50, { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" }, new Date(2026, 10, 25, 14, 30)),
+  ).toEqual({ valor: 2, unidade: "dia" });
+});
+
+it("mediaNumerosCaptados em período fechado divide por todos os dias do período", () => {
+  expect(
+    mediaNumerosCaptados(62, { granularidade: "mes", inicio: "2026-10-01", fim: "2026-10-31" }, new Date(2026, 10, 25, 14, 30)),
+  ).toEqual({ valor: 2, unidade: "dia" });
+});
+
+it("mediaNumerosCaptados no filtro dia divide pelas horas passadas desde 00h", () => {
+  expect(
+    mediaNumerosCaptados(29, { granularidade: "dia", inicio: "2026-11-25", fim: "2026-11-25" }, new Date(2026, 10, 25, 14, 30)),
+  ).toEqual({ valor: 2, unidade: "hora" });
+});
+
+it("mediaNumerosCaptados antes de 01h divide por 1 hora", () => {
+  expect(
+    mediaNumerosCaptados(3, { granularidade: "dia", inicio: "2026-11-25", fim: "2026-11-25" }, new Date(2026, 10, 25, 0, 20)),
+  ).toEqual({ valor: 3, unidade: "hora" });
 });

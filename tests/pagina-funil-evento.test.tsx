@@ -11,7 +11,7 @@ const RESPOSTA: RespostaFunilEvento = {
   periodo: { granularidade: "mes", inicio: "2026-11-01", fim: "2026-11-30" },
   avisos: [],
   evento: { id: "i2", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", total: 6, aprovados: 3, pendentes: 2, rejeitados: 1 },
-  funil: { inscritos: 5, onboarding_agendado: 4, onboarding_realizado: 3, comparecimento: 2, vendas: 1 },
+  funil: { inscritos: 2, onboarding_agendado: 1, onboarding_realizado: 1, comparecimento: 1, vendas: 1 },
 };
 
 vi.mock("../src/lib/api", () => ({ buscarFunilEvento: vi.fn(async () => RESPOSTA) }));
@@ -34,30 +34,47 @@ it("mostra o evento e os cards do evento com a conversão inscritos → vendas",
   await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
   const bloco = screen.getByRole("region", { name: "Cards do evento" });
   expect([...bloco.querySelectorAll("article")].map((c) => c.textContent)).toEqual([
-    "Total6",
+    "Total (SED)6",
     "Aprovados3",
     "Pendentes2",
     "Rejeitados1",
-    "Conversãoinscritos → vendas20,0%",
+    "Conversãoinscritos → vendas16,7%",
   ]);
 });
 
-it("funil de cima pra baixo com as passagens entre etapas", async () => {
+it("funil começa em Inscritos e as passagens usam o acumulado das etapas", async () => {
+  vi.mocked(buscarFunilEvento).mockResolvedValueOnce({
+    ...RESPOSTA,
+    funil: { inscritos: 20, onboarding_agendado: 3, onboarding_realizado: 2, comparecimento: 0, vendas: 0 },
+  });
   renderizar();
   const funil = await screen.findByRole("list", { name: "Funil do Evento" });
   const etapas = within(funil).getAllByRole("listitem");
   expect(etapas.map((e) => e.querySelector("[data-segmento]")?.textContent)).toEqual([
-    "Inscritos5",
-    "Onboarding Agendado4",
-    "Onboarding Realizado3",
-    "Comparecimento2",
-    "Vendas1",
+    "Inscritos20",
+    "Onboarding Agendado3",
+    "Onboarding Realizado2",
+    "Comparecimento0",
+    "Vendas0",
   ]);
-  expect(etapas[0].textContent).toContain("80,0% agendaram onboarding");
-  expect(etapas[1].textContent).toContain("75,0% fizeram onboarding");
-  expect(etapas[2].textContent).toContain("66,7% compareceram");
-  expect(etapas[3].textContent).toContain("50,0% compraram");
-  expect(screen.getByRole("group", { name: "Conversão total do funil" }).textContent).toContain("20,0%");
+  // 25 no total; chegaram a Onboarding Agendado ou além 5, a Realizado ou além 2.
+  expect(etapas[0].textContent).toContain("↓ 20,0% agendaram onboarding");
+  expect(etapas[1].textContent).toContain("40,0% fizeram onboarding");
+  expect(etapas[2].textContent).toContain("0,0% compareceram");
+});
+
+it("conversão do evento é vendas ÷ soma de todas as etapas", async () => {
+  vi.mocked(buscarFunilEvento).mockResolvedValueOnce({
+    ...RESPOSTA,
+    funil: { inscritos: 36, onboarding_agendado: 0, onboarding_realizado: 0, comparecimento: 0, vendas: 4 },
+  });
+  renderizar();
+  await screen.findByRole("heading", { name: /Imersão Alta Cadência/ });
+  const bloco = screen.getByRole("region", { name: "Cards do evento" });
+  const cards = bloco.querySelectorAll("article");
+  expect(cards[cards.length - 1].textContent).toBe("Conversãoinscritos → vendas10,0%");
+  const conversaoTotal = screen.getByRole("group", { name: "Conversão total do funil" });
+  expect(conversaoTotal.textContent).toBe("Conversão total do funil10,0%");
 });
 
 it("sem inscritos a conversão é 0,0% e não traço", async () => {

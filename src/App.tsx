@@ -10,6 +10,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Phone,
   RefreshCw,
   Sun,
   Users,
@@ -37,6 +38,7 @@ import { FunilLinkedin } from "./paginas/FunilLinkedin";
 import { FunilSdr } from "./paginas/FunilSdr";
 import { Geral } from "./paginas/Geral";
 import { Login } from "./paginas/Login";
+import { Sdr } from "./paginas/Sdr";
 import { Time } from "./paginas/Time";
 
 type Tema = "light" | "dark";
@@ -57,6 +59,7 @@ const NAV_ITENS = [
   { rota: "/funil-linkedin", rotulo: "Funil LinkedIn", Icone: LogoLinkedin },
   { rota: "/funil-instagram", rotulo: "Funil Instagram", Icone: LogoInstagram },
   { rota: "/funil-sdr", rotulo: "Funil SDR", Icone: Headset },
+  { rota: "/sdr", rotulo: "SDR", Icone: Phone },
   { rota: "/funil-evento", rotulo: "Funil Evento", Icone: CalendarCheck },
   { rota: "/geral", rotulo: "Geral", Icone: LayoutDashboard },
   { rota: "/financeiro", rotulo: "Financeiro", Icone: Wallet },
@@ -67,7 +70,10 @@ const NAV_ITENS = [
 const PAGINAS_COM_SQUAD = ["/time"];
 
 /** Páginas que filtram por evento (evento do velocímetro e dos cards do evento). */
-const PAGINAS_COM_EVENTO = ["/funil-sdr", "/funil-evento"];
+const PAGINAS_COM_EVENTO = ["/funil-sdr", "/sdr", "/funil-evento"];
+
+/** Páginas que não usam o filtro de período (o filtro de data fica desabilitado nelas). */
+const PAGINAS_SEM_PERIODO = ["/funil-evento", "/sdr"];
 
 const GRANULARIDADES:{ id: Granularidade; label: string }[] = [
   { id: "dia", label: "Dia" },
@@ -142,7 +148,7 @@ function BarraLateral() {
   );
 }
 
-function PillPeriodo() {
+function PillPeriodo({ desabilitado }: { desabilitado: boolean }) {
   const { granularidade, periodo } = useFiltrosAtuais();
   const definirGranularidade = useDefinirGranularidade();
   const definirIntervalo = useDefinirIntervalo();
@@ -170,14 +176,20 @@ function PillPeriodo() {
 
   return (
     <div className="relative min-w-0 max-w-full" ref={container}>
-      <div className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0" role="group" aria-label="Período">
+      <div
+        className="glass-pill flex max-w-full gap-1 overflow-x-auto p-1 *:shrink-0"
+        role="group"
+        aria-label="Período"
+        aria-disabled={desabilitado}
+      >
         {GRANULARIDADES.map((g) => (
           <button
             key={g.id}
             type="button"
             onClick={() => definirGranularidade(g.id)}
+            disabled={desabilitado}
             aria-pressed={granularidade === g.id}
-            className={`pill ${granularidade === g.id ? "pill-ativo" : ""}`}
+            className={`pill disabled:pointer-events-none disabled:opacity-40 ${granularidade === g.id ? "pill-ativo" : ""}`}
           >
             {g.label}
           </button>
@@ -185,10 +197,11 @@ function PillPeriodo() {
         <button
           type="button"
           onClick={() => setCalendarioAberto((a) => !a)}
+          disabled={desabilitado}
           aria-pressed={custom}
           aria-haspopup="dialog"
           aria-expanded={calendarioAberto}
-          className={`pill inline-flex items-center gap-1.5 ${custom ? "pill-ativo" : ""}`}
+          className={`pill inline-flex items-center gap-1.5 disabled:pointer-events-none disabled:opacity-40 ${custom ? "pill-ativo" : ""}`}
         >
           <CalendarRange className="size-4" aria-hidden />
           {custom ? `${formatarDataCurta(inicio)} – ${formatarDataCurta(fim)}` : <span className="sr-only sm:not-sr-only">Customizado</span>}
@@ -374,6 +387,7 @@ export default function App() {
   const location = useLocation();
   const { granularidade, periodo } = useFiltrosAtuais();
   const evento = useEventoSelecionado();
+  const semPeriodo = PAGINAS_SEM_PERIODO.includes(location.pathname);
 
   if (carregando) {
     return (
@@ -413,8 +427,8 @@ export default function App() {
                  */}
                 <div className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2.5">
                   <div className="filtros-header order-last col-span-2 flex min-w-0 items-center gap-1.5 sm:flex-wrap sm:justify-center sm:gap-2.5 lg:order-none lg:col-span-1 lg:col-start-1">
-                    <PillPeriodoNavegavel habilitado={granularidade === "mes"} />
-                    <PillPeriodo />
+                    <PillPeriodoNavegavel habilitado={granularidade === "mes" && !semPeriodo} />
+                    <PillPeriodo desabilitado={semPeriodo} />
                     {/* No celular o filtro de função só aparece onde ele vale. */}
                     <div className={PAGINAS_COM_SQUAD.includes(location.pathname) ? "shrink-0" : "hidden sm:block"}>
                       <PillSquad disabled={!PAGINAS_COM_SQUAD.includes(location.pathname)} />
@@ -433,7 +447,9 @@ export default function App() {
                 </div>
               </header>
 
-              <main className="px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 md:overflow-y-auto md:pb-6">
+              <main
+                className={`px-4 pb-28 pt-5 sm:px-6 md:min-h-0 md:flex-1 ${location.pathname === "/sdr" ? "md:flex md:flex-col md:overflow-hidden" : "md:overflow-y-auto"} md:pb-6`}
+              >
                 {/*
                  * Trocar um filtro que refaz a busca (período, mês, evento) remonta a
                  * página: o dado velho some e os componentes voltam ao esqueleto até
@@ -448,6 +464,7 @@ export default function App() {
                   <Route path="/funil-instagram" element={<FunilInstagram />} />
                   <Route path="/funil-sdr" element={<FunilSdr />} />
                   <Route path="/funil-evento" element={<FunilEvento />} />
+                  <Route path="/sdr" element={<Sdr />} />
                   <Route path="/geral" element={<Geral />} />
                   <Route path="/time" element={<Time />} />
                   <Route path="/financeiro" element={<Financeiro />} />
