@@ -56,3 +56,43 @@ export function totaisDoPeriodo(notas: NotaFinanceiro[], inicio: string, fim: st
     receitaBase: somaPago((n) => n.categoria === "mensalidade cliente" || n.categoria === "upsell"),
   };
 }
+
+export interface PontoSerieMensal {
+  mes: string;
+  faturamento: number;
+  receita: number;
+  receitaComercial: number;
+  receitaBase: number;
+  vendas: number;
+  ticketMedio: number | null;
+}
+
+export function serieMensal(notas: NotaFinanceiro[], ano: string): PontoSerieMensal[] {
+  const pontos: PontoSerieMensal[] = [];
+  for (let m = 1; m <= 12; m++) {
+    const mes = `${ano}-${String(m).padStart(2, "0")}`;
+    pontos.push({ mes, ...totaisDoPeriodo(notas, `${mes}-01`, `${mes}-31`) });
+  }
+  return pontos;
+}
+
+export function totalSerie(pontos: PontoSerieMensal[]): PontoSerieMensal {
+  const soma = (campo: "faturamento" | "receita" | "receitaComercial" | "receitaBase" | "vendas") =>
+    pontos.reduce((acc, p) => acc + p[campo], 0);
+  const faturamento = soma("faturamento");
+  const vendas = soma("vendas");
+  return {
+    mes: "total",
+    faturamento,
+    receita: soma("receita"),
+    receitaComercial: soma("receitaComercial"),
+    receitaBase: soma("receitaBase"),
+    vendas,
+    ticketMedio: vendas > 0 ? faturamento / vendas : null,
+  };
+}
+
+export function acumuladoDoAno(notas: NotaFinanceiro[], ano: string): { faturamento: number; receita: number } {
+  const t = totaisDoPeriodo(notas, `${ano}-01-01`, `${ano}-12-31`);
+  return { faturamento: t.faturamento, receita: t.receita };
+}

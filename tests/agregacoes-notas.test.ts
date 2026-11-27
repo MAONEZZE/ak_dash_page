@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mesesDoPeriodo, totaisDoPeriodo } from "../src/lib/agregacoes-notas";
+import { acumuladoDoAno, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalSerie } from "../src/lib/agregacoes-notas";
 import type { NotaFinanceiro } from "../src/lib/tipos-api";
 
 function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
@@ -40,5 +40,18 @@ describe("mesesDoPeriodo", () => {
     expect(mesesDoPeriodo("2026-09-01", "2026-09-30")).toEqual(["2026-09"]);
     expect(mesesDoPeriodo("2025-11-20", "2026-02-03")).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
     expect(mesesDoPeriodo("2026-10-28", "2026-10-28")).toEqual(["2026-10"]);
+  });
+});
+
+describe("serieMensal", () => {
+  it("serieMensal dá 12 meses com receita, faturamento, vendas e ticket, e o total recalcula o ticket", () => {
+    const s = serieMensal(NOTAS, "2026");
+    expect(s.length).toBe(12);
+    expect(s[0]).toEqual({ mes: "2026-01", faturamento: 0, receita: 0, receitaComercial: 0, receitaBase: 0, vendas: 0, ticketMedio: null });
+    expect(s[7]).toEqual({ mes: "2026-08", faturamento: 30000, receita: 7000, receitaComercial: 7000, receitaBase: 0, vendas: 1, ticketMedio: 30000 });
+    expect(s[8]).toEqual({ mes: "2026-09", faturamento: 88000, receita: 20000, receitaComercial: 10000, receitaBase: 8000, vendas: 2, ticketMedio: 44000 });
+    expect(s[9]).toEqual({ mes: "2026-10", faturamento: 0, receita: 4000, receitaComercial: 0, receitaBase: 4000, vendas: 0, ticketMedio: null });
+    expect(totalSerie(s)).toEqual({ mes: "total", faturamento: 118000, receita: 31000, receitaComercial: 17000, receitaBase: 12000, vendas: 3, ticketMedio: 118000 / 3 });
+    expect(acumuladoDoAno(NOTAS, "2026")).toEqual({ faturamento: 118000, receita: 31000 });
   });
 });
