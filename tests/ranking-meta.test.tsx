@@ -5,7 +5,7 @@
 // marcadores 70/100/120%, tick de ritmo, run rate e o badge opcional.
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { diasDecorridos, type ItemRanking, RankingMeta } from "../src/componentes/RankingMeta";
+import { diasUteisDecorridos, type ItemRanking, RankingMeta } from "../src/componentes/RankingMeta";
 
 afterEach(() => cleanup());
 
@@ -14,8 +14,8 @@ function item(nome: string, valor: number, valorHoje = 0, negocios: number | und
 }
 
 const NOVEMBRO = { inicio: "2026-11-01", fim: "2026-11-30" };
-// Dia 25 às 18h49: ≈ 24,78 dias decorridos de 30.
-const AGORA = new Date(2026, 10, 25, 18, 49);
+// Quarta, 25/11, meio-dia: 17 dias úteis antes + meio dia de 21.
+const AGORA = new Date(2026, 10, 25, 12, 0);
 
 function renderizar(itens: ItemRanking[], badge: string | null = "57 inscritos") {
   render(
@@ -56,7 +56,7 @@ describe("RankingMeta", () => {
   it("header traz a meta do mês do time e o badge informado", () => {
     renderizar([item("Ana", 30, 0, 0, 47), item("Bia", 10, 0, 0, 41)]);
 
-    expect(screen.getByText("Meta do mês:").textContent).toContain("88");
+    expect(screen.getByText("Meta até 30/11:").textContent).toContain("88");
     expect(document.querySelector("[data-total-geral]")?.textContent).toBe("57 inscritos");
   });
 
@@ -83,7 +83,7 @@ describe("RankingMeta", () => {
     expect(atingidos).toEqual(["true", "false", "false"]);
 
     const tick = parseFloat((linha.querySelector("[data-ritmo]") as HTMLElement).style.left);
-    expect(tick).toBeCloseTo(((24 + 18 / 24 + 49 / 1440) / 30) * (100 / 1.2), 1);
+    expect(tick).toBeCloseTo((17.5 / 21) * (100 / 1.2), 1); // 69,44
   });
 
   it("run rate projeta o fechamento do mês: verde se ≥ 100% da meta, laranja se abaixo", () => {
@@ -91,7 +91,7 @@ describe("RankingMeta", () => {
 
     const [ana, bia] = screen.getAllByRole("listitem");
     const valorAna = ana.querySelector("[data-run-rate] span") as HTMLElement;
-    expect(valorAna.textContent).toBe("48 inscrições (120% da meta)"); // 40 / 24,78 × 30
+    expect(valorAna.textContent).toBe("48 inscrições (120% da meta)"); // 40 / 17,5 × 21
     expect(valorAna.classList.contains("text-ok")).toBe(true);
     expect((bia.querySelector("[data-run-rate] span") as HTMLElement).classList.contains("text-fogo")).toBe(true);
   });
@@ -105,9 +105,29 @@ describe("RankingMeta", () => {
     expect(linha.querySelector("[data-run-rate] span")?.textContent).toBe("36 inscrições");
   });
 
-  it("dias decorridos são fracionados pela hora e param no fim do mês", () => {
-    expect(diasDecorridos("2026-11-01", "2026-11-30", AGORA).decorridos).toBeCloseTo(24.78, 2);
-    expect(diasDecorridos("2026-10-01", "2026-10-31", AGORA)).toEqual({ decorridos: 31, doMes: 31 });
+  it("dias úteis decorridos contam só seg–sex, fracionam o dia de hoje pela hora e param no fim da janela", () => {
+    expect(diasUteisDecorridos("2026-11-01", "2026-11-30", AGORA)).toEqual({ decorridos: 17.5, total: 21 });
+    expect(diasUteisDecorridos("2026-11-01", "2026-11-30", new Date(2026, 10, 28, 10, 0))).toEqual({ decorridos: 20, total: 21 });
+    expect(diasUteisDecorridos("2026-11-01", "2026-11-25", AGORA)).toEqual({ decorridos: 17.5, total: 18 });
+    expect(diasUteisDecorridos("2026-10-01", "2026-10-31", AGORA)).toEqual({ decorridos: 22, total: 22 });
+    expect(diasUteisDecorridos("2026-12-01", "2026-12-31", AGORA)).toEqual({ decorridos: 0, total: 23 });
+  });
+
+  it("com janela até a véspera do evento, o cabeçalho mostra o fim dela", () => {
+    render(
+      <RankingMeta
+        titulo="Ranking Seller"
+        rotuloLista="Ranking Seller"
+        itens={[item("Ana", 30)]}
+        janela={{ inicio: "2026-11-01", fim: "2026-11-25" }}
+        unidade={{ singular: "venda", plural: "vendas" }}
+        legendaHoje="Vendas de hoje"
+        vazio="Nenhum seller ativo."
+        agora={AGORA}
+      />,
+    );
+
+    expect(screen.getByText("Meta até 25/11:")).toBeTruthy();
   });
 
   it("mostra aviso quando não há SDR ativo", () => {

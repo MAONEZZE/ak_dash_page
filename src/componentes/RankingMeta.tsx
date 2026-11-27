@@ -16,14 +16,24 @@ export interface ItemRanking {
   negocios?: number;
 }
 
-/** Dias decorridos do mês `[inicio, fim]` em `agora`, fracionados pela hora (dia 25 às 18h49 ≈ 24,78). */
-export function diasDecorridos(inicio: string, fim: string, agora: Date): { decorridos: number; doMes: number } {
+/**
+ * Dias seg–sex decorridos da janela em `agora`, com o dia de hoje fracionado pela hora; `total` = dias seg–sex da janela.
+ */
+export function diasUteisDecorridos(inicio: string, fim: string, agora: Date): { decorridos: number; total: number } {
   const [ai, mi, di] = inicio.split("-").map(Number);
   const [af, mf, df] = fim.split("-").map(Number);
-  const doMes = df - di + 1;
-  if (agora >= new Date(af, mf - 1, df + 1)) return { decorridos: doMes, doMes };
-  const dias = (agora.getTime() - new Date(ai, mi - 1, di).getTime()) / 86_400_000;
-  return { decorridos: Math.max(dias, 0), doMes };
+  const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const ultimo = new Date(af, mf - 1, df);
+  let total = 0;
+  let decorridos = 0;
+  for (let dia = new Date(ai, mi - 1, di); dia <= ultimo; dia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate() + 1)) {
+    const diaSemana = dia.getDay();
+    if (diaSemana === 0 || diaSemana === 6) continue;
+    total++;
+    if (dia < hoje) decorridos++;
+    else if (dia.getTime() === hoje.getTime()) decorridos += (agora.getTime() - hoje.getTime()) / 86_400_000;
+  }
+  return { decorridos, total };
 }
 
 function capitalizar(texto: string): string {
@@ -78,13 +88,13 @@ function LinhaRanking({
   item,
   posicao,
   decorridos,
-  doMes,
+  total,
   unidade,
 }: {
   item: ItemRanking;
   posicao: number;
   decorridos: number;
-  doMes: number;
+  total: number;
   unidade: { singular: string; plural: string };
 }) {
   const { valor, valorHoje, meta, negocios } = item;
@@ -92,9 +102,9 @@ function LinhaRanking({
   const escala = metaValida !== null ? metaValida * TETO_DA_BARRA : 0;
   // Largura sobre meta × 1,2, cortada no fim do trilho.
   const largura = (v: number) => (escala > 0 ? `${(Math.min(v, escala) / escala) * 100}%` : "0%");
-  const projecao = decorridos > 0 ? Math.round((valor / decorridos) * doMes) : valor;
+  const projecao = decorridos > 0 ? Math.round((valor / decorridos) * total) : valor;
   const pctProjecao = metaValida !== null ? Math.round((projecao / metaValida) * 100) : null;
-  const ritmo = doMes > 0 ? (decorridos / doMes / TETO_DA_BARRA) * 100 : 0;
+  const ritmo = total > 0 ? (decorridos / total / TETO_DA_BARRA) * 100 : 0;
 
   return (
     <li data-item={item.id} className="flex flex-col gap-2">
@@ -197,7 +207,8 @@ export function RankingMeta({
 }) {
   const ordenados = [...itens].sort((a, b) => b.valor - a.valor || (b.negocios ?? 0) - (a.negocios ?? 0));
   const metaDoMes = ordenados.reduce((soma, i) => soma + (i.meta ?? 0), 0);
-  const { decorridos, doMes } = janela ? diasDecorridos(janela.inicio, janela.fim, agora) : { decorridos: 0, doMes: 0 };
+  const { decorridos, total } = janela ? diasUteisDecorridos(janela.inicio, janela.fim, agora) : { decorridos: 0, total: 0 };
+  const rotuloMeta = janela ? `Meta até ${janela.fim.slice(8, 10)}/${janela.fim.slice(5, 7)}:` : "Meta:";
 
   return (
     <article
@@ -211,7 +222,7 @@ export function RankingMeta({
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
           <span>
-            Meta do mês: <strong>{formatarNumero(metaDoMes)}</strong>
+            {rotuloMeta} <strong>{formatarNumero(metaDoMes)}</strong>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="flex items-center gap-1"><Bolinha cor={VERDE_ESCURO} /> Acumulado do mês</span>
@@ -230,7 +241,7 @@ export function RankingMeta({
       ) : (
         <ol aria-label={rotuloLista} className="flex flex-col gap-4">
           {ordenados.map((item, i) => (
-            <LinhaRanking key={item.id} item={item} posicao={i + 1} decorridos={decorridos} doMes={doMes} unidade={unidade} />
+            <LinhaRanking key={item.id} item={item} posicao={i + 1} decorridos={decorridos} total={total} unidade={unidade} />
           ))}
         </ol>
       )}
