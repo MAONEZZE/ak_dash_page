@@ -232,3 +232,43 @@ it("nota lateral em card tem o texto 1,2× menor: rótulo 9,2px e valor 13,3px",
   expect(texto.classList.contains("text-[13.3px]")).toBe(true);
   expect(texto.classList.contains("text-[16px]")).toBe(false);
 });
+
+it("com nota em card, as etapas vão de 30% a 90% da largura e a nota usa a metade da largura da etapa, sem vazar do card", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "A", valor: 100, passagem: { taxa: 0.5, texto: "aceitaram" } },
+    { rotulo: "B", valor: 50, passagem: { taxa: 0.2, texto: "abordados" } },
+    { rotulo: "C", valor: 10 },
+  ];
+  const lateral = { rotulo: "Follow-ups", texto: "225 (14,1 por abordagem)", aoLadoDe: 1, formato: "card" as const };
+
+  render(<FunilBarras titulo="Funil" etapas={etapas} lateral={lateral} conversaoTotal={null} rotuloNoCanto />);
+
+  // A partir de `sm`, a etapa (60% da lista) começa em 30%: sobra à esquerda metade da largura dela para a nota.
+  const linhas = Array.from(document.querySelectorAll<HTMLElement>("[data-linha-etapa]"));
+  for (const linha of linhas) {
+    expect(linha.classList.contains("sm:ml-[30%]")).toBe(true);
+    expect(linha.classList.contains("sm:mr-[10%]")).toBe(true);
+  }
+  // O texto de passagem acompanha as etapas, para continuar centralizado embaixo delas.
+  for (const entre of Array.from(document.querySelectorAll<HTMLElement>("[data-entre-etapas]"))) {
+    expect(entre.classList.contains("sm:ml-[30%]")).toBe(true);
+    expect(entre.classList.contains("sm:mr-[10%]")).toBe(true);
+  }
+  const nota = document.querySelector("[data-nota-lateral]") as HTMLElement;
+  expect(nota.classList.contains("sm:max-w-[calc(50%-12px)]")).toBe(true);
+  expect(nota.classList.contains("sm:max-w-[200px]")).toBe(false);
+});
+
+it("sem nota em card, as etapas continuam centralizadas", () => {
+  const etapas: EtapaFunil[] = [
+    { rotulo: "A", valor: 100, passagem: { taxa: 0.5, texto: "aceitaram" } },
+    { rotulo: "B", valor: 50 },
+  ];
+
+  render(<FunilBarras titulo="Funil" etapas={etapas} conversaoTotal={null} />);
+
+  for (const linha of Array.from(document.querySelectorAll<HTMLElement>("[data-linha-etapa]"))) {
+    expect(linha.classList.contains("mx-auto")).toBe(true);
+    expect(linha.classList.contains("sm:ml-[30%]")).toBe(false);
+  }
+});

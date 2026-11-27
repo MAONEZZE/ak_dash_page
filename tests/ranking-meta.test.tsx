@@ -173,4 +173,26 @@ describe("RankingMeta", () => {
       expect(bolinha.classList.contains("w-4")).toBe(true);
     }
   });
+  it("até 2 pessoas o conteúdo fica no tamanho cheio; com mais, encolhe na proporção 2 ÷ pessoas", () => {
+    const escala = () => Number(document.querySelector("[data-escala]")?.getAttribute("data-escala"));
+
+    renderizar([item("Ana", 30), item("Bia", 12)]);
+    expect(escala()).toBe(1);
+    cleanup();
+
+    renderizar([item("Ana", 30)]);
+    expect(escala()).toBe(1);
+    cleanup();
+
+    renderizar([item("Ana", 30), item("Bia", 12), item("Caio", 5)]);
+    expect(escala()).toBeCloseTo(2 / 3);
+    cleanup();
+
+    renderizar([item("Ana", 30), item("Bia", 12), item("Caio", 5), item("Duda", 1)]);
+    expect(escala()).toBe(0.5);
+    // O cabeçalho e a lista ficam dentro do bloco escalado.
+    const bloco = document.querySelector("[data-escala]") as HTMLElement;
+    expect(bloco.contains(screen.getByRole("heading", { level: 2 }))).toBe(true);
+    expect(bloco.contains(screen.getByRole("list", { name: "Ranking SDR" }))).toBe(true);
+  });
 });

@@ -209,12 +209,15 @@ export function RankingMeta({
   const metaDoMes = ordenados.reduce((soma, i) => soma + (i.meta ?? 0), 0);
   const { decorridos, total } = janela ? diasUteisDecorridos(janela.inicio, janela.fim, agora) : { decorridos: 0, total: 0 };
   const rotuloMeta = janela ? `Meta até ${janela.fim.slice(8, 10)}/${janela.fim.slice(5, 7)}:` : "Meta:";
+  // Até 2 pessoas, tamanho cheio; com mais, tudo encolhe na proporção 2 ÷ pessoas para caber no card.
+  const escala = Math.min(1, 2 / Math.max(ordenados.length, 1));
 
   return (
     <article
-      className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-[16px] bg-surface p-6 shadow-sm"
+      className="flex h-full min-h-0 flex-col overflow-y-auto rounded-[16px] bg-surface p-6 shadow-sm"
       aria-label={titulo}
     >
+      <div data-escala={escala} className="flex flex-col gap-5" style={{ zoom: escala }}>
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <Trofeu cor="var(--color-fogo)" tamanho={44} />
@@ -245,6 +248,7 @@ export function RankingMeta({
           ))}
         </ol>
       )}
+      </div>
     </article>
   );
 }
