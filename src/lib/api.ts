@@ -20,6 +20,7 @@ import type {
   RespostaFunilSdr,
   RespostaGeral,
   RespostaPaginaSdr,
+  RespostaPaginaSeller,
 } from "./tipos-api";
 import { supabase } from "./supabase";
 
@@ -214,6 +215,10 @@ export async function buscarPaginaSdr(params: ParametrosFunil & { evento?: strin
     periodo: params.periodo,
     evento: params.evento ?? undefined,
   });
+}
+
+export async function buscarPaginaSeller(params: ParametrosFunil): Promise<RespostaPaginaSeller> {
+  return requisitar<RespostaPaginaSeller>("/seller", { granularidade: params.granularidade, periodo: params.periodo });
 }
 
 export async function buscarEventosFunilSdr(): Promise<RespostaEventosFunilSdr> {
