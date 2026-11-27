@@ -540,11 +540,11 @@ export interface SdrPaginaSdr {
 export interface RankingMesSdr {
   /** Negócios do Pipedrive de que o SDR é dono, criados no mês. */
   negocios: number;
-  /** Negócios do SDR que entraram no estágio Inscrito do Pipedrive no mês (cada um uma vez). */
+  /** Inscrições do SDR no mês (planilha → metricas_funil_sdr). */
   inscricoes: number;
-  /** Desses, os que entraram hoje. */
+  /** Desses, as da linha de hoje. */
   inscricoes_hoje: number;
-  /** Meta de inscrições do SDR no mês; `null` sem meta diária. */
+  /** Meta diária do SDR (planilha) × dias seg–sex de `janela_meta`; `null` sem meta diária ou sem janela. */
   meta: number | null;
 }
 
@@ -563,6 +563,8 @@ export interface RespostaPaginaSdr {
   janela: { inicio: string; fim: string } | null;
   /** Mês do card "Ranking SDR" (o que contém o fim do filtro). */
   mes_ranking: { inicio: string; fim: string } | null;
+  /** Janela da meta do ranking: do dia 1º do mês até a véspera do evento (no máximo o fim do mês); `null` se o evento é antes do mês. */
+  janela_meta: { inicio: string; fim: string } | null;
   /** Inscritos (approved/pending) do evento no SED no mês; `null` sem evento. */
   inscritos_sed_mes: number | null;
   /** Em ordem de posição do ranking. */

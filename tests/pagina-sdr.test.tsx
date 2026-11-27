@@ -27,6 +27,7 @@ const RESPOSTA: RespostaPaginaSdr = {
   evento: { id: "e1", titulo: "Imersão Alta Cadência", data: "2026-12-02T16:00:00+00:00", capacidade: 80 },
   janela: { inicio: "2026-11-01", fim: "2026-12-01" },
   mes_ranking: { inicio: "2026-11-01", fim: "2026-11-30" },
+  janela_meta: { inicio: "2026-11-01", fim: "2026-11-30" },
   inscritos_sed_mes: 57,
   sdrs: [
     sdr({ id_user: "7", nome: "Ana Lima", posicao: 1, inscricoes: 30 }),
