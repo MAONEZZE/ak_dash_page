@@ -1,5 +1,4 @@
 import { formatarNumero } from "../lib/formato";
-import type { SdrPaginaSdr } from "../lib/tipos-api";
 
 /** A largura do trilho da barra é 120% da meta. */
 const TETO_DA_BARRA = 1.2;
@@ -7,6 +6,15 @@ const CORES_MEDALHA = ["var(--color-ouro)", "var(--color-prata)", "var(--color-b
 const CINZA_MARCADOR = "var(--color-faint)";
 const VERDE_ESCURO = "var(--color-ok-claro)"; // acumulado do mês
 const VERDE_CLARO = "var(--color-accent)"; // inscrições de hoje
+
+export interface ItemRanking {
+  id: string;
+  nome: string;
+  valor: number;
+  valorHoje: number;
+  meta: number | null;
+  negocios?: number;
+}
 
 /** Dias decorridos do mês `[inicio, fim]` em `agora`, fracionados pela hora (dia 25 às 18h49 ≈ 24,78). */
 export function diasDecorridos(inicio: string, fim: string, agora: Date): { decorridos: number; doMes: number } {
@@ -16,6 +24,10 @@ export function diasDecorridos(inicio: string, fim: string, agora: Date): { deco
   if (agora >= new Date(af, mf - 1, df + 1)) return { decorridos: doMes, doMes };
   const dias = (agora.getTime() - new Date(ai, mi - 1, di).getTime()) / 86_400_000;
   return { decorridos: Math.max(dias, 0), doMes };
+}
+
+function capitalizar(texto: string): string {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function Trofeu({ cor, tamanho = 22 }: { cor: string; tamanho?: number }) {
@@ -62,36 +74,50 @@ const MARCADORES = [
   { fracao: TETO_DA_BARRA, rotulo: "120% da meta", cor: CORES_MEDALHA[0], trofeu: true },
 ];
 
-function LinhaSdr({ s, posicao, decorridos, doMes }: { s: SdrPaginaSdr; posicao: number; decorridos: number; doMes: number }) {
-  const { negocios, inscricoes, inscricoes_hoje, meta } = s.ranking_mes;
+function LinhaRanking({
+  item,
+  posicao,
+  decorridos,
+  doMes,
+  unidade,
+}: {
+  item: ItemRanking;
+  posicao: number;
+  decorridos: number;
+  doMes: number;
+  unidade: { singular: string; plural: string };
+}) {
+  const { valor, valorHoje, meta, negocios } = item;
   const metaValida = meta !== null && meta > 0 ? meta : null;
   const escala = metaValida !== null ? metaValida * TETO_DA_BARRA : 0;
   // Largura sobre meta × 1,2, cortada no fim do trilho.
   const largura = (v: number) => (escala > 0 ? `${(Math.min(v, escala) / escala) * 100}%` : "0%");
-  const projecao = decorridos > 0 ? Math.round((inscricoes / decorridos) * doMes) : inscricoes;
+  const projecao = decorridos > 0 ? Math.round((valor / decorridos) * doMes) : valor;
   const pctProjecao = metaValida !== null ? Math.round((projecao / metaValida) * 100) : null;
   const ritmo = doMes > 0 ? (decorridos / doMes / TETO_DA_BARRA) * 100 : 0;
 
   return (
-    <li data-sdr={s.id_user} className="flex flex-col gap-2">
+    <li data-item={item.id} className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <Posicao posicao={posicao} />
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-[18px] font-medium leading-tight">{s.nome}</span>
-            <span data-negocios className="text-[13px] text-muted">
-              {formatarNumero(negocios)} {negocios === 1 ? "negócio" : "negócios"}
-            </span>
+            <span className="truncate text-[18px] font-medium leading-tight">{item.nome}</span>
+            {negocios !== undefined && (
+              <span data-negocios className="text-[13px] text-muted">
+                {formatarNumero(negocios)} {negocios === 1 ? "negócio" : "negócios"}
+              </span>
+            )}
           </div>
         </div>
         <div data-numeros className="flex shrink-0 items-baseline gap-2">
-          {inscricoes_hoje > 0 && (
-            <span data-hoje className="text-[16px] font-semibold text-ok">+{formatarNumero(inscricoes_hoje)} hoje</span>
+          {valorHoje > 0 && (
+            <span data-hoje className="text-[16px] font-semibold text-ok">+{formatarNumero(valorHoje)} hoje</span>
           )}
-          <span data-total className="text-[22px] font-bold text-fogo">{formatarNumero(inscricoes)}</span>
+          <span data-total className="text-[22px] font-bold text-fogo">{formatarNumero(valor)}</span>
           <span className="text-[14px] text-faint">/ {metaValida !== null ? formatarNumero(metaValida) : "—"}</span>
           {metaValida !== null && (
-            <span data-pct className="text-[14px] font-bold">{Math.round((inscricoes / metaValida) * 100)}%</span>
+            <span data-pct className="text-[14px] font-bold">{Math.round((valor / metaValida) * 100)}%</span>
           )}
         </div>
       </div>
@@ -99,7 +125,7 @@ function LinhaSdr({ s, posicao, decorridos, doMes }: { s: SdrPaginaSdr; posicao:
       <div className="relative pt-6">
         {metaValida !== null &&
           MARCADORES.map((m) => {
-            const atingido = inscricoes >= metaValida * m.fracao;
+            const atingido = valor >= metaValida * m.fracao;
             const cor = atingido ? m.cor : CINZA_MARCADOR;
             return (
               <span
@@ -120,14 +146,14 @@ function LinhaSdr({ s, posicao, decorridos, doMes }: { s: SdrPaginaSdr; posicao:
         <div
           className="relative h-2 overflow-hidden rounded-full bg-track"
           role="progressbar"
-          aria-label={`Inscrições de ${s.nome}`}
-          aria-valuenow={inscricoes}
+          aria-label={`${capitalizar(unidade.plural)} de ${item.nome}`}
+          aria-valuenow={valor}
           aria-valuemin={0}
           aria-valuemax={metaValida ?? undefined}
         >
           {/* Sobrepostas, as duas a partir do início: o acumulado do mês atrás, o dia na frente. */}
-          <span data-segmento="acumulado" className="absolute inset-y-0 left-0" style={{ width: largura(inscricoes), background: VERDE_ESCURO }} />
-          <span data-segmento="hoje" className="absolute inset-y-0 left-0" style={{ width: largura(inscricoes_hoje), background: VERDE_CLARO }} />
+          <span data-segmento="acumulado" className="absolute inset-y-0 left-0" style={{ width: largura(valor), background: VERDE_ESCURO }} />
+          <span data-segmento="hoje" className="absolute inset-y-0 left-0" style={{ width: largura(valorHoje), background: VERDE_CLARO }} />
           <span data-ritmo className="absolute inset-y-0 w-px bg-muted" style={{ left: `${ritmo}%` }} />
         </div>
       </div>
@@ -135,7 +161,7 @@ function LinhaSdr({ s, posicao, decorridos, doMes }: { s: SdrPaginaSdr; posicao:
       <p data-run-rate className="text-[13px] text-muted">
         Run rate · previsão de fechamento:{" "}
         <span className={`font-semibold ${pctProjecao !== null && pctProjecao >= 100 ? "text-ok" : "text-fogo"}`}>
-          {formatarNumero(projecao)} {projecao === 1 ? "inscrição" : "inscrições"}
+          {formatarNumero(projecao)} {projecao === 1 ? unidade.singular : unidade.plural}
           {pctProjecao !== null && ` (${pctProjecao}% da meta)`}
         </span>
       </p>
@@ -144,36 +170,44 @@ function LinhaSdr({ s, posicao, decorridos, doMes }: { s: SdrPaginaSdr; posicao:
 }
 
 /**
- * Card "Ranking SDR": inscrições do mês `mesRanking` por SDR (estágio Inscrito do Pipedrive) contra a
- * meta de inscrições do mês, com o dia em verde claro; embaixo do nome, os negócios de que o SDR é dono.
- * O badge é o total de inscritos do evento no SED no mês. Ordena por inscrições, decrescente.
+ * Card de ranking contra a meta: valor acumulado da janela por pessoa, com o dia em verde claro; usado nas
+ * páginas SDR e Seller. Embaixo do nome, os negócios de cada item quando informados. O `badge` é um
+ * total opcional no cabeçalho. Ordena por valor, decrescente, desempatando por negócios.
  */
-export function RankingSdr({
-  sdrs,
-  mesRanking,
-  inscritosSed,
+export function RankingMeta({
+  titulo,
+  rotuloLista,
+  itens,
+  janela,
+  unidade,
+  legendaHoje,
+  badge = null,
+  vazio,
   agora = new Date(),
 }: {
-  sdrs: SdrPaginaSdr[];
-  mesRanking: { inicio: string; fim: string } | null;
-  inscritosSed: number | null;
+  titulo: string;
+  rotuloLista: string;
+  itens: ItemRanking[];
+  janela: { inicio: string; fim: string } | null;
+  unidade: { singular: string; plural: string };
+  legendaHoje: string;
+  badge?: string | null;
+  vazio: string;
   agora?: Date;
 }) {
-  const ordenados = [...sdrs].sort(
-    (a, b) => b.ranking_mes.inscricoes - a.ranking_mes.inscricoes || b.ranking_mes.negocios - a.ranking_mes.negocios,
-  );
-  const metaDoMes = ordenados.reduce((soma, s) => soma + (s.ranking_mes.meta ?? 0), 0);
-  const { decorridos, doMes } = mesRanking ? diasDecorridos(mesRanking.inicio, mesRanking.fim, agora) : { decorridos: 0, doMes: 0 };
+  const ordenados = [...itens].sort((a, b) => b.valor - a.valor || (b.negocios ?? 0) - (a.negocios ?? 0));
+  const metaDoMes = ordenados.reduce((soma, i) => soma + (i.meta ?? 0), 0);
+  const { decorridos, doMes } = janela ? diasDecorridos(janela.inicio, janela.fim, agora) : { decorridos: 0, doMes: 0 };
 
   return (
     <article
       className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto rounded-[16px] bg-surface p-6 shadow-sm"
-      aria-label="Ranking SDR — Inscritos gerados"
+      aria-label={titulo}
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <Trofeu cor="var(--color-fogo)" />
-          <h2 className="text-[20px] font-semibold">Ranking SDR — Inscritos gerados</h2>
+          <h2 className="text-[20px] font-semibold">{titulo}</h2>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
           <span>
@@ -182,21 +216,21 @@ export function RankingSdr({
           <span className="flex items-center gap-1.5">
             <span className="flex items-center gap-1"><Bolinha cor={VERDE_ESCURO} /> Acumulado do mês</span>
             <span>·</span>
-            <span className="flex items-center gap-1"><Bolinha cor={VERDE_CLARO} /> Inscrições de hoje</span>
+            <span className="flex items-center gap-1"><Bolinha cor={VERDE_CLARO} /> {legendaHoje}</span>
           </span>
-          {inscritosSed !== null && (
+          {badge !== null && (
             <span data-total-geral className="rounded-full bg-track px-2.5 py-0.5 font-bold">
-              {formatarNumero(inscritosSed)} inscritos
+              {badge}
             </span>
           )}
         </div>
       </header>
       {ordenados.length === 0 ? (
-        <p className="text-[14px] text-muted">Nenhum SDR ativo.</p>
+        <p className="text-[14px] text-muted">{vazio}</p>
       ) : (
-        <ol aria-label="Ranking SDR" className="flex flex-col gap-4">
-          {ordenados.map((s, i) => (
-            <LinhaSdr key={s.id_user} s={s} posicao={i + 1} decorridos={decorridos} doMes={doMes} />
+        <ol aria-label={rotuloLista} className="flex flex-col gap-4">
+          {ordenados.map((item, i) => (
+            <LinhaRanking key={item.id} item={item} posicao={i + 1} decorridos={decorridos} doMes={doMes} unidade={unidade} />
           ))}
         </ol>
       )}
