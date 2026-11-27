@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { acumuladoDoAno, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalSerie } from "../src/lib/agregacoes-notas";
+import { acumuladoDoAno, agruparPorCanal, mesesDoPeriodo, serieMensal, totaisDoPeriodo, totalDeLinhas, totalSerie } from "../src/lib/agregacoes-notas";
 import type { NotaFinanceiro } from "../src/lib/tipos-api";
 
 function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
@@ -53,5 +53,19 @@ describe("serieMensal", () => {
     expect(s[9]).toEqual({ mes: "2026-10", faturamento: 0, receita: 4000, receitaComercial: 0, receitaBase: 4000, vendas: 0, ticketMedio: null });
     expect(totalSerie(s)).toEqual({ mes: "total", faturamento: 118000, receita: 31000, receitaComercial: 17000, receitaBase: 12000, vendas: 3, ticketMedio: 118000 / 3 });
     expect(acumuladoDoAno(NOTAS, "2026")).toEqual({ faturamento: 118000, receita: 31000 });
+  });
+});
+
+describe("agruparPorCanal", () => {
+  it("agruparPorCanal lista os canais fixos, anexa Sem canal e soma faturamento e vendas da data", () => {
+    const linhas = agruparPorCanal(NOTAS, "2026-09-01", "2026-09-30");
+    expect(linhas.map((l) => l.rotulo)).toEqual(["LinkedIn", "Indicação", "Instagram", "Evento", "Cliente", "Sem canal"]);
+    expect(linhas.find((l) => l.rotulo === "LinkedIn")).toMatchObject({ vendas: 1, faturamento: 60000, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Indicação")).toMatchObject({ vendas: 1, faturamento: 20000, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Instagram")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Evento")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Cliente")).toMatchObject({ vendas: 0, faturamento: 0, receita: 0 });
+    expect(linhas.find((l) => l.rotulo === "Sem canal")).toMatchObject({ vendas: 0, faturamento: 8000, receita: 0 });
+    expect(totalDeLinhas(linhas)).toEqual({ chave: "__total__", rotulo: "Total", vendas: 2, faturamento: 88000, receita: 0 });
   });
 });

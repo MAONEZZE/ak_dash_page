@@ -96,3 +96,63 @@ export function acumuladoDoAno(notas: NotaFinanceiro[], ano: string): { faturame
   const t = totaisDoPeriodo(notas, `${ano}-01-01`, `${ano}-12-31`);
   return { faturamento: t.faturamento, receita: t.receita };
 }
+
+export interface LinhaAgrupada {
+  chave: string;
+  rotulo: string;
+  vendas: number;
+  faturamento: number;
+  receita: number;
+}
+
+export interface ItemCanonico {
+  chave: string;
+  rotulo: string;
+}
+
+export const CANAIS_CANONICOS: ItemCanonico[] = ["LinkedIn", "Indicação", "Instagram", "Evento", "Cliente"].map((c) => ({ chave: c, rotulo: c }));
+
+function linhaVazia(chave: string, rotulo: string): LinhaAgrupada {
+  return { chave, rotulo, vendas: 0, faturamento: 0, receita: 0 };
+}
+
+/** Agrupa contribuições já resolvidas. Canônicos saem sempre na frente, na ordem dada, mesmo zerados; chave fora da lista é anexada no fim, na ordem em que aparece, só se `aceitarExtras`. */
+function agrupar(canonicos: ItemCanonico[], contribuicoes: LinhaAgrupada[], aceitarExtras: boolean): LinhaAgrupada[] {
+  const porChave = new Map<string, LinhaAgrupada>();
+  for (const item of canonicos) porChave.set(item.chave, linhaVazia(item.chave, item.rotulo));
+
+  const extras: string[] = [];
+  for (const c of contribuicoes) {
+    let linha = porChave.get(c.chave);
+    if (!linha) {
+      if (!aceitarExtras) continue;
+      linha = linhaVazia(c.chave, c.rotulo);
+      porChave.set(c.chave, linha);
+      extras.push(c.chave);
+    }
+    linha.vendas += c.vendas;
+    linha.faturamento += c.faturamento;
+    linha.receita += c.receita;
+  }
+
+  return [...canonicos.map((c) => porChave.get(c.chave)!), ...extras.map((chave) => porChave.get(chave)!)];
+}
+
+/** Por canal: só notas com data_referencia em `inicio..fim`; faturamento e vendas da data. */
+export function agruparPorCanal(notas: NotaFinanceiro[], inicio: string, fim: string): LinhaAgrupada[] {
+  const contribuicoes = notas.filter((n) => naData(n, inicio, fim)).map((n) => ({
+    chave: n.canal ?? "__sem_canal__",
+    rotulo: n.canal ?? "Sem canal",
+    vendas: ehVenda(n) ? 1 : 0,
+    faturamento: n.valor_venda,
+    receita: 0,
+  }));
+  return agrupar(CANAIS_CANONICOS, contribuicoes, true);
+}
+
+export function totalDeLinhas(linhas: LinhaAgrupada[]): LinhaAgrupada {
+  return linhas.reduce(
+    (acc, l) => ({ ...acc, vendas: acc.vendas + l.vendas, faturamento: acc.faturamento + l.faturamento, receita: acc.receita + l.receita }),
+    { chave: "__total__", rotulo: "Total", vendas: 0, faturamento: 0, receita: 0 },
+  );
+}
