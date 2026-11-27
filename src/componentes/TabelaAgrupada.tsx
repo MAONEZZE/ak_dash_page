@@ -1,4 +1,4 @@
-import type { LinhaAgrupada } from "../lib/agregacoes-financeiro";
+import type { LinhaAgrupada } from "../lib/agregacoes-notas";
 
 export interface ColunaAgrupada {
   titulo: string;

@@ -1,79 +1,34 @@
 // @vitest-environment jsdom
 //
 // Smoke test de página: renderiza a Financeiro de ponta a ponta (fetch mockado
-// + agregações reais) e confere que ela não quebra e mostra os números certos
-// pra cima da fixture de 3 vendas de docs/contract/fixtures/financeiro.example.json.
+// + agregações reais sobre as notas das abas NFS) e confere o layout novo:
+// 5 cards, 2 gráficos, mês a mês e as 3 tabelas.
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buscarFinanceiro } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
 import { Financeiro } from "../src/paginas/Financeiro";
-import type { Pessoa, RespostaFinanceiro } from "../src/lib/tipos-api";
+import type { NotaFinanceiro, RespostaFinanceiro } from "../src/lib/tipos-api";
 
-const VENDAS: RespostaFinanceiro["vendas"] = [
-  {
-    id: 1,
-    data_venda: "2026-09-12T00:00:00",
-    cliente: "Maria Silva",
-    produto: "Produto de Ativação",
-    canal: "Instagram",
-    metodo_pagamento: "PIX",
-    num_parcelas: 1,
-    valor_bruto_contrato: 100000,
-    valor_entrada: 100000,
-    liquido_entrada: 90000,
-    imposto: 0.1,
-    taxa: 0,
-    valor_pgto_2: 0,
-    taxa_pgto_2: 0,
-    liquido_pgto_2: 0,
-    forma_pgto_2: null,
-    user_closer: 1,
-    closer: "Jacob",
-    id_planilha: 1,
-    recebimentos: [],
-  },
-  {
-    id: 2,
-    data_venda: "2026-09-08T00:00:00",
-    cliente: null,
-    produto: "Produto de Entrada",
-    canal: null,
-    metodo_pagamento: "",
-    num_parcelas: null,
-    valor_bruto_contrato: 5000,
-    valor_entrada: 5000,
-    liquido_entrada: 4500,
-    imposto: 0.1,
-    taxa: 0,
-    valor_pgto_2: 0,
-    taxa_pgto_2: 0,
-    liquido_pgto_2: 0,
-    forma_pgto_2: null,
-    user_closer: null,
-    closer: null,
-    id_planilha: 2,
-    recebimentos: [],
-  },
+function nota(over: Partial<NotaFinanceiro>): NotaFinanceiro {
+  return { chave: "x", mes: "2026-09", data_referencia: "2026-09-01", cliente: null, categoria: null, produto: null, valor_pago: 0, valor_venda: 0, forma_pagamento: "Outros", canal: null, ...over };
+}
+const NOTAS: NotaFinanceiro[] = [
+  nota({ chave: "n1", mes: "2026-09", data_referencia: "2026-09-12", categoria: "venda nova", produto: "Aceleração", valor_pago: 10000, valor_venda: 60000, forma_pagamento: "Cartão", canal: "LinkedIn" }),
+  nota({ chave: "n2", mes: "2026-09", data_referencia: "2026-09-08", categoria: "mensalidade cliente", produto: "Tração", valor_pago: 5000, valor_venda: 0, forma_pagamento: "PIX", canal: null }),
+  nota({ chave: "n3", mes: "2026-09", data_referencia: "2026-09-20", categoria: "upsell", produto: "Sprint", valor_pago: 3000, valor_venda: 20000, forma_pagamento: "Outros", canal: "Indicação" }),
+  nota({ chave: "n4", mes: "2026-09", data_referencia: "2026-09-01", categoria: null, produto: null, valor_pago: 2000, valor_venda: 0, forma_pagamento: "Boleto", canal: null }),
+  nota({ chave: "n5", mes: "2026-08", data_referencia: "2026-08-10", categoria: "venda nova", produto: "Aceleração", valor_pago: 7000, valor_venda: 30000, forma_pagamento: "PIX", canal: "LinkedIn" }),
+  nota({ chave: "n6", mes: "2026-10", data_referencia: "2026-09-30", categoria: "mensalidade cliente", produto: "Tração", valor_pago: 4000, valor_venda: 8000, forma_pagamento: "PIX", canal: null }),
 ];
 
 const DADO: RespostaFinanceiro = {
-  periodo: { granularidade: "ano", inicio: "2026-01-01", fim: "2026-09-21" },
-  cards: [],
-  vendas: VENDAS,
+  periodo: { granularidade: "ano", inicio: "2026-01-01", fim: "2026-11-27" },
+  notas: NOTAS,
 };
-
-const CLOSERS: Pessoa[] = [{ id: "1", nome: "Jacob", cargo: "closer", email: "jacob@x.com", imagem_url: null }];
-
-const VENDAS_COM_RECEBIMENTO: RespostaFinanceiro["vendas"] = [
-  { ...VENDAS[0], recebimentos: [{ mes: "2026-09", pago: 100000, liquido: 90000 }] },
-  { ...VENDAS[1], valor_bruto_contrato: 5000, recebimentos: [] },
-];
 
 vi.mock("../src/lib/api", () => ({
   buscarFinanceiro: vi.fn(async () => DADO),
-  buscarPessoas: vi.fn(async () => CLOSERS),
 }));
 
 function montar(rota = "/?granularidade=mes&periodo=2026-09") {
@@ -92,169 +47,100 @@ describe("página Financeiro", () => {
     vi.useRealTimers();
   });
 
-  it("renderiza os 4 cards, os gráficos e as 4 tabelas sem quebrar", async () => {
+  it("renderiza 5 cards, os 2 gráficos, o mês a mês e as 3 tabelas", async () => {
     montar();
 
     await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
     const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
-    expect(cards.getByText("Contrato bruto vendido")).toBeTruthy();
-    expect(cards.getByText("Recebimento bruto")).toBeTruthy();
-    expect(cards.getByText("Liquidou na conta")).toBeTruthy();
-    expect(cards.getByText("Bruto vendido no ano")).toBeTruthy();
-
-    // 100000 + 5000 = 105000, formatado em BRL
-    expect(screen.getAllByText(/R\$\s*105\.000,00/).length).toBeGreaterThan(0);
-
-    expect(screen.getAllByText("Vendido").length).toBeGreaterThan(0);
-    expect(screen.getByText("Total recebido × Liquidou")).toBeTruthy();
+    for (const rotulo of ["Faturamento", "Receita líquida", "Receita líquida time comercial", "Receita líquida da base", "Acumulado do ano"]) {
+      expect(cards.getByText(rotulo)).toBeTruthy();
+    }
+    for (const removido of ["Recebimento bruto", "Liquidou na conta", "Contrato bruto vendido", "Bruto vendido no ano", "Desempenho por closer"]) {
+      expect(screen.queryByText(removido)).toBeNull();
+    }
+    expect(screen.queryByRole("region", { name: "No ano" })).toBeNull();
 
     expect(screen.getByText("Por canal")).toBeTruthy();
+    expect(screen.getByText("Resultado mês a mês")).toBeTruthy();
     expect(screen.getByText("Como entrou o dinheiro")).toBeTruthy();
-    expect(screen.getByText("Desempenho por closer")).toBeTruthy();
     expect(screen.getByText("Desempenho por produto")).toBeTruthy();
+
+    // card + título do gráfico
+    expect(screen.getAllByText("Faturamento").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("Receita líquida").length).toBeGreaterThanOrEqual(2);
   });
 
-  it("aplica os rótulos de valor ausente: canal null vira 'Sem canal', metodo vazio vira 'Não informado', closer null vira 'Sem closer definido'", async () => {
-    montar();
-    await waitFor(() => expect(screen.getByText("Jacob")).toBeTruthy());
-
-    expect(screen.getByText("Não informado")).toBeTruthy();
-    expect(screen.getByText("Sem closer definido")).toBeTruthy();
-    expect(screen.getByText("Sem canal")).toBeTruthy();
-  });
-
-  it("cards mostram ticket médio, parte do recebido vinda de contrato do mês e descontos", async () => {
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+  it("cards mostram os valores do mês", async () => {
     montar();
 
-    await waitFor(() => expect(screen.getByText(/ticket médio R\$\s*52\.500,00 · 2 contratos fechados/)).toBeTruthy());
-    expect(screen.getByText(/R\$\s*100\.000,00 contrato fechado no período/)).toBeTruthy();
-    expect(screen.getByText(/R\$\s*10\.000,00 de taxas e imposto/)).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
+    const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
+    const card = (rotulo: string) => cards.getByText(rotulo).closest("article")!;
+
+    const faturamento = within(card("Faturamento"));
+    expect(faturamento.getByText(/R\$\s*88\.000,00/)).toBeTruthy();
+    expect(faturamento.getByText(/ticket médio R\$\s*44\.000,00 · 2 vendas/)).toBeTruthy();
+
+    expect(within(card("Receita líquida")).getByText(/R\$\s*20\.000,00/)).toBeTruthy();
+    expect(within(card("Receita líquida time comercial")).getByText(/R\$\s*10\.000,00/)).toBeTruthy();
+    expect(within(card("Receita líquida da base")).getByText(/R\$\s*8\.000,00/)).toBeTruthy();
+
+    const acumulado = within(card("Acumulado do ano"));
+    expect(acumulado.getByText(/R\$\s*118\.000,00/)).toBeTruthy();
+    expect(acumulado.getByText(/receita líquida no ano R\$\s*31\.000,00/)).toBeTruthy();
   });
 
-  it("em dia ou semana os recebimentos mostram travessão com a legenda de só por mês", async () => {
+  it("em dia ou semana a receita mostra travessão com a legenda de só por mês", async () => {
     // Em dia/semana o período é sempre o corrente (ver `useFiltrosAtuais`), então fixa-se a data de hoje em 12/09.
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 8, 12, 12));
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
     montar("/?granularidade=dia&periodo=2026-09-12");
 
     await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
     const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
 
-    const cardVendido = cards.getByText("Contrato bruto vendido").closest("article")!;
-    expect(within(cardVendido).getByText(/^R\$\s*100\.000,00$/)).toBeTruthy();
+    const cardFaturamento = cards.getByText("Faturamento").closest("article")!;
+    expect(within(cardFaturamento).getByText(/^R\$\s*60\.000,00$/)).toBeTruthy();
 
-    for (const rotulo of ["Recebimento bruto", "Liquidou na conta"]) {
+    for (const rotulo of ["Receita líquida", "Receita líquida time comercial", "Receita líquida da base"]) {
       const card = cards.getByText(rotulo).closest("article")!;
       expect(within(card).getByText("—")).toBeTruthy();
     }
-    expect(screen.getAllByText("Recebimentos só por mês")).toHaveLength(2);
+    expect(screen.getAllByText("Receita só por mês")).toHaveLength(3);
 
-    const colunas = ["Pago no mês", "Líquido no mês", "Pago pelo cliente", "Taxa (R$)", "Líquido na conta", "% de taxa"];
-    for (const titulo of colunas) {
-      for (const cabecalho of screen.getAllByRole("columnheader", { name: titulo })) {
-        const th = cabecalho as HTMLTableCellElement;
-        const tabela = th.closest("table")!;
-        const celulas = Array.from(tabela.querySelectorAll("tbody tr, tfoot tr")).map((tr) => tr.children[th.cellIndex]?.textContent);
-        expect(celulas.length).toBeGreaterThan(0);
-        expect(celulas.every((texto) => texto === "—")).toBe(true);
-      }
+    const cabecalhos = screen.getAllByRole("columnheader", { name: "Receita líquida" });
+    expect(cabecalhos.length).toBeGreaterThan(0);
+    for (const cabecalho of cabecalhos) {
+      const th = cabecalho as HTMLTableCellElement;
+      const tabela = th.closest("table")!;
+      const celulas = Array.from(tabela.querySelectorAll("tbody tr, tfoot tr")).map((tr) => tr.children[th.cellIndex]?.textContent);
+      expect(celulas.length).toBeGreaterThan(0);
+      expect(celulas.every((texto) => texto === "—")).toBe(true);
     }
   });
 
-  it("faixa no ano mostra pago, líquido, descontos médios, carteira e restante sem data", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date("2026-10-28T12:00:00Z"));
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
-    montar("/?granularidade=mes&periodo=2026-09");
-
-    await waitFor(() => expect(screen.getByRole("region", { name: "No ano" })).toBeTruthy());
-    const regiao = screen.getByRole("region", { name: "No ano" });
-
-    // Confere cada valor dentro do par (div) do seu próprio rótulo: "Ainda a receber" e "Restante sem data" têm o mesmo valor.
-    const pares: [string, RegExp][] = [
-      ["Pago acumulado no ano", /^R\$\s*100\.000,00$/],
-      ["Líquido no ano", /^R\$\s*90\.000,00$/],
-      ["Descontos médios", /^10%$/],
-      ["Ainda a receber", /^R\$\s*5\.000,00$/],
-      ["Restante sem data", /^R\$\s*5\.000,00$/],
-    ];
-    for (const [rotulo, valor] of pares) {
-      const par = within(regiao).getByText(rotulo).closest("div")!;
-      expect(within(par).getByText(valor)).toBeTruthy();
-    }
-  });
-
-  it("tabela resultado mês a mês mostra as 7 linhas da planilha com jan a dez e total", async () => {
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
-    montar("/?granularidade=mes&periodo=2026-09");
-
-    await waitFor(() => expect(screen.getByRole("table", { name: "Resultado mês a mês" })).toBeTruthy());
-    const tabela = screen.getByRole("table", { name: "Resultado mês a mês" });
-
-    const cabecalhos = within(tabela)
-      .getAllByRole("columnheader")
-      .map((th) => th.textContent);
-    expect(cabecalhos).toEqual([
-      "Categoria",
-      "Jan/26",
-      "Fev/26",
-      "Mar/26",
-      "Abr/26",
-      "Mai/26",
-      "Jun/26",
-      "Jul/26",
-      "Ago/26",
-      "Set/26",
-      "Out/26",
-      "Nov/26",
-      "Dez/26",
-      "Total 2026",
-    ]);
-
-    const linhas = Array.from(tabela.querySelectorAll("tbody tr"));
-    const rotulos = linhas.map((tr) => tr.children[0].textContent);
-    expect(rotulos).toEqual([
-      "Contrato bruto vendido",
-      "Recebimento bruto",
-      "Liquidou na conta",
-      "· pago de parcelas anteriores",
-      "Total recebido no mês",
-      "Nº de contratos fechados",
-      "Ticket médio",
-    ]);
-
-    const linhaDe = (rotulo: string) => linhas[rotulos.indexOf(rotulo)];
-    const colunaSet = cabecalhos.indexOf("Set/26");
-    expect(linhaDe("Contrato bruto vendido").children[colunaSet].textContent).toMatch(/^R\$\s*105\.000,00$/);
-    expect(linhaDe("Nº de contratos fechados").children[colunaSet].textContent).toBe("2");
-    expect(linhaDe("Ticket médio").children[cabecalhos.indexOf("Jan/26")].textContent).toBe("—");
-  });
-
-  it("tabela por canal mostra percentual do bruto e as tabelas seguem as colunas da planilha", async () => {
-    vi.mocked(buscarFinanceiro).mockResolvedValueOnce({ ...DADO, vendas: VENDAS_COM_RECEBIMENTO });
+  it("tabelas: canal com % do faturamento, forma com Outros, produto só com os 4", async () => {
     montar("/?granularidade=mes&periodo=2026-09");
 
     await waitFor(() => expect(screen.getByText("Por canal")).toBeTruthy());
 
-    const cabecalhosDe = (titulo: string) => {
-      const tabela = within(screen.getByText(titulo).closest("article")!).getByRole("table");
-      return within(tabela)
-        .getAllByRole("columnheader")
-        .slice(1)
-        .map((th) => th.textContent);
-    };
+    const tabelaDe = (titulo: string) => within(screen.getByText(titulo).closest("article")!).getByRole("table");
+    const linhasDe = (titulo: string) => Array.from(tabelaDe(titulo).querySelectorAll("tbody tr"));
+    const linhaDe = (titulo: string, rotulo: string) => linhasDe(titulo).find((tr) => tr.children[0].textContent === rotulo)!;
 
-    const porCanal = within(screen.getByText("Por canal").closest("article")!);
-    expect(cabecalhosDe("Por canal")).toEqual(["Bruto vendido", "Nº vendas", "% do bruto", "Pago no mês"]);
-    const linhasCanal = Array.from(porCanal.getByRole("table").querySelectorAll("tbody tr"));
-    const linhaCanal = (rotulo: string) => linhasCanal.find((tr) => tr.children[0].textContent === rotulo)!;
-    expect(linhaCanal("Instagram").children[3].textContent).toBe("95%");
-    expect(linhaCanal("Sem canal").children[3].textContent).toBe("5%");
+    const linhaLinkedIn = linhaDe("Por canal", "LinkedIn");
+    expect(linhaLinkedIn.textContent).toMatch(/R\$\s*60\.000,00/);
+    expect(linhaLinkedIn.children[2].textContent).toBe("1");
+    expect(linhaLinkedIn.children[3].textContent).toBe("68%");
+    expect(linhaDe("Por canal", "Sem canal")).toBeTruthy();
 
-    expect(cabecalhosDe("Como entrou o dinheiro")).toEqual(["Pago pelo cliente", "Taxa (R$)", "Líquido na conta", "% de taxa"]);
-    expect(cabecalhosDe("Desempenho por produto")).toEqual(["Bruto vendido", "Nº vendas", "Ticket médio", "Pago no mês"]);
-    expect(cabecalhosDe("Desempenho por closer")).toEqual(["Bruto vendido", "Nº vendas", "Pago no mês", "Líquido no mês"]);
+    expect(linhaDe("Como entrou o dinheiro", "PIX").children[1].textContent).toMatch(/R\$\s*5\.000,00/);
+    expect(linhaDe("Como entrou o dinheiro", "Cartão").children[1].textContent).toMatch(/R\$\s*10\.000,00/);
+    expect(linhaDe("Como entrou o dinheiro", "Boleto").children[1].textContent).toMatch(/R\$\s*2\.000,00/);
+    expect(linhaDe("Como entrou o dinheiro", "Outros").children[1].textContent).toMatch(/R\$\s*3\.000,00/);
+
+    const rotulosProduto = linhasDe("Desempenho por produto").map((tr) => tr.children[0].textContent);
+    expect(rotulosProduto).toEqual(["Ativação", "Tração", "Aceleração", "The Green House"]);
+    expect(screen.queryByText("Sprint")).toBeNull();
   });
 });
