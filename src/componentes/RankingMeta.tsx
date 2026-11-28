@@ -13,7 +13,6 @@ export interface ItemRanking {
   valor: number;
   valorHoje: number;
   meta: number | null;
-  negocios?: number;
 }
 
 /**
@@ -97,7 +96,7 @@ function LinhaRanking({
   total: number;
   unidade: { singular: string; plural: string };
 }) {
-  const { valor, valorHoje, meta, negocios } = item;
+  const { valor, valorHoje, meta } = item;
   const metaValida = meta !== null && meta > 0 ? meta : null;
   const escala = metaValida !== null ? metaValida * TETO_DA_BARRA : 0;
   // Largura sobre meta × 1,2, cortada no fim do trilho.
@@ -113,11 +112,6 @@ function LinhaRanking({
           <Posicao posicao={posicao} />
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-[36px] font-medium leading-tight">{item.nome}</span>
-            {negocios !== undefined && (
-              <span data-negocios className="text-[26px] text-muted">
-                {formatarNumero(negocios)} {negocios === 1 ? "negócio" : "negócios"}
-              </span>
-            )}
           </div>
         </div>
         <div data-numeros className="flex shrink-0 items-baseline gap-2">
@@ -181,8 +175,7 @@ function LinhaRanking({
 
 /**
  * Card de ranking contra a meta: valor acumulado da janela por pessoa, com o dia em verde claro; usado nas
- * páginas SDR e Seller. Embaixo do nome, os negócios de cada item quando informados. O `badge` é um
- * total opcional no cabeçalho. Ordena por valor, decrescente, desempatando por negócios.
+ * páginas SDR e Seller. O `badge` é um total opcional no cabeçalho. Ordena por valor, decrescente.
  */
 export function RankingMeta({
   titulo,
@@ -205,7 +198,7 @@ export function RankingMeta({
   vazio: string;
   agora?: Date;
 }) {
-  const ordenados = [...itens].sort((a, b) => b.valor - a.valor || (b.negocios ?? 0) - (a.negocios ?? 0));
+  const ordenados = [...itens].sort((a, b) => b.valor - a.valor);
   const metaDoMes = ordenados.reduce((soma, i) => soma + (i.meta ?? 0), 0);
   const { decorridos, total } = janela ? diasUteisDecorridos(janela.inicio, janela.fim, agora) : { decorridos: 0, total: 0 };
   const rotuloMeta = janela ? `Meta até ${janela.fim.slice(8, 10)}/${janela.fim.slice(5, 7)}:` : "Meta:";

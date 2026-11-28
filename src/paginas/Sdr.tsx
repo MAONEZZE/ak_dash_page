@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { RankingMeta } from "../componentes/RankingMeta";
@@ -7,9 +7,13 @@ import { buscarPaginaSdr } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { formatarNumero } from "../lib/formato";
 import { paraPeriodo } from "../lib/periodo";
+import { useSomDeRanking } from "../lib/som";
+import { tocarArquivo } from "../lib/som-audio";
 import type { RespostaPaginaSdr } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
+
+const tocarInscrito = () => tocarArquivo("inscrito");
 
 interface EstadoSdr {
   dado: RespostaPaginaSdr | null;
@@ -65,6 +69,12 @@ export function Sdr() {
 
   const { dado, erro } = estado;
 
+  const itensSom = useMemo(
+    () => estado.dado?.sdrs.map((s) => ({ id: s.id_user, valor: s.ranking_mes.inscricoes })),
+    [estado.dado],
+  );
+  useSomDeRanking(itensSom, estado.dado?.evento?.id ?? "", tocarInscrito);
+
   if (!dado) {
     return erro ? (
       <p className="text-xl text-muted" role="alert">
@@ -91,7 +101,6 @@ export function Sdr() {
             valor: s.ranking_mes.inscricoes,
             valorHoje: s.ranking_mes.inscricoes_hoje,
             meta: s.ranking_mes.meta,
-            negocios: s.ranking_mes.negocios,
           }))}
           janela={dado.janela_meta ?? dado.mes_ranking}
           unidade={{ singular: "inscrição", plural: "inscrições" }}

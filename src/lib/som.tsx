@@ -218,3 +218,42 @@ export function useSomDeEvento(eventos: EventoParaSom[] | undefined): void {
     return () => timers.forEach(clearTimeout);
   }, [eventos, ligado]);
 }
+
+/** Formato mínimo de um item de ranking (SDR, seller) pro disparo de som. */
+export interface ItemParaSom {
+  id: string;
+  valor: number;
+}
+
+/**
+ * Som dos rankings (páginas SDR e Seller): compara o `valor` de cada item entre dois refreshes e chama `tocar`
+ * uma vez por item que subiu, espaçados de ATRASO_ENTRE_PESSOAS_MS. Silêncio na 1ª carga, quando `chave` muda
+ * (ex.: outro evento), pra item que acabou de entrar na lista e com o som desligado. `tocar` precisa ter
+ * identidade estável (função no nível do módulo).
+ */
+export function useSomDeRanking(itens: ItemParaSom[] | undefined, chave: string, tocar: () => void): void {
+  const { ligado } = useSom();
+  const anteriorRef = useRef<Map<string, number> | null>(null);
+  const chaveRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!itens) return;
+
+    const atual = new Map(itens.map((i) => [i.id, i.valor]));
+    const anterior = chaveRef.current === chave ? anteriorRef.current : null;
+    chaveRef.current = chave;
+    anteriorRef.current = atual;
+
+    if (!anterior) return;
+
+    let subiram = 0;
+    for (const [id, valor] of atual) {
+      if (anterior.has(id) && valor > anterior.get(id)!) subiram++;
+    }
+
+    if (subiram === 0 || !ligado) return;
+
+    const timers = Array.from({ length: subiram }, (_, indice) => setTimeout(tocar, indice * ATRASO_ENTRE_PESSOAS_MS));
+    return () => timers.forEach(clearTimeout);
+  }, [itens, chave, ligado, tocar]);
+}

@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { buscarPaginaSeller } from "../src/lib/api";
 import { AtualizacaoProvider } from "../src/lib/atualizacao";
+import { SomProvider } from "../src/lib/som";
+import { plin } from "../src/lib/som-audio";
 import type { RespostaPaginaSeller } from "../src/lib/tipos-api";
 import { Seller } from "../src/paginas/Seller";
 
@@ -17,15 +19,29 @@ const RESPOSTA: RespostaPaginaSeller = {
 };
 
 vi.mock("../src/lib/api", () => ({ buscarPaginaSeller: vi.fn(async () => RESPOSTA) }));
+vi.mock("../src/lib/som-audio", () => ({
+  plin: vi.fn(),
+  liberar: vi.fn(async () => true),
+  estaLiberado: vi.fn(() => true),
+  tocarArquivo: vi.fn(),
+}));
 
-beforeEach(() => vi.clearAllMocks());
-afterEach(() => cleanup());
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+});
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 function renderizar(url = "/seller?granularidade=dia&periodo=2026-09-10") {
   render(
     <MemoryRouter initialEntries={[url]}>
       <AtualizacaoProvider>
-        <Seller />
+        <SomProvider>
+          <Seller />
+        </SomProvider>
       </AtualizacaoProvider>
     </MemoryRouter>,
   );
@@ -53,6 +69,24 @@ it("sem sellers, mostra a mensagem de vazio", async () => {
   vi.mocked(buscarPaginaSeller).mockResolvedValueOnce({ ...RESPOSTA, sellers: [] });
   renderizar();
   expect(await screen.findByText("Nenhum seller ativo.")).toBeTruthy();
+});
+
+it("número captado de um seller sobe no refresh → toca o plin de seller", async () => {
+  vi.useFakeTimers();
+  renderizar();
+  await vi.advanceTimersByTimeAsync(0);
+
+  vi.mocked(buscarPaginaSeller).mockResolvedValueOnce({
+    ...RESPOSTA,
+    sellers: [RESPOSTA.sellers[0], { ...RESPOSTA.sellers[1], numeros_captados: 9 }],
+  });
+  expect(plin).not.toHaveBeenCalled();
+
+  await vi.advanceTimersByTimeAsync(60_000);
+  await vi.advanceTimersByTimeAsync(500);
+
+  expect(plin).toHaveBeenCalledTimes(1);
+  expect(plin).toHaveBeenCalledWith("seller");
 });
 
 function mesCorrente(): string {

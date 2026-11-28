@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AvisoFontes } from "../componentes/AvisoFontes";
 import { CardEsqueleto } from "../componentes/CardEsqueleto";
 import { RankingMeta } from "../componentes/RankingMeta";
 import { buscarPaginaSeller } from "../lib/api";
 import { useAtualizacao } from "../lib/atualizacao";
 import { paraPeriodo } from "../lib/periodo";
+import { useSomDeRanking } from "../lib/som";
+import { plin } from "../lib/som-audio";
 import type { RespostaPaginaSeller } from "../lib/tipos-api";
 
 const INTERVALO_AUTO_REFRESH_MS = 60_000;
+
+const tocarPlinSeller = () => plin("seller");
 
 interface EstadoSeller {
   dado: RespostaPaginaSeller | null;
@@ -61,6 +65,13 @@ export function Seller() {
   }, [atualizadoEm, atualizando, carregar, registrar]);
 
   const { dado, erro } = estado;
+
+  const itensSom = useMemo(
+    () => estado.dado?.sellers.map((s) => ({ id: s.id_user, valor: s.numeros_captados })),
+    [estado.dado],
+  );
+  // Página sempre no mês corrente: chave fixa. Na virada do mês os valores caem, e queda não toca.
+  useSomDeRanking(itensSom, "", tocarPlinSeller);
 
   if (!dado) {
     return erro ? (
