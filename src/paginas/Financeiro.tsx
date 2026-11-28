@@ -31,6 +31,16 @@ interface Estado {
 
 const ESTADO_INICIAL: Estado = { dado: null, carregando: true, erro: null };
 
+/**
+ * Número dos 5 cards do Financeiro. A escala padrão do CardKpi assume até 4
+ * colunas e corta "R$ 118.000,00" na grade de 5 (sobram ~150px úteis por card
+ * com a barra lateral de 240px a 1280px). O teto em vw sai da largura útil ÷
+ * ~7,2em ("R$ 1.234.567,89") no ponto mais estreito de cada grade: 1 coluna
+ * (360px), 2 colunas (640px) e 5 colunas (1280px).
+ */
+const TAMANHO_VALOR_FINANCEIRO =
+  "text-[clamp(16px,9vw,50px)] sm:text-[clamp(16px,4.5vw,50px)] xl:text-[clamp(14px,1.6vw,50px)]";
+
 /** Mesma grade da página, sem conteúdo — ver CardEsqueleto. */
 function Esqueleto() {
   return (
@@ -138,15 +148,16 @@ export function Financeiro() {
       <AvisoFontes avisos={estado.dado.avisos} />
       <section aria-label="Indicadores do período" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <CardKpi
+          classeTamanhoValor={TAMANHO_VALOR_FINANCEIRO}
           label="Faturamento"
           value={formatarMoeda(t.faturamento)}
           pct={null}
-          legenda={t.vendas === 0 ? "nenhuma venda no período" : `ticket médio ${formatarMoeda(t.ticketMedio!)} · ${t.vendas} vendas`}
+          legenda={t.vendas === 0 ? "nenhuma venda no período" : `ticket médio ${formatarMoeda(t.ticketMedio!)}`}
         />
-        <CardKpi label="Receita líquida" value={receita(t.receita)} pct={null} legenda={legendaReceita("valor pago que entrou na conta")} />
-        <CardKpi label="Receita líquida time comercial" value={receita(t.receitaComercial)} pct={null} legenda={legendaReceita("vendas novas")} />
-        <CardKpi label="Receita líquida da base" value={receita(t.receitaBase)} pct={null} legenda={legendaReceita("mensalidades e upsell")} />
-        <CardKpi label="Acumulado do ano" value={formatarMoeda(ano.faturamento)} pct={null} legenda={`receita líquida no ano ${formatarMoeda(ano.receita)}`} />
+        <CardKpi classeTamanhoValor={TAMANHO_VALOR_FINANCEIRO} label="Receita líquida" value={receita(t.receita)} pct={null} legenda={legendaReceita("valor pago que entrou na conta")} />
+        <CardKpi classeTamanhoValor={TAMANHO_VALOR_FINANCEIRO} label="liquidado time comercial" value={receita(t.receitaComercial)} pct={null} legenda={legendaReceita("vendas novas")} />
+        <CardKpi classeTamanhoValor={TAMANHO_VALOR_FINANCEIRO} label="liquidado da base" value={receita(t.receitaBase)} pct={null} legenda={legendaReceita("mensalidades e upsell")} />
+        <CardKpi classeTamanhoValor={TAMANHO_VALOR_FINANCEIRO} label="Acumulado do ano" value={formatarMoeda(ano.faturamento)} pct={null} legenda={`liquidado ano ${formatarMoeda(ano.receita)}`} />
       </section>
 
       {/*

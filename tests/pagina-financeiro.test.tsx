@@ -52,7 +52,7 @@ describe("página Financeiro", () => {
 
     await waitFor(() => expect(screen.getByRole("region", { name: "Indicadores do período" })).toBeTruthy());
     const cards = within(screen.getByRole("region", { name: "Indicadores do período" }));
-    for (const rotulo of ["Faturamento", "Receita líquida", "Receita líquida time comercial", "Receita líquida da base", "Acumulado do ano"]) {
+    for (const rotulo of ["Faturamento", "Receita líquida", "liquidado time comercial", "liquidado da base", "Acumulado do ano"]) {
       expect(cards.getByText(rotulo)).toBeTruthy();
     }
     for (const removido of ["Recebimento bruto", "Liquidou na conta", "Contrato bruto vendido", "Bruto vendido no ano", "Desempenho por closer"]) {
@@ -82,8 +82,8 @@ describe("página Financeiro", () => {
     expect(faturamento.getByText(/ticket médio R\$\s*44\.000,00 · 2 vendas/)).toBeTruthy();
 
     expect(within(card("Receita líquida")).getByText(/R\$\s*20\.000,00/)).toBeTruthy();
-    expect(within(card("Receita líquida time comercial")).getByText(/R\$\s*10\.000,00/)).toBeTruthy();
-    expect(within(card("Receita líquida da base")).getByText(/R\$\s*8\.000,00/)).toBeTruthy();
+    expect(within(card("liquidado time comercial")).getByText(/R\$\s*10\.000,00/)).toBeTruthy();
+    expect(within(card("liquidado da base")).getByText(/R\$\s*8\.000,00/)).toBeTruthy();
 
     const acumulado = within(card("Acumulado do ano"));
     expect(acumulado.getByText(/R\$\s*118\.000,00/)).toBeTruthy();
@@ -102,7 +102,7 @@ describe("página Financeiro", () => {
     const cardFaturamento = cards.getByText("Faturamento").closest("article")!;
     expect(within(cardFaturamento).getByText(/^R\$\s*60\.000,00$/)).toBeTruthy();
 
-    for (const rotulo of ["Receita líquida", "Receita líquida time comercial", "Receita líquida da base"]) {
+    for (const rotulo of ["Receita líquida", "liquidado time comercial", "liquidado da base"]) {
       const card = cards.getByText(rotulo).closest("article")!;
       expect(within(card).getByText("—")).toBeTruthy();
     }
